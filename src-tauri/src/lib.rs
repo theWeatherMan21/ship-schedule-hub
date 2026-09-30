@@ -513,3 +513,23 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::fix_root;
+    use std::path::PathBuf;
+
+    #[test]
+    fn 盘符根会补反斜杠() {
+        // 关键：'D:' 这种驱动器相对路径必须变成 'D:\'，否则交给 Node 会 EISDIR
+        assert_eq!(fix_root(PathBuf::from("D:")), PathBuf::from("D:\\"));
+        assert_eq!(fix_root(PathBuf::from("d:")), PathBuf::from("d:\\"));
+    }
+
+    #[test]
+    fn 正常路径不受影响() {
+        assert_eq!(fix_root(PathBuf::from("D:\\Apps\\X")), PathBuf::from("D:\\Apps\\X"));
+        assert_eq!(fix_root(PathBuf::from("/usr/local/bin")), PathBuf::from("/usr/local/bin"));
+        assert_eq!(fix_root(PathBuf::from("D:\\")), PathBuf::from("D:\\"));
+    }
+}
