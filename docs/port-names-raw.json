@@ -1,0 +1,736 @@
+{
+ "Nansha": {
+  "cma": [
+   {
+    "name": "NANSHAN, 44 ; CN ; CNNA1",
+    "place": "CNNA1",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - NANSHA OLD TOWN, 44 ; CN ; CN1KA",
+    "place": "CN1KA",
+    "type": "Door"
+   },
+   {
+    "name": "NANSHA ; CN ; CNNSA",
+    "place": "CNNSA",
+    "type": "Port"
+   },
+   {
+    "name": "NANSHA ; CN ; CNNSA",
+    "place": "CNNSA",
+    "type": "Ramp • Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "NANSHA NEW PORT, GD (CNNNP)",
+    "code": "CNNNP"
+   },
+   {
+    "label": "NANSHA OLD PORT, GD (CNNSA)",
+    "code": "CNNSA"
+   }
+  ]
+ },
+ "Shenzhen": {
+  "cma": [
+   {
+    "name": "SHENZHEN - PINGHU, 44 ; CN ; CNPHU",
+    "place": "CNPHU",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - SONGGANG, 44 ; CN ; CNSAG",
+    "place": "CNSAG",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - LONGGANG, 44 ; CN ; CN1KW",
+    "place": "CN1KW",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - XIXIANG, 44 ; CN ; CNXIX",
+    "place": "CNXIX",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - SHAWAN, 44 ; CN ; CN1LD",
+    "place": "CN1LD",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - BUJI, 44 ; CN ; CNBUJ",
+    "place": "CNBUJ",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - SHATOUJIAO, 44 ; CN ; CNSTJ",
+    "place": "CNSTJ",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - SHIYAN, 44 ; CN ; CNSYN",
+    "place": "CNSYN",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - HUAQIAOCHENG, 44 ; CN ; CN1KT",
+    "place": "CN1KT",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - CHEGONGMIAO, 44 ; CN ; CN1KP",
+    "place": "CN1KP",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - SHAJING, 44 ; CN ; CNSHJ",
+    "place": "CNSHJ",
+    "type": "Door"
+   },
+   {
+    "name": "SHENZHEN - PINGDI, 44 ; CN ; CN1MD",
+    "place": "CN1MD",
+    "type": "Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "SHENANDOAH, GA (USUYS)",
+    "code": "USUYS"
+   },
+   {
+    "label": "SHENANDOAH, VA (USYHD)",
+    "code": "USYHD"
+   },
+   {
+    "label": "SHENSTONE (GBHEN)",
+    "code": "GBHEN"
+   },
+   {
+    "label": "SHENWAN, GD (CNSNW)",
+    "code": "CNSNW"
+   },
+   {
+    "label": "SHENYANG, LN (CNSHE)",
+    "code": "CNSHE"
+   },
+   {
+    "label": "SHENZHEN, GD (CNSZP)",
+    "code": "CNSZP"
+   }
+  ]
+ },
+ "Shekou": {
+  "cma": [
+   {
+    "name": "SHEKOU ; CN ; CNSHK",
+    "place": "CNSHK",
+    "type": "Port"
+   },
+   {
+    "name": "SHEKOU ; CN ; CNSHK",
+    "place": "CNSHK",
+    "type": "Ramp • Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "SHEKOU, GD (CNSHK)",
+    "code": "CNSHK"
+   }
+  ]
+ },
+ "Yantian": {
+  "cma": [
+   {
+    "name": "YANTIAN ; CN ; CNYTN",
+    "place": "CNYTN",
+    "type": "Port"
+   },
+   {
+    "name": "YANTIAN ; CN ; CNYTN",
+    "place": "CNYTN",
+    "type": "Ramp • Door"
+   },
+   {
+    "name": "DONGGUAN - YANTIAN, 44 ; CN ; CN1MG",
+    "place": "CN1MG",
+    "type": "Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "YANTAI, SD (CNYNT)",
+    "code": "CNYNT"
+   },
+   {
+    "label": "YANTIAN, GD (CNYTN)",
+    "code": "CNYTN"
+   }
+  ]
+ },
+ "Chiwan": {
+  "cma": [
+   {
+    "name": "CHIWAN ; CN ; CNCWN",
+    "place": "CNCWN",
+    "type": "Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "CHIWAN, GD (CNCWN)",
+    "code": "CNCWN"
+   }
+  ]
+ },
+ "Guangzhou": {
+  "cma": [
+   {
+    "name": "GUANGZHOU - TONGHE, 44 ; CN ; CN1LU",
+    "place": "CN1LU",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - DONGCHONG, 44 ; CN ; CN1LO",
+    "place": "CN1LO",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU (POP ONLY) ; CN ; CNCA9",
+    "place": "CNCA9",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - TONGDEWAI, 44 ; CN ; CN1KF",
+    "place": "CN1KF",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - RENHE, 44 ; CN ; CN1LQ",
+    "place": "CN1LQ",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - YUWOTOU, 44 ; CN ; CN1KK",
+    "place": "CN1KK",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - SHILING, 44 ; CN ; CN1KC",
+    "place": "CN1KC",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - FANGCUN, 44 ; CN ; CN1JR",
+    "place": "CN1JR",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - XINZAO, 44 ; CN ; CNXZO",
+    "place": "CNXZO",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - LUOCHONGWAI, 44 ; CN ; CN1JX",
+    "place": "CN1JX",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - XINSHI, 44 ; CN ; CN1LW",
+    "place": "CN1LW",
+    "type": "Door"
+   },
+   {
+    "name": "GUANGZHOU - DAGANG, 44 ; CN ; CN1JP",
+    "place": "CN1JP",
+    "type": "Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "GUANGAO, GD (CNGUO)",
+    "code": "CNGUO"
+   },
+   {
+    "label": "GUANGZHOU, GD (CNCAN)",
+    "code": "CNCAN"
+   },
+   {
+    "label": "GUANLAN, GD (CNGLN)",
+    "code": "CNGLN"
+   }
+  ]
+ },
+ "Shanghai": {
+  "cma": [
+   {
+    "name": "SHANGHAI - PUDONG NEW DISTRICT, 31 ; CN ; CN1CI",
+    "place": "CN1CI",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI PU DONG APT ; CN ; CNPVG",
+    "place": "CNPVG",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI - SONGJIANG, 31 ; CN ; CNSNG",
+    "place": "CNSNG",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI - NANHUI, 31 ; CN ; CNNNH",
+    "place": "CNNNH",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI - CHONGMING, 31 ; CN ; CNCMG",
+    "place": "CNCMG",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI - BAOSHAN, 31 ; CN ; CNBSD",
+    "place": "CNBSD",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI - MINHANG, 31 ; CN ; CN1CJ",
+    "place": "CN1CJ",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI - FENGXIAN, 31 ; CN ; CNFA1",
+    "place": "CNFA1",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI - JINSHAN, 31 ; CN ; CNJNS",
+    "place": "CNJNS",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI (POP ONLY) ; CN ; CNPV1",
+    "place": "CNPV1",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI - QINGPU, 31 ; CN ; CNQG1",
+    "place": "CNQG1",
+    "type": "Door"
+   },
+   {
+    "name": "SHANGHAI ; CN ; CNSHA",
+    "place": "CNSHA",
+    "type": "Port"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "SHANGHAI, SH (CNSHA)",
+    "code": "CNSHA"
+   },
+   {
+    "label": "SHANNON (IESNN)",
+    "code": "IESNN"
+   },
+   {
+    "label": "SHANNON, IL (USSVR)",
+    "code": "USSVR"
+   },
+   {
+    "label": "SHANNON, MS (USSZN)",
+    "code": "USSZN"
+   },
+   {
+    "label": "SHANTOU, GD (CNSWA)",
+    "code": "CNSWA"
+   },
+   {
+    "label": "SHANWEI, GD (CNSWE)",
+    "code": "CNSWE"
+   }
+  ]
+ },
+ "Ningbo": {
+  "cma": [
+   {
+    "name": "NINGBO - LIYANG, 33 ; CN ; CN1DF",
+    "place": "CN1DF",
+    "type": "Door"
+   },
+   {
+    "name": "NINGBO - XIANGSHAN, 33 ; CN ; CN1DK",
+    "place": "CN1DK",
+    "type": "Door"
+   },
+   {
+    "name": "NINGBO - CHALU, 33 ; CN ; CN1EM",
+    "place": "CN1EM",
+    "type": "Door"
+   },
+   {
+    "name": "NINGBO - MAZHU, 33 ; CN ; CN1ET",
+    "place": "CN1ET",
+    "type": "Door"
+   },
+   {
+    "name": "NINGBO (POP ONLY) ; CN ; CNPV7",
+    "place": "CNPV7",
+    "type": "Door"
+   },
+   {
+    "name": "DRONNINGBORG, 82 ; DK ; DKDRO",
+    "place": "DKDRO",
+    "type": "Door"
+   },
+   {
+    "name": "NINGBO - CICHENG, 33 ; CN ; CNCCH",
+    "place": "CNCCH",
+    "type": "Door"
+   },
+   {
+    "name": "NINGBO - ZHENHAI, 33 ; CN ; CNZHH",
+    "place": "CNZHH",
+    "type": "Door"
+   },
+   {
+    "name": "NINGBO - LINSHAN, 33 ; CN ; CN1ES",
+    "place": "CN1ES",
+    "type": "Door"
+   },
+   {
+    "name": "NINGBO - CIXI, 33 ; CN ; CN1CY",
+    "place": "CN1CY",
+    "type": "Door"
+   },
+   {
+    "name": "NINGBO - YUYAO, 33 ; CN ; CNYOU",
+    "place": "CNYOU",
+    "type": "Door"
+   },
+   {
+    "name": "NINGBO - QIUCUN, 33 ; CN ; CN1DI",
+    "place": "CN1DI",
+    "type": "Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "NINGBO, ZJ (CNNGB)",
+    "code": "CNNGB"
+   }
+  ]
+ },
+ "Qingdao": {
+  "cma": [
+   {
+    "name": "QINGDAO ; CN ; CNTAO",
+    "place": "CNTAO",
+    "type": "Port"
+   },
+   {
+    "name": "QINGDAO ; CN ; CNTAO",
+    "place": "CNTAO",
+    "type": "Ramp • Door"
+   },
+   {
+    "name": "QINGDAO (POP ONLY) ; CN ; CNPV3",
+    "place": "CNPV3",
+    "type": "Door"
+   },
+   {
+    "name": "QINGDAO - CHENGYANG, 37 ; CN ; CN1HX",
+    "place": "CN1HX",
+    "type": "Door"
+   },
+   {
+    "name": "QINGDAO - HUANGDAO, 37 ; CN ; CN1HQ",
+    "place": "CN1HQ",
+    "type": "Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "QINGDAO, SD (CNTAO)",
+    "code": "CNTAO"
+   },
+   {
+    "label": "QINGXI, GD (CNQIN)",
+    "code": "CNQIN"
+   },
+   {
+    "label": "QINGXIAN, HE (CNQXN)",
+    "code": "CNQXN"
+   },
+   {
+    "label": "QINGYUAN, GD (CNQYN)",
+    "code": "CNQYN"
+   }
+  ]
+ },
+ "Tianjin": {
+  "cma": [
+   {
+    "name": "TIANJIN - XIQING, 12 ; CN ; CN1IH",
+    "place": "CN1IH",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN - DONGLI, 12 ; CN ; CN1IE",
+    "place": "CN1IE",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN - BAODIXIAN, 12 ; CN ; CN1II",
+    "place": "CN1II",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN - WUQING, 12 ; CN ; CNYU5",
+    "place": "CNYU5",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN - JIXIAN, 12 ; CN ; CN1IK",
+    "place": "CN1IK",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN - JINGHAIXIAN, 12 ; CN ; CN1IJ",
+    "place": "CN1IJ",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN ; CN ; CNTSN",
+    "place": "CNTSN",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN (POP ONLY) ; CN ; CNPV5",
+    "place": "CNPV5",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN - JINNAN, 12 ; CN ; CN1IG",
+    "place": "CN1IG",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN - BINHAI, 12 ; CN ; CN1IC",
+    "place": "CN1IC",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN - BEICHEN, 12 ; CN ; CN1IB",
+    "place": "CN1IB",
+    "type": "Door"
+   },
+   {
+    "name": "TIANJIN - DAGANG, 12 ; CN ; CN1ID",
+    "place": "CN1ID",
+    "type": "Door"
+   }
+  ],
+  "yangming": []
+ },
+ "Xiamen": {
+  "cma": [
+   {
+    "name": "XIAMEN (POP ONLY) ; CN ; CNXM1",
+    "place": "CNXM1",
+    "type": "Door"
+   },
+   {
+    "name": "XIAMEN ; CN ; CNXMN",
+    "place": "CNXMN",
+    "type": "Port"
+   },
+   {
+    "name": "XIAMEN ; CN ; CNXMN",
+    "place": "CNXMN",
+    "type": "Ramp • Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "XIAMEN, FJ (CNXMN)",
+    "code": "CNXMN"
+   }
+  ]
+ },
+ "Dalian": {
+  "cma": [
+   {
+    "name": "DALIAN - ZHONGSHAN, 21 ; CN ; CN1HD",
+    "place": "CN1HD",
+    "type": "Door"
+   },
+   {
+    "name": "DALIAN - PULANDIAN, 21 ; CN ; CN1HJ",
+    "place": "CN1HJ",
+    "type": "Door"
+   },
+   {
+    "name": "DALIAN - GANJINGZI, 21 ; CN ; CN1GY",
+    "place": "CN1GY",
+    "type": "Door"
+   },
+   {
+    "name": "DALIAN - JINZHOU, 21 ; CN ; CN1GZ",
+    "place": "CN1GZ",
+    "type": "Door"
+   },
+   {
+    "name": "DALIAN (POP ONLY) ; CN ; CNPV4",
+    "place": "CNPV4",
+    "type": "Door"
+   },
+   {
+    "name": "WUDALIANCHI, 23 ; CN ; CNWA2",
+    "place": "CNWA2",
+    "type": "Door"
+   },
+   {
+    "name": "DALIAN ; CN ; CNDLC",
+    "place": "CNDLC",
+    "type": "Port"
+   },
+   {
+    "name": "DALIAN ; CN ; CNDLC",
+    "place": "CNDLC",
+    "type": "Ramp • Door"
+   },
+   {
+    "name": "DALIAN - XIGANG, 21 ; CN ; CN1HC",
+    "place": "CN1HC",
+    "type": "Door"
+   },
+   {
+    "name": "DALIAN - SHAHEKOU, 21 ; CN ; CN1HB",
+    "place": "CN1HB",
+    "type": "Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "DALIAN, LN (CNDLC)",
+    "code": "CNDLC"
+   },
+   {
+    "label": "DALINGSHAN, GD (CNDLS)",
+    "code": "CNDLS"
+   }
+  ]
+ },
+ "Istanbul": {
+  "cma": [
+   {
+    "name": "HAYDARPASA ISTANBUL ASIAN SIDE ; TR ; TRHAY",
+    "place": "TRHAY",
+    "type": "Port"
+   },
+   {
+    "name": "HAYDARPASA ISTANBUL ASIAN SIDE ; TR ; TRHAY",
+    "place": "TRHAY",
+    "type": "Ramp • Door"
+   },
+   {
+    "name": "ISTANBUL, TR ; TR ; TRXXI",
+    "place": "TRXXI",
+    "type": "Door"
+   },
+   {
+    "name": "ISTANBUL ; TR ; TRIST",
+    "place": "TRIST",
+    "type": "Door"
+   },
+   {
+    "name": "ISTANBUL, AMBARLI PORT E. SIDE ; TR ; TRAVC",
+    "place": "TRAVC",
+    "type": "Port"
+   },
+   {
+    "name": "ISTANBUL, AMBARLI PORT E. SIDE ; TR ; TRAVC",
+    "place": "TRAVC",
+    "type": "Ramp • Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "ISTANBUL (TRIST)",
+    "code": "TRIST"
+   }
+  ]
+ },
+ "Rotterdam": {
+  "cma": [
+   {
+    "name": "ROTTERDAM, NY ; US ; USRAJ",
+    "place": "USRAJ",
+    "type": "Door"
+   },
+   {
+    "name": "ROTTERDAM ; SG ; SGHQ1",
+    "place": "SGHQ1",
+    "type": "Door"
+   },
+   {
+    "name": "ROTTERDAM ; NL ; NLRTM",
+    "place": "NLRTM",
+    "type": "Port"
+   },
+   {
+    "name": "ROTTERDAM ; NL ; NLRTM",
+    "place": "NLRTM",
+    "type": "Ramp • Door"
+   },
+   {
+    "name": "ROTTERDAM JUNCTION, NY ; US ; USRJN",
+    "place": "USRJN",
+    "type": "Door"
+   }
+  ],
+  "yangming": [
+   {
+    "label": "ROTT A. INN (DERMI)",
+    "code": "DERMI"
+   },
+   {
+    "label": "ROTTENACKER (DERTA)",
+    "code": "DERTA"
+   },
+   {
+    "label": "ROTTENBURG A. D. LAABER (DERTT)",
+    "code": "DERTT"
+   },
+   {
+    "label": "ROTTENBURG AM NECKAR (DEZFI)",
+    "code": "DEZFI"
+   },
+   {
+    "label": "ROTTERDAM (NLRTM)",
+    "code": "NLRTM"
+   },
+   {
+    "label": "ROTTERDAM JUNCTION, NY (USRJN)",
+    "code": "USRJN"
+   },
+   {
+    "label": "ROTTERDAM, NY (USRTD)",
+    "code": "USRTD"
+   },
+   {
+    "label": "ROTTUM (NLRTU)",
+    "code": "NLRTU"
+   },
+   {
+    "label": "ROTTWEIL (DEROL)",
+    "code": "DEROL"
+   }
+  ]
+ }
+}

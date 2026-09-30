@@ -1,0 +1,328 @@
+- banner:
+  - dialog "Our website uses cookies from A.P. Moller-Maersk and its affiliated companies to help make the website navigable, to make it possible to save information that changes the way the website appears, to understand how our visitors interact on the website, to personalize content, and to show you more relevant information about our services by offering features from our partners and share cookies with them. Withdraw your consent at any time by clicking “Cookie preferences” in the footer on our website. Learn more in our Privacy Notification and Cookie Policy.":
+    - text: Cookie management for the best digital experience Our website uses cookies from A.P. Moller-Maersk and its
+    - link "affiliated companies":
+      - /url: https://investor.maersk.com/financials/financial-reports
+    - text: to help make the website navigable, to make it possible to save information that changes the way the website appears, to understand how our visitors interact on the website, to personalize content, and to show you more relevant information about our services by offering features from our partners and share cookies with them. Withdraw your consent at any time by clicking “Cookie preferences” in the footer on our website. Learn more in our
+    - link "Privacy Notification":
+      - /url: https://terms.maersk.com/privacy
+    - text: and
+    - link "Cookie Policy":
+      - /url: https://terms.maersk.com/cookies
+    - text: .
+    - navigation "menu":
+      - button "Manage preferences"
+      - button "Essential only"
+      - button "Allow all"
+- navigation:
+  - link "Skip to content":
+    - /url: "#main"
+  - link "Skip to footer":
+    - /url: "#ign-footer"
+  - navigation "Secondary menu":
+    - link "Go to homepage":
+      - /url: /
+      - img
+    - link "Ask Maersk":
+      - /url: /search
+      - text: Ask Maersk
+      - img
+    - link "EN":
+      - /url: "#"
+      - text: EN
+      - img
+    - link "Notifications one":
+      - /url: /subscriptions/shipment-notifications
+      - text: Notifications
+      - img
+      - text: one
+    - link "Support":
+      - /url: /support
+      - text: Support
+      - img
+    - link "Contact Us":
+      - /url: /contact
+      - text: Contact Us
+      - img
+  - navigation "Primary menu":
+    - link "Prices":
+      - /url: /prices-and-quotes
+    - link "Book":
+      - /url: /booking/new
+      - text: Book
+      - img
+    - link "Schedules":
+      - /url: /schedules/
+    - link "Tracking":
+      - /url: /tracking/
+    - link "Manage":
+      - /url: /hub
+      - text: Manage
+      - img
+    - link "Services":
+      - /url: /logistics-solutions
+      - text: Services
+      - img
+    - link "Company":
+      - /url: /about
+      - text: Company
+      - img
+    - link "Register":
+      - /url: https://accounts.maersk.com/ocean-maeu/auth/register
+      - text: Register
+      - img
+    - link "Login":
+      - /url: /hub/
+- main:
+  - heading "Schedules" [level=1]
+  - paragraph: Search our extensive routes to find the schedule which fits your supply chain.
+  - text: Plan your next Maersk shipment. Find schedules and route information with ChatGPT.
+  - button "Try out schedules in ChatGPT"
+  - navigation:
+    - tablist:
+      - tab "Point-to-Point" [selected]
+    - tablist:
+      - tab "Port Calls"
+    - tablist:
+      - tab "Vessel Schedules"
+  - listbox:
+    - option "Containers"
+    - option "Boxes & Pallets"
+  - text: From (City, Country/Region)
+  - img "pin"
+  - combobox "From (City, Country/Region)"
+  - text: To (City, Country/Region)
+  - img "pin"
+  - combobox "To (City, Country/Region)"
+  - separator
+  - text: Date
+  - combobox "Date":
+    - option "Departing" [selected]
+    - option "Arriving by"
+  - img "chevron-down"
+  - text: Date
+  - textbox "Date":
+    - /placeholder: DD/MM/YYYY
+    - text: 11/09/2026
+  - button "calendar"
+  - separator
+  - text: Container type
+  - combobox "Container type":
+    - option "20' Dry Standard"
+    - option "40' Dry Standard"
+    - option "40' Dry High" [selected]
+    - option "45' Dry High"
+    - option "20' Reefer Standard"
+    - option "40' Reefer High"
+    - option "20' Open Top"
+    - option "40' Open Top"
+    - option "40' Open Top High"
+    - option "40' Flat Standard"
+    - option "40' Flat High"
+    - option "20' Flat"
+    - option "20' Tank"
+    - option "40' Tank"
+  - img "chevron-down"
+  - checkbox "Cargo requires temperature control"
+  - text: Cargo requires temperature control
+  - separator
+  - text: Vessel flag (optional)
+  - combobox "Vessel flag (optional)"
+  - text: No suggestions found
+  - button "Search"
+  - paragraph
+  - img
+- contentinfo:
+  - text: Plan & Book
+  - list:
+    - listitem:
+      - link "Prices":
+        - /url: /prices-and-quotes
+    - listitem:
+      - link "Book":
+        - /url: /booking/new
+    - listitem:
+      - link "Container Tracking":
+        - /url: /tracking/
+    - listitem:
+      - link "Vessel Schedules":
+        - /url: /schedules/#vesselSchedules
+  - text: Help
+  - list:
+    - listitem:
+      - link "Local Offices & Information":
+        - /url: /local-information
+    - listitem:
+      - link "Support":
+        - /url: /support
+    - listitem:
+      - link "Contact Us":
+        - /url: /contact
+  - text: Logistics Services
+  - list:
+    - listitem:
+      - link "Ocean Transport":
+        - /url: /transportation-services/ocean-transport
+    - listitem:
+      - link "Maersk Customs Services":
+        - /url: /supply-chain-logistics/customs-services
+    - listitem:
+      - link "Inland Transport":
+        - /url: /transportation-services/inland-services
+    - listitem:
+      - link "Lead Logistics":
+        - /url: /supply-chain-logistics/lead-logistics
+    - listitem:
+      - link "Warehousing":
+        - /url: /supply-chain-logistics/warehousing-and-distribution
+    - listitem:
+      - link "Air Freight":
+        - /url: /transportation-services/air-freight
+    - listitem:
+      - link "E-Commerce Logistics":
+        - /url: /supply-chain-logistics/e-commerce-logistics
+    - listitem:
+      - link "Less-than-Container Load (LCL)":
+        - /url: /transportation-services/ocean-transport/lcl
+    - listitem:
+      - link "Cold Chain Logistics":
+        - /url: /supply-chain-logistics/cold-chain-logistics
+    - listitem:
+      - link "Maersk Project Logistics":
+        - /url: /supply-chain-logistics/project-logistics
+    - listitem:
+      - link "Depot":
+        - /url: /supply-chain-logistics/depot
+    - listitem:
+      - link "Cold Storage":
+        - /url: /supply-chain-logistics/cold-chain-logistics/cold-storage
+    - listitem:
+      - link "Maersk Ground Freight Transport":
+        - /url: /transportation-services/inland-services/ground-freight
+    - listitem:
+      - link "Decarbonising Logistics":
+        - /url: /sustainability/our-solutions
+    - listitem:
+      - link "Value Protect":
+        - /url: /transportation-services/value-protect
+    - listitem:
+      - link "View all":
+        - /url: /logistics-solutions
+        - text: View all
+        - img
+  - text: Resources
+  - list:
+    - listitem:
+      - link "News & Advisories":
+        - /url: /news
+    - listitem:
+      - link "Industry Sectors":
+        - /url: /industry-sectors
+    - listitem:
+      - link "Insights":
+        - /url: /insights
+    - listitem:
+      - link "Logistics Explained":
+        - /url: /logistics-explained
+  - text: Quick Links
+  - list:
+    - listitem:
+      - link "MyFinance":
+        - /url: /digital-services/myfinance
+    - listitem:
+      - link "Maersk App":
+        - /url: /digital-services/maersk-app
+    - listitem:
+      - link "Data Integrations":
+        - /url: /digital-services/data-integrations
+    - listitem:
+      - link "Captain Peter":
+        - /url: /digital-services/captain-peter
+    - listitem:
+      - link "Emissions Studio":
+        - /url: /digital-services/emissions-studio
+  - text: About
+  - list:
+    - listitem:
+      - link "Careers":
+        - /url: /careers
+    - listitem:
+      - link "About Us":
+        - /url: /about
+    - listitem:
+      - link "Investors":
+        - /url: https://investor.maersk.com/
+    - listitem:
+      - link "Procurement":
+        - /url: /procurement
+    - listitem:
+      - link "Container Sales":
+        - /url: https://maerskcontainersales.com
+    - listitem:
+      - link "Press":
+        - /url: /press
+    - listitem:
+      - link "Sustainability":
+        - /url: /sustainability
+    - listitem:
+      - link "Accessibility":
+        - /url: /about/accessibility
+    - listitem:
+      - link "Maersk Growth":
+        - /url: /growth
+  - link "Go to the homepage":
+    - /url: /
+    - img
+  - text: "© A.P. Moller - Maersk Follow our journey. #AllTheWay"
+  - link "LinkedIn LinkedIn":
+    - /url: https://www.linkedin.com/company/maersk-group/
+    - img "LinkedIn"
+    - text: LinkedIn
+  - link "Facebook Facebook":
+    - /url: https://www.facebook.com/Maersk
+    - img "Facebook"
+    - text: Facebook
+  - link "YouTube YouTube":
+    - /url: https://www.youtube.com/@maersk?sub_confirmation=1
+    - img "YouTube"
+    - text: YouTube
+  - link "X X":
+    - /url: https://x.com/intent/user?screen_name=Maersk
+    - img "X"
+    - text: X
+  - link "Instagram Instagram":
+    - /url: https://www.instagram.com/maersk_official/
+    - img "Instagram"
+    - text: Instagram
+  - link "iOS app":
+    - /url: https://apps.apple.com/us/app/maersk-line/id1163233195?mt=8
+    - img "iOS app"
+  - link "Android app":
+    - /url: https://play.google.com/store/apps/details?id=com.maersk.trackandtrace.maerskline&hl=en
+    - img "Android app"
+  - link "Terms & conditions":
+    - /url: https://terms.maersk.com/
+  - link "Whistleblower":
+    - /url: /whistleblower
+  - link "Data Privacy Notification":
+    - /url: https://terms.maersk.com/privacy
+  - link "Cookie policy":
+    - /url: https://terms.maersk.com/cookies
+  - link "Cookie preferences":
+    - /url: /cookie-policy
+  - link "Brand protection":
+    - /url: /brand-protection
+  - link "Unsolicited Submissions Policy":
+    - /url: https://terms.maersk.com/unsolicited-submissions-policy
+  - link "Talk to an expert Talk to an expert":
+    - /url: "/contact/email-us "
+    - img "Talk to an expert"
+    - text: Talk to an expert
+  - link "Find local offices & information Find local offices & information":
+    - /url: /local-information
+    - img "Find local offices & information"
+    - text: Find local offices & information
+  - link "Subscribe to our newsletter Subscribe to our newsletter":
+    - /url: /newsletter
+    - img "Subscribe to our newsletter"
+    - text: Subscribe to our newsletter

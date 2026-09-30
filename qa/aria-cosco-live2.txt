@@ -1,0 +1,265 @@
+- link:
+  - /url: http://lines.coscoshipping.com/home/
+  - img
+- text: E-SERVICES
+- textbox "Search"
+- text: Login /
+- link "Register":
+  - /url: /ebusiness/register/
+- listitem: 中文
+- text: COSCO SHIPPING Lines
+- list:
+  - listitem: Cargo Tracking
+  - listitem: Sailing Schedule
+  - listitem: Rate Quotation
+- text: By Booking No. 
+- textbox "Please Input Booking No."
+- button "Search"
+- text: Track your cargo!
+- img
+- text: E-mail
+- img
+- text: Mobile App
+- img
+- text: We-chat
+- img
+- text: Online Service Log in
+- img "Banner-2-update-compression.png"
+- button
+- text: Special Features
+- button "Previous slide" [disabled]
+- img "New Booking"
+- link "Provide faster, comprehensive and quality booking services":
+  - /url: javascript:void(0)
+- link "New Booking":
+  - /url: javascript:void(0)
+- img "eBL"
+- link "COSCO's eBL solution is powered by digital solutions provider IQAX Limited, offers a digital channel for all the involved parties such as shippers, cargo owners, forwarders and banks to access the real time trade status in the shipping process.":
+  - /url: javascript:void(0)
+- link "eBL":
+  - /url: javascript:void(0)
+- img "LOI Auto-generation"
+- link "Automatically obtain BL data , fill out and generate BL LOI，providing you with more convenient LOI operations！":
+  - /url: javascript:void(0)
+- link "LOI Auto-generation":
+  - /url: javascript:void(0)
+- img "Shipment Plan"
+- link "Provides real-time monitoring and notification of transportation changes to help customers achieve pre-controlled freight management. Supports customized shipping event monitoring setup.":
+  - /url: javascript:void(0)
+- link "Shipment Plan":
+  - /url: javascript:void(0)
+- img "Customized Report"
+- link "Customized Report enables user to define template with customized data items and format, and being able to view or receive the report file in desired ways and schedules.":
+  - /url: javascript:void(0)
+- link "Customized Report":
+  - /url: javascript:void(0)
+- img "Shipment Folder"
+- link "Provide the function of online interactive management of business documents for each shipment, automating document operations and simplifying document processing flow.":
+  - /url: javascript:void(0)
+- link "Shipment Folder":
+  - /url: javascript:void(0)
+- button "Next slide"
+- button "Go to slide 1"
+- button "Go to slide 2"
+- text:  Email Hotline 4009 601919 (China)
+- link "Contact Us":
+  - /url: javascript:void(0);
+- link "About Us":
+  - /url: javascript:void(0);
+- link "Privacy Policy(EU)":
+  - /url: javascript:void(0);
+- link "Privacy Policy(US)":
+  - /url: javascript:void(0);
+- link "Terms of Use":
+  - /url: javascript:void(0);
+- link "Check Network":
+  - /url: javascript:void(0);
+- link "Cookie Preference":
+  - /url: javascript:void(0);
+- separator
+- text: COPYRIGHT*1998-2026 ALL RIGHTS RESERVED
+- link "沪ICP备13003917号-1":
+  - /url: https://beian.miit.gov.cn
+- link "沪公网安备31022102000157号":
+  - /url: http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=31022102000157
+- link "沪ICP备16018315号-1":
+  - /url: https://beian.miit.gov.cn
+- link "沪公网安备 31022102000135号":
+  - /url: http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=31022102000135
+- img
+- link "上海工商":
+  - /url: http://wap.scjgj.sh.gov.cn/businessCheck/verifKey.do?showType=extShow&serial=9031000020200709093534000006070085-SAIC_SHOW_310000-20200928105913857526&signData=MEUCIQDqAvUJpVMTTb+nqhKQxGRVZlqZg5/gRZ57cbs+OVvVhgIgIeTr6k4xGvFV2bJ75eDF97xgk05XZPH6k4/DfyT1H8Q=
+- text: Cookie Notice
+- paragraph: Cookies are used by the website and third parties to provide website functionality, to analyze site usage and measure performance, and to personalize content. The information gained from this helps us to improve our products and our website and to adapt it to better meet the needs of our users. An overview of which service providers set cookies in your browser on the website can be found by clicking the “MANAGE PREFERENCE” button below.
+- paragraph: You can withdraw your consent at any time by clicking the “MANAGE PREFERENCE” button below, and by changing the cookie selections shown.
+- button "MANAGE PREFERENCE"
+- button "Allow All"
+- button "Reject All"
+- button "Read More"
+- text: Please read and confirm the terms of use
+- heading "Terms of Use" [level=2]
+- paragraph: Any USER's access to and use of the COSCO SHIPPING Lines Co., Ltd. ("COSCO SHIPPING Lines") Web Site (Including Mobile APP，same hereinafter) is subject to the following Terms of Use. By accessing, browsing and/or using this COSCO SHIPPING Lines web site ("Web Site"), USER acknowledges that he has read, understood, and agreed to be bound by these Terms of Use and agrees to comply with all applicable laws and regulations. If USER does not agree to these terms, do not use this Web Site. COSCO SHIPPING Lines may at any time revise these Terms of Use, and USER will be bound by such revisions and should therefore periodically visit the Web Site to review any updating of the Terms of Use.
+- paragraph:
+  - strong: "Article 1: Content and Signature of Agreement"
+- paragraph: 1.1 The content of this agreement ( “Agreement” ) includes the text of the agreement and all various rules that have been published or may be published in the future by The website. All rules shall be an integral part of this Agreement and have the same legal effect as the protocol of the agreement. Unless expressly stated otherwise, any services provided by The website(hereinafter referred to as “The website Services”) are subject to this Agreement.
+- paragraph: 1.2 You should read the entire agreement carefully before using the Web Site Services. If you have any questions about the protocol, you should consult the Web Site. But whether or not you actually read the content of this Agreement before using The website Services, as long as you use the Web Site Services, this Agreement will restrict you. At that time, you should not claim that this agreement is invalid for reasons of not reading the content of this Agreement or not obtaining the answer of the Web Site to your query, or request the cancellation of this Agreement.
+- paragraph: 1.3 You undertake to accept and abide by the terms of this Agreement. If you do not agree to the terms of this agreement, you should immediately stop the registration process or stop using the Web Site Services.
+- paragraph: 1.4 The Web Site has the right to formulate and modify this Agreement and/or various rules at any time according to the needs, and announce them by means of website publicity, and no longer notify you separately. The amended Agreement and Rules shall become effective automatically as soon as they are published on the Website. If you do not agree with the relevant changes, you should immediately stop using the Web Site services. Your continued use of the Web Site Services shall constitute your acceptance of the Agreement as amended.
+- paragraph:
+  - strong: "Article 2: Register"
+- paragraph: 2.1 Qualification of registrants
+- paragraph: Please confirm that you are a natural and legal person or other organization with full civil rights and full civil capacity when you complete the registration process or actually use the Web Site Services in a manner permitted by other The website. If you do not have the above subject qualification, you and your guardian or trustee shall bear all consequences arising therefrom, and the Web Site has the right to cancel or permanently freeze your The website account and claim compensation from you and your guardian or trustee.
+- paragraph: 2.2 Account
+- paragraph: 2.2.1 When you sign this agreement, complete the membership registration process or actually use the Web Site Services in a manner permitted by The website, the Web Site will provide you with a unique reference number of The website account (hereinafter referred to as account). Log on to the Web Site through the password of your account. Your account name should not infringe or be suspected of infringing upon the legitimate rights and interests of others. After account creation, you should login to the Web Site with your account name and password within 90 days. If you are not logged in after the deadline, the Web Site has the right to terminate providing you with The website Services and remove your account. After account removal, the corresponding account name will be available to any other user. You are responsible for the security of your account. All information and activities that occur under your account, including the delegation information and data in the e-mail sent by the mailbox you used at the time of registration, the communication information between you and the customer service staff, the instant messaging tool provided by the SybConHub will be regarded as your effective behavior, you should be responsible for it. Account information may not be transferred, donated or inherited in any way, except for property rights and interests related to the account, unless there are legal provisions or judicial rulings and the consent of the Web Site is obtained. If you find that anyone misuses your account or any other situation that may endanger the security of your account, you should immediately notify the Web Site in an effective way and ask the Web Site to suspend relevant services. You understand that it takes reasonable time for the Web Site to take action on your request. The Web Site is not liable for any consequences that have occurred before the action is taken. Including, but not limited to your any loss. In order to facilitate your use of The website Services and the services of The website affiliates or other organizations (hereinafter referred to as "other services"), You agree and authorize the Web Site to transfer the information that you provided and formed in the process of registering and using the Web Site Services to the Web Site associated companies or other organizations what providing other services to you. Or get the information that you provide or form during the registration or use of other services from The website affiliates or other organizations what provide other services.
+- paragraph: 2.2.2 When registering for certification, you should provide it accurately according to the requirements of laws and regulations or the prompts on the registration page.
+- paragraph: 2.3 All information contained in the Web Site shall remain at all times the property of COSCO SHIPPING Lines.
+- paragraph: 2.4 While the Web Site may contain other proprietary notices and copyright information, the Terms and Conditions of which have to obeyed and followed by the USER.
+- paragraph: 2.5 USER shall not make any attempt to ascertain or obtain a Password assigned to any third party by COSCO SHIPPING Lines or to make access to Information with respect to shipments of any third party with COSCO SHIPPING Lines by using any Password other than the Password assigned to a particular USER.
+- paragraph: 2.6 COSCO SHIPPING Lines will use information provided by the USER for identification and contact related to its service and applications in order to establish service for the USER. In carrying out its services, COSCO SHIPPING Lines may provide USER's information to its agents, group companies, subcontractors or independent contractors to the extent that such information is required for maintenance or service improvements. COSCO SHIPPING Lines will do its best to supervise the security management of the aforementioned parties in order to safeguard such information.
+- paragraph: 2.7 At any time COSCO SHIPPING Lines may change and update any material on this Web Site without prior notice.
+- paragraph: 2.8 All information presented in the Web Site is considered for information purposes only and does not constitute a legal contract between COSCO SHIPPING Lines and USER unless otherwise specified.
+- paragraph: 2.9 USER shall keep its Password and all information with respect to its shipments with COSCO SHIPPING Lines confidential, and not reveal it to any third party except its directors, officers and employees (and, as to Information with respect to particular shipment(s), except broker, forwarder, shipper, consignee and/or notify party of such shipment(s)). USER shall further ensure that such directors, officers, and employees shall keep USER's Password and all such information confidential and not reveal them to any third party.
+- paragraph: 2.10 Should USER's Password and/or any information with respect to USER's shipments with COSCO SHIPPING Lines be revealed except as permitted by the preceding paragraphs, USER shall promptly notify COSCO SHIPPING Lines of any such occurrence and shall defend, indemnify and hold COSCO SHIPPING Lines harmless from and against any complaint, claim, liability, loss, damage and expense, including attorney's fees, arising out of, or in connection with, such revelation, or any subsequent misuse, alteration, misappropriation, or fraudulent use of such Password and/or Information.
+- paragraph: 2.11 USER confirms that COSCO SHIPPING Lines shall be free of any liability from revealing USER's Password, or any Shipment Information obtained through the use of USER's Password, by any third party, unless such disclosure was caused by COSCO SHIPPING Lines' gross negligence.
+- paragraph: 2.12 Payment
+- paragraph: 2.12.1 The Registered USER will promptly pay all fees and charges applicable to any product or Protected Service within the time and in the manner for payment specified on the Website or as otherwise specified by COSCO SHIPPING Lines.
+- paragraph: 2.12.2 All sums specified on this Website or otherwise are exclusive of any sales and/or any other taxes relating to the supply of the products or services which shall be paid by the Registered USER at the applicable rate.
+- paragraph: 2.13 If the MERCHANT (includes the Consignor, the Shipper, the Receiver, the Consignee, the Owner of the Goods, the Holder or Endorsee of Bill of Lading, any Person owing, entitled to or claiming the possession of the Goods or Bill of Lading and anyone acting on behalf of any such person) fails to declare the cargo came correctly as per the agreement, conceal and incorrect declare the nature of cargo's danger, carrier shall (1) be entitled to request the MERCHANT to pay the Special Handling Cost USD20000 to the carrier within TWO working days from the date when the carrier find the concealment of declaration, (2) terminate the transportation of the shipment which was concealed declared by the MERCHANT and the other shipments of the same MERCHANT at once till the true cargo name and nature is identified, (3) have a lien on the cargo, return or auction the dangerous cargo which was concealed declared, furthermore, all cost and loss occurred will be on Merchant's account. The aforesaid clause shall be no impact on the carrier's claim against the MERCHANT for the loss and cost sustained by the carrier in consequence of incorrect declaration cargo name, concealed and incorrect declaration of the nature of cargo's danger as well as the measures (lien/auction) taken on the cargo which still under carrier's control shipped by the MERCHANT to achieve carrier's claim.
+- paragraph: 2.14 If the MERCHANT (same as definition which stated in the TERMS AND CONDITIONS) changed the container's structure without authorization which leads to the breach of the agreement, (insert client name) shall pay the liquidated damage USD2000 to the carrier within TWO working days from the date when the carrier find the container's structure changed. The aforesaid clause shall be no impact on the carrier's claim against the MERCHANT for the loss and cost sustained by the carrier in consequence of changing the container's structure without authorization by MERCHANT.
+- paragraph:
+  - strong: "Article 3: Website Service"
+- paragraph: 3.1 Through the website services and other services that provided by the website and its associated companies, members can inquire about ocean freight price and service information on the website, reach transaction intentions and conduct transactions, participate in activities organized by the website, and make use of the other information services and technical services.
+- paragraph: 3.2 You acknowledge and agree that The website has the right to provide necessary information such as registration information and transaction records what you fill in on the website for the request of government departments. If you are suspected of infringing other people's intellectual property rights, the website also has the right to provide to oblige with the necessary your identity information in the case of preliminary judgment of the existence of the suspected infringement.
+- paragraph:
+  - strong: "Article 4: Service Usage Specification for the website"
+- paragraph: 4.1 In the process of using the website Service on the website, you acknowledge to abide by the following agreements.
+- paragraph: 4.1.1 All actions carried out in the process of using the website services shall comply with the provisions and requirements of national laws and regulations and other normative documents as well as the all rules of the website, which shall not violate the social public interest or public morality, shall not harm the legitimate rights and interests of others, and shall not violate this Agreement and related rules. If you violate the aforementioned commitments and have any legal consequences, you should independently assume all legal liabilities in your own name, and ensure that the website is free from any loss.
+- paragraph: 4.1.2 In the process of dealing with platform customer service staff, we should abide by the principle of good faith, do not take acts unfair competition, does not disrupt the normal order of online transactions, and not to engage in acts unrelated to online transactions.
+- paragraph: 4.1.3 Unless legally and adequately licensed, you shall not to release the information on goods or services that prohibited or restricted to sale by the state, not to release the information on goods or services suspected of infringing upon intellectual property rights or other legitimate rights of others, not to release the information on goods or services contrary to social public interests or public morality or considered inappropriate for sale on The website shall be published. shall not release the information which other alleged illegal or in violation of this agreement and all kinds of rules.
+- paragraph: 4.1.4 Shall not improperly evaluate other members by the way of fabricating or distorting facts, or improperly create or improve its own credibility, or improperly create or improve or reduce the credibility of other members.
+- paragraph: 4.1.5 Shall not make commercial use of any data on the website, including, but not limited to, the absence of prior written consent from the network platform, by copying, disseminating, etc. to use the information that the website show.
+- paragraph: 4.1.6 Shall not use any device, software or routine program to interfere or attempt to interfere with the normal operation of the website or any transactions or activities being carried out on the website. You shall not take any action that will result in unreasonable huge data load on The website and network devices.
+- paragraph: 4.2 You understand and agree that
+- paragraph: 4.2.1 The website has the right to unilaterally determine whether you have violated the above commitments, and processing or terminate the services provided to you according to the result of unilateral determination by applicable rules. and we do not need to ask for your consent or give you prior notice.
+- paragraph: 4.2.2 If the valid legal documents of the state administrative or judicial organs confirm that you are in violation of the law or infringement, or according to the website’s judgment, if your actions are suspected of violating the provisions of this agreement or violating the provisions of laws and regulations , the Web Site has the right to publicize on the Network Platform your suspected illegal actor nonperformance and measures taken for you by the website.
+- paragraph: 4.2.3 The website has the right to delete the information without notice which you publish on the Network Platform, which is suspected illegal or infringe upon the lawful rights of others or violating this Agreement and / or rules, and punish you in accordance with the rules.
+- paragraph: 4.2.4 For your actions on the website, including those that you have not implemented on the website but have already affected the website and its users, the website has the right to unilaterally determine the nature of your actions and whether they constitute a violation of this agreement and/or rules, and accordingly to make corresponding penalties. You shall preserve all the evidence related to your actions on your own and deal with the adverse consequences undertaken of failure to provide sufficient evidence.
+- paragraph: 4.2.5 If any third party is harmed by your suspected breach of promise, you shall independently assume all legal liabilities in your own name, and ensure that the website is free from loss or additional costs.
+- paragraph: 4.2.6 If you are suspected of violating the relevant laws or the provisions of this agreement, causing any loss to the website, or suffering any third party's claim, or being punished by any administrative department, you shall compensate for the loss and/or expenses incurred by the website, including reasonable litigation costs and lawyer's fees.
+- paragraph: 4.2.7 The copyright in all material, including, but not limited to data, text, graphic, images, sound, and/or video, presented on this Web Site is held by COSCO SHIPPING Lines or by the original creator of the material. None of the material may be copied, reproduced, distributed, published, posted, adapted, displayed or transmitted in any form or by any means without the prior written permission of COSCO SHIPPING Lines or the copyright owner. USER also may not, without COSCO SHIPPING Lines' written permission, "mirror" any material contained on this Web Site on any other server. Any unauthorized use of any material contained on this Web Site may violate the laws and regulations under the People's Republic of China, and the international treaties concerned.
+- paragraph:
+  - strong: "Article 5: Special authorization"
+- paragraph: You fully understand and irrevocably grant the following rights to the Website and its affiliates.
+- paragraph: 5.1 Once you make any form of commitment to the Website and/or its affiliates, and the company has confirmed that you have violated that commitment, the Website has the right to immediately take restrictive measures against your account in accordance with your commitments or agreements, including suspending or terminating providing the service to you, and publicize your breach of contract confirmed by the Related companies. You acknowledge and agree that the Website does not need to verify the facts with you about the relevant confirmation or obtain your consent separately, and that the Website does not have to assume any responsibility to you for the restrictive measures or publicity actions.
+- paragraph: 5.2 Once you violate this agreement or other agreements signed with the Website , the Website has the right to notify the Website associated companies in any way and request it to take restrictive measures on your rights and interests, including, but not limited to, requiring you to pay money to the designated object of the Website , and requiring the associated companies to break off or terminate provide part or all of services for you, and publicize your breach of contract on any website that its operate or actually control.
+- paragraph: 5.3 For the information and data you provide, you grant the exclusive, global, permanent and free license right to the Website and its affiliates, and have the right to re-authorize to multiple levels. In addition, the Website and its associated companies have the right in whole or in part to use, copy, revise, rewrite, publish, translate, distribute, execute and display all your data, Including but not limited to registration information, transaction behavior data and all kinds of information or derivative works displayed on the network platform, and use any form, media or technology that is now known or developed in the future to incorporate the above information into other works.
+- paragraph:
+  - strong: "Article 6: Scope of Responsibility and Limitation of Responsibility"
+- paragraph: 6.1 In no events will COSCO SHIPPING Lines, and its Related Parties be liable for any decision made or action taken in reliance on the material on this Web Site or for any loss, damage or claims of whatever nature or for any direct, indirect, incidental, consequential, special, punitive or other damages whatsoever, including without limitation to, liability for business interruption or loss of data or profits arising out of access to or use of this Web Site, even if COSCO SHIPPING Lines is expressly advised on the possibility of such damages.
+- paragraph: 6.2 COSCO SHIPPING Lines and its Related Parties assume no responsibility, and shall not be held liable for any damages to or viruses or other items of destructive nature that may infect USER's computer, any other software, hardware or other IT systems or other property on account of USER's access to or use of or browsing of the Web Site or USER's downloading of any material from the Web Site.
+- paragraph: 6.3 COSCO SHIPPING Lines and its Related Parties assumes no responsibility, and shall not be held liable for any damages whatsoever due to any third party's unjustified access to the Web Site, passwords or information or data in the Web Site.
+- paragraph: 6.4 Third Party Hosting Service. We contract with one or more third parties to maintain and host the Carriers' Web site. Therefore, any information USER submmit, including personally identifiable information, will be placed and stored on a computer server maintained by such third party. USER’s use of the Carriers' Web site and any provision of information, content or data to the Carriers' Web site constitutes USER’s acknowledgement that such information, content or data could pass through and may be stored in servers outside the control of Carriers and may be accessed by the administrator of such site and others that gain access to Carriers' server or stored files. USER’s agree that Carriers have no liability or responsibility for any disclosure, authorized or unauthorized, resulting from or arising in connection with such pass through or storage of same.
+- paragraph: 6.5 If any Communication received by COSCO SHIPPING Lines or its agents requires them to deal for the benefit of the Registered User (or on its behalf) with a third party, the Registered User appoints them to do so as its agent. The Registered User shall indemnify and hold harmless COSCO SHIPPING Lines, its affiliates, associates and agents against any claims, losses, actions, proceedings, damage or other liabilities whatsoever (including damages or compensation paid by them to compromise or settle a claim), and all legal costs or other expenses, suffered by them as a result of, arising out of or otherwise relating to its activities as the Registered User's agent unless caused by COSCO SHIPPING Lines' negligence.
+- paragraph: 6.6 A Registered User and Individual Users may be unable to access or use any Protected Services unless the Registered User and/or Individual Users installs, implements and maintains appropriate communication facilities (including software and hardware meeting the minimum requirements from time to time notified by COSCO SHIPPING Lines web site or otherwise). However, COSCO SHIPPING Lines does not warrant that the local set-up of the Registered User and/or Individual Users in accordance with such minimum requirements will ensure access to, full functionality of or effective operation of the Website. The Registered User shall ensure that any party using such Protected Services on its behalf obtains any consents and/or licenses/permits required by law for such use.
+- paragraph: 6.7 The Website is responsible for providing you with Website Services. However, the Website does not provide any explicit or implied guarantee for the Network Platform services, including, but not limited to, the Network Platform services applicability, error-free or omission-free, sustainability, accuracy, reliability, and suited for a particular purpose. At the same time, the Website does not make any commitment and guarantee to the validity, accuracy, correctness, reliability, quality, stability, integrity and timeliness of the technology and information involved in the Website Services.
+- paragraph: 6.8 Unless explicitly required by laws and regulations or arise the following circumstances, the Website will not be obliged to conduct prior reviews of all users' registration data, service information, transaction behavior and other transactions-related matters.
+- paragraph: 6.8.1 There are reasonable reasons for the Website to believe that there may be major illegal or default of contract in a particular member and specific transactions.
+- paragraph: 6.8.2 There are reasonable reasons for the Website to believe that the user's behavior on the Website is suspected to be illegal or improper.
+- paragraph: 6.9 You understand and agree that the Website and its associated companies are not judicial institutions, but can identify evidence only as an ordinary people. The settlement of disputes by the Website and its associated companies is entirely based on your commission. The Website and its associated companies may not guarantee that the results of dispute settlement meet your expectations, and not be any responsible for the conclusion of dispute mediation. If you suffer losses as a result, you shall agree to claim compensation from the beneficiary on your own.
+- paragraph: 6.10 You understand and agree that the Website shall not be liable for any damages caused to you by any of the following circumstances, including, but not limited to, damages for loss of profits, goodwill, use, data or other intangible losses, no matter what whether or not the Network Platform has been informed of the possibility of such damages.
+- paragraph: 6.10.1 Use or failure to use the Website Services.
+- paragraph: 6.10.2 Third party unauthorized to use of your account or change of your data.
+- paragraph: 6.10.3 The costs and losses incurred by the purchase or acquisition of any service, data, information or transaction and so on trading or substitution behavior through the Network Platform.
+- paragraph: 6.10.4 Your misunderstanding of the Website services.
+- paragraph: 6.10.5 Any other loss related to the service of the Website not caused by the reason of the Website.
+- paragraph: 6.11 In any case, the Website shall not be responsible for failure or delay of service caused by normal maintenance of Internet equipment, network connection failures, computer, communication or other system failures, power failures, strikes, labor disputes, riots, uprisings, riots, insufficient productivity or means of production, fires, floods, storms, explosions, wars, government actions, orders of judicial administrative organs or omissions of third parties.
+- paragraph: 6.12 All material on this Website is provided "as is" with no guarantee of accuracy, timeliness, completeness, reliability or of results obtained from the use of this material and without warranty of any kind, expressed or implied. COSCO SHIPPING Lines or any of its affiliates, subsidiaries, directors, employees, agents or representatives of any kind ("Related Parties") is not responsible or liable for any errors, inaccuracies or omissions or from the results obtained from the use of this material. COSCO SHIPPING Lines and its Related Parties make no guarantee that USER may access, browse or use the Web Site in any time, and shall not be liable for the continued access to and use of Web Site and its material.
+- paragraph:
+  - strong: "Article 7: Termination of agreement"
+- paragraph: 7.1 You agree that the Website has the right to decide on its own for any reason and without prior notice to suspend or terminate some or all of its services for you, temporarily or permanently freeze or cancel your account, and also the Website shall not be responsible to you or any third party for this.
+- paragraph: 7.2 In the event of the following circumstances, the Network Platform shall have the right to terminate this Agreement directly by cancelling the account.
+- paragraph: 7.2.1 After the termination of the service provided to you by the Website, you are suspected of registering as a user of the Network Platform directly or indirectly or in the name of another person.
+- paragraph: 7.2.2 The main contents of your registration information are not true or accurate or timely or incomplete.
+- paragraph: 7.2.3 When the agreement or rules of the Website was changed, you shall express and notify the Website that you are unwilling to accept the new service protocol.
+- paragraph: 7.2.4 The situation that other Website believe services should be terminated.
+- paragraph: 7.3 You have the right to request the cancellation of your account from the Website. With the approval of the Website, the Website cancels or permanently freezes your account. At that time, the contract relationship between you and the Website based on this agreement will be terminated. After your account has been removed or permanently frozen, the Website is not obliged to keep or disclose any information in your account for you, Nor is it obligatory to forward to you or a third party any information that you have not read or sent.
+- paragraph: 7.4 You agree that after the termination of your contractual relationship with the Website, the Website still enjoys the following rights.
+- paragraph: 7.4.1 Continue to save your registration information and all transactions during your service on the Website.
+- paragraph: 7.4.2 If you violate or violate this Agreement and/or Rules during the period of using the Website Services, the Website may still claim the rights to you in accordance with this Agreement.
+- paragraph: 7.5 After breaking off or termination of the service provided to you by the Network Platform, you shall deal with your trading behavior before the breaking off or termination of the service in accordance with the following principles. You shall independently handle and fully bear any disputes, losses or additional expenses arising from the following processing, the Website should be free from any loss as a result or guaranteed free from any costs.
+- paragraph: 7.5.1 If the service you uploaded to the Website before breaking off or termination of the service is not yet traded, the Website has the right to delete the relevant information of the service while breaking off or terminating the service.
+- paragraph: 7.5.2 If you have reached an order with the platform customer service personnel before the termination or termination of the service, but the order has not been performed actually, the Website has the right to delete the relevant information of the order and its transaction service.
+- paragraph:
+  - strong: "Article 8: Network Security"
+- paragraph: 8.1 The Website and their associated companies have the right to maintain the security of their own network systems, prevent illegal intrusion or illegal transmission, and protect business records and data information from illegal intrusion, tampering or damage.
+- paragraph: 8.2 You may not allow to send electronic messages which irrelevant to entrusted business, such as illegal documents, virus programs, etc., on the Network Platform or to other members who use the Website. Otherwise, you will be liable for the losses thus caused.
+- paragraph: 8.3 The Website and its associated companies will strive to ensure the normal operation of the network service system and network equipment. During the period of failure, the Website will accept your booking business and information transmission by traditional delegation mode when the service capability permits.
+- paragraph: 8.4 For You make use of the online service function is provided by the Network Platform to do online communication, querying and download, for quotation, application for booking and other related business activities, the Website and its associated companies will provide necessary technical support and guidance. However, in any case, the Website and its affiliates do not assume responsibility for all costs, risks and losses incurred in providing technical support and guidance.
+- paragraph: 8.5 COSCO SHIPPING Lines makes no warrants or representations whatsoever regarding any other web site which USER may access through this Web Site. When USER access to a non-COSCO SHIPPING Lines web site, please understand that it is independent from COSCO SHIPPING Lines and that COSCO SHIPPING Lines has no control over the content of that web site. In addition, a link to a non-COSCO SHIPPING Lines web site does not mean that COSCO SHIPPING Lines endorses or accepts any responsibility for the content or the use of such web site. It is up to USER to take precautions to ensure that whatever USER select for USER's use is free of viruses and other items of destructive nature.
+- paragraph:
+  - strong: "Article 9: Privacy Policy"
+- paragraph:
+  - text: 9.1 We do not intend to access any of your personal information while providing our service. We kindly ask you
+  - strong: not to provide any personal information to us
+  - text: ", including but not limited to personal email addresses, names, phone numbers, etc. For example, the email addresses you provided to us must be non-personal corporate emails. We do not assume any responsibility for leakage of personal information or other related risks caused by your own submission of personal information."
+- list:
+  - listitem: 9.2 The Website will be published its privacy policy and will revise it from time to time. The privacy policy constitutes an effective part of this agreement.
+  - listitem: 9.3 Except as set out below, COSCO SHIPPING Lines does not publish or disseminate any of the information registered via the Web Site.
+- paragraph: 9.3.1 Obtain the express authorization of the user.
+- paragraph: 9.3.2 Compliance with applicable law.
+- paragraph: 9.3.3 According to the court or the arbitration organization of the referee or ruling, and other judicial program requirements.
+- paragraph: 9.3.4 According to the requirements of the relevant government departments.
+- paragraph: 9.3.5 USER or USER's actions on the Web Site violating the Terms of Use or other actions aggrieving the interests.USER or USER's actions on the Web Site violating the Terms of Use or other actions aggrieving the interests.
+- paragraph: 9.3.6 Must be exercised in order for the services provided by Carrier to the MERCHANT to be carried out normally.
+- paragraph: "9.4 On our websites, COSCO SHIPPING Lines may collect information about name, postal address, email address, other contact information, age, interests, gender, IP addresses and other personal data. Our websites are intended for a general audience, and COSCO SHIPPING Lines does not knowingly collect personal data about any person under the age of 18 years. COSCO SHIPPING Lines process personal data for the following purposes:"
+- paragraph: 9.4.1 Provision of COSCO SHIPPING Lines services and products and to accommodate your requests and inquiries
+- paragraph: 9.4.2 Provision of newsletters offered by COSCO SHIPPING Lines
+- paragraph: 9.4.3 The purposes of cookies listed in the below 9.7 section
+- paragraph: 9.5 As a global group COSCO SHIPPING Lines may transfer personal data collected by us on an aggregated or individual level to various divisions, subsidiaries of the same controlled shareholder. Personal data will not be disclosed to anyone outside the COSCO SHIPPING Group and its subsidiaries without USER’s consent unless permitted or required under applicable legislation. We delete or anonymize USER's personal data when it is no longer needed for the purposes for which it was collected and subsequently processed.If USER submits personal data to us, e.g. when registering for a newsletter, USER enjoys certain rights to access and rectify data, however, subject to certain legal limitations.
+- paragraph: 9.6 COSCO SHIPPING Lines have implemented appropriate organizational and technical security measures to protect USER's personal data. COSCO SHIPPING Lines store personal data on servers with limited access located in secured facilities, and our security measures are evaluated on an ongoing basis. The servers are protected by anti-virus software and firewalls, among other measures.
+- paragraph:
+  - text: 9.7 As Required by GDPR, COSCO SHIPPING Lines updates the cookie policy by adding more details. COSCO SHIPPING Lines uses cookies mainly for statistical analysis, improving the user friendliness and usability of our website, tailoring content to your interests and engaging with social media. By visiting our website, you consent to our and third party use of cookies as described in our privacy and cookie policy. We remind you that your rights of access, rectification and deletion, data portability and opposition，and other personal information security complaints, reports, which can be exercised sending a request to electronic address support@coscon.com.A cookie is a small text file, which is stored on USER's computer in order to recognize USER's computer at recurring visits. The cookie may transmit information via USER's browser with a purpose of authenticating or identifying the computer (via e.g. the IP address) or the user. Cookies may contain information such as registration data and user preferences. When a server receives a request from a computer which stores a cookie from the website, the server is able to use the information stored in the cookie in combination with the information stored on the server. A cookie cannot collect information from USER's computer and cannot carry any virus or other damaging files.
+  - strong: "The following is the list of our collecting information from cookies:"
+- paragraph: 9.7.1 Collect user's token to verify user identity.
+- paragraph: 9.7.2 By using statistical component to record the count of website visits.
+- paragraph: 9.7.3 Store the server information to ensure that user access the same server when he (or she) submit the second access request.
+- paragraph: 9.7.4 Store the language version information to ensure that our website show the correct language when the user does his (or her) second access. USER may delete cookies if USER no longer wishes to store them on your computer. However, please note that the high quality of COSCO SHIPPING Lines website may be reduced as a consequence thereof. Please refer to the help guide for your browser for further guidance.
+- paragraph:
+  - text: For Internet Explorer, a help guide is available
+  - link "here":
+    - /url: https://support.microsoft.com/en-us/help/17442/windows-internet-explorer-delete-manage-cookies
+- paragraph:
+  - text: For Mozilla, a help guide is available
+  - link "here":
+    - /url: https://support.mozilla.org/en-US/kb/enhanced-tracking-protection-firefox-desktop?redirectlocale=en-US&redirectslug=enable-and-disable-cookies-Web Site-preferences
+- paragraph:
+  - text: For Chrome, a help guide is available
+  - link "here":
+    - /url: https://support.google.com/chrome/answer/95647?hl=en
+- paragraph:
+  - text: For Safari, a help guide is available
+  - link "here":
+    - /url: https://support.apple.com/en-hk/guide/safari/sfri11471/mac
+- paragraph:
+  - text: For IOS, a help guide is available
+  - link "here":
+    - /url: https://support.apple.com/en-us/HT201265
+- paragraph:
+  - text: For Android, a help guide is available
+  - link "here":
+    - /url: https://support.google.com/chrome/answer/95647?co=GENIE.Platform%3DAndroid&hl=en
+- paragraph: "9.8 COSCO SHIPPING Lines mobile app may acquire the user's mobile equipment information, guarantee and improve the user friendliness and availability of our mobile services. By using our mobile app, you agree that we and third parties use mobile device information as described in our privacy policy. The permissions and purposes used in the app are as follows:"
+- paragraph: "9.8.1 Geographic location: help the user to automatically select the region according to the location information, which can be disabled and manually selected."
+- paragraph: "9.8.2 Network (including IP address and access to network): it needs to use related functions in the network. IP address access is used for function usage statistics and prevention of network attacks, which can be disabled."
+- paragraph: "9.8.3 Mobile phone status: to obtain mobile phone ID code, and use it on the third-party SDK to help realize push, statistics, problem location and other functions, which can be disabled"
+- paragraph: "9.8.4 Installation permission (Android only): for version installation and update, it can be disabled."
+- paragraph:
+  - strong: "The list of third-party SDKs used in the app and their permissions are as follows:"
+- paragraph: "9.8.5 Tencent's bugly SDK: it is mainly used to collect app crash exceptions during use, and help developers locate problems. Usage rights: read the mobile phone status, use the network, get the network / WiFi status, read the log information, etc."
+- paragraph: "9.8.6 Umeng SDK: mainly used for statistics of user information and related functions. Usage rights: get the network / WiFi status, read the mobile phone status, and use the network."
+- paragraph: "9.8.7 Aurora push (jpush): push for user subscription information, etc. Usage rights: read the status of mobile phone and push notifications."
+- paragraph:
+  - strong: "Article 10: Application of Law, Jurisdiction and Others"
+- paragraph: 10.1 The validity, interpretation, alteration, enforcement and dispute settlement of this Agreement shall be governed by the laws of the People's Republic of China and shall be judged by the People's Court of Hongkou District, Shanghai. In the absence of relevant legal provisions, reference should be made to general international business practices and/or industrial practices.
+- paragraph: 10.2 In case of any conflict between the Terms of Use herein or any service information in the Web Site and the information contained in the applicable COSCO SHIPPING Lines' internal documentation, agreement, the terms on the back of the B/L shall prevail.
+- button "OK"

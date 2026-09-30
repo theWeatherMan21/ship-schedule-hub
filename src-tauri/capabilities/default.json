@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "ShipScheduleHub 默认权限：必须含 core:default，否则前端 listen('engine://event') 会被 Tauri v2 静默拒绝 —— 界面永远停在「未查询/未启动」（婉宜 9-23 定位）",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:event:allow-emit",
+    "core:window:default"
+  ]
+}

@@ -1,0 +1,17 @@
+# 依赖与构建产物
+node_modules/
+engine/node_modules/
+src-tauri/target/
+dist/
+
+# 运行期数据（已在 9-30 迁出 .app 包，仓库里也不收）
+evidence/
+browser-profile/
+qa/probe-out/
+
+# 系统与临时
+.DS_Store
+*.log
+__pycache__/
+.venv/
+venv/

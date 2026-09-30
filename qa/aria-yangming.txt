@@ -1,0 +1,16 @@
+- dialog:
+  - button "Dismiss"
+  - button "Close"
+  - banner
+  - text: Beware of Fraud and Scams – Yang Ming Fraud Prevention Statement Yang Ming urges the public to stay vigilant against scams impersonating Yang Ming through unauthorized apps or false information on social media platforms. We remind you to only trust the official websites (
+  - link "https://www.yangming.com/":
+    - /url: https://www.yangming.com/
+  - text: and
+  - link "https://esg.yangming.com/":
+    - /url: https://esg.yangming.com/
+  - text: "), apps, and verified social media accounts listed in our Fraud Prevention Statement. Yang Ming Group does not send investment offers, payment requests, or membership solicitations through any social channels or messaging apps. Yang Ming Group has no partnerships with third-party app developers and has not authorized any use of its name, logo, or trademark for external applications. Be cautious of webpages, domain names, apps or social accounts using names similar to “Yang Ming” in an attempt to impersonate Yang Ming. If you receive suspicious messages claiming to be from Yang Ming or its employees, always verify through official channels to protect your personal data and financial safety. For full details of Yang Ming Fraud Prevention Statement, please refer to:"
+  - link "https://www.yangming.com/footer/fraud_prevention_statement":
+    - /url: en/footer/fraud_prevention_statement
+  - text: Vigilance is essential in the digital era - always verify before you trust. Yang Ming Marine Transport Corporation
+  - contentinfo
+  - button "Dismiss"

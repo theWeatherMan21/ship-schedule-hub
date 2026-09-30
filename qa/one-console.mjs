@@ -1,0 +1,10 @@
+import { launchHeadedQuiet, openPage, sleep } from '../engine/browser.mjs';
+const { ctx } = await launchHeadedQuiet();
+const { page } = await openPage(ctx, 'https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule', { reuse: true });
+page.on('console', (m) => { if (/error/i.test(m.type())) console.log('CONSOLE:', m.text().slice(0, 120)); });
+page.on('pageerror', (e) => console.log('PAGEERROR:', String(e).slice(0, 120)));
+await sleep(25000);
+console.log('len:', await page.evaluate(() => document.body.innerText.length));
+console.log('标题:', await page.title());
+await ctx.close().catch(() => {});
+process.exit(0);

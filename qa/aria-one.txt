@@ -1,0 +1,77 @@
+- main:
+  - link "Ocean Network Express":
+    - /url: https://www.one-line.com
+    - img "Ocean Network Express"
+  - button "Search":
+    - img
+    - text: Search
+  - button "English":
+    - img
+    - text: English
+  - button "Login":
+    - img
+    - text: Login
+  - link "Price":
+    - /url: /en/price
+  - link "Book":
+    - /url: /one-ecom/booking/quick-booking
+  - link "Track":
+    - /url: /one-ecom/manage-shipment/cargo-tracking
+  - link "Schedule":
+    - /url: /one-ecom/schedule/point-to-point-schedule
+  - button "Services":
+    - text: Services
+    - img
+  - button "Digital Solutions":
+    - text: Digital Solutions
+    - img
+  - button "Industries":
+    - text: Industries
+    - img
+  - link "Local Information":
+    - /url: /en/local-information
+  - link "Contact Us":
+    - /url: /en/contact-us
+  - button "About ONE":
+    - text: About ONE
+    - img
+  - img
+  - button:
+    - img
+  - link:
+    - /url: https://www.one-line.com/one-ecom/
+    - img
+  - img
+  - img
+  - img
+  - img
+  - img
+  - img
+  - link:
+    - /url: /one-ecom/support-page
+    - img
+  - iframe
+  - img "error icon"
+  - heading "Page Not Found" [level=1]
+  - paragraph: Sorry, we couldn’t find the page you’re looking for.
+  - button "Back to Home"
+  - text: ONE Cookie Preferences ONE uses cookies to deliver the best possible web experience. By using our website you consent to all cookies in accordance with our Cookie Policy.
+  - link "Read more":
+    - /url: https://www.one-line.com/en/cookies-policy
+  - button "Close":
+    - img
+  - paragraph: © Ocean Network Express Pte. Ltd. All rights reserved.
+  - link "Copyright":
+    - /url: /copyright
+  - separator
+  - link "Cookies Policy":
+    - /url: /cookies-policy
+  - link "Terms and Rules":
+    - /url: /terms-and-rules
+  - link "Disclaimer":
+    - /url: /disclaimer
+  - link "Data Deletion Request":
+    - /url: /data-deletion-request
+- region "Notifications Alt+T"
+- alert
+- img

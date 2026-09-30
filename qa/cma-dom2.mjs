@@ -1,0 +1,10 @@
+import { launchHeadedQuiet, openPage, sleep } from '../engine/browser.mjs';
+const { ctx } = await launchHeadedQuiet();
+const { page } = await openPage(ctx, 'https://www.cma-cgm.com/ebusiness/schedules', { reuse: true });
+await sleep(12000);
+const inputs = await page.evaluate(() => [...document.querySelectorAll('input')].map((i) => ({ id: i.id, name: i.name, ph: (i.placeholder || '').slice(0, 40), visible: i.offsetParent !== null })).filter((x) => x.visible)).catch(() => []);
+console.log(JSON.stringify(inputs));
+const btns = await page.evaluate(() => [...document.querySelectorAll('button, a.btn')].map((b) => (b.textContent || '').trim().slice(0, 30)).filter((t) => t && /search|go/i.test(t)).slice(0, 5));
+console.log('按钮:', JSON.stringify(btns));
+await ctx.close().catch(() => {});
+process.exit(0);

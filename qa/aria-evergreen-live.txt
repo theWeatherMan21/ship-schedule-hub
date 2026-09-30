@@ -1,0 +1,254 @@
+- navigation:
+  - link "ShipmentLink logo":
+    - /url: "https://www.shipmentlink.com\n"
+    - img "ShipmentLink logo"
+  - button "All-in-One": All-in-One 
+  - button "Tracking": Tracking 
+  - button "Sailing Schedules": Sailing Schedules 
+  - button "EDI/API": EDI/API 
+  - button "Location": Location 
+  - button "Others": Others 
+  - link "Contact us":
+    - /url: "https://www.shipmentlink.com\n/tcc1/jsp/TCC1_Contact.jsp"
+  - button "Member Information": 
+- heading [level=5]
+- button "Close": 
+- heading "All-in-One " [level=2]:
+  - button "All-in-One "
+- heading "Tracking " [level=2]:
+  - button "Tracking "
+- heading "Sailing Schedules " [level=2]:
+  - button "Sailing Schedules "
+- heading "EDI/API " [level=2]:
+  - button "EDI/API "
+- heading "Location " [level=2]:
+  - button "Location "
+- heading "Others " [level=2]:
+  - button "Others "
+- heading "Contact us" [level=2]:
+  - link "Contact us":
+    - /url: "https://www.shipmentlink.com\n/tcc1/jsp/TCC1_Contact.jsp"
+- button "Slide 1"
+- button "Slide 2"
+- button "Slide 3"
+- link "Shipment Dashboard. Your smart assistant.":
+  - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&defaultFunc=DASHBOARD"
+  - img "Shipment Dashboard. Your smart assistant."
+- button "Read ShipmentLink new services" [expanded]: 
+- text: Cargo Tracking
+- combobox "Floating label select tracking type":
+  - option "Booking number"
+  - option "B/L number" [selected]
+  - option "Container number"
+- textbox "Number"
+- button "Track"
+- text: Sailing Schedules
+- textbox "Origin"
+- button "Exchange": 
+- textbox "Destination"
+- text: 2 Weeks
+- button "Search"
+- text: The period is for two weeks. For more conditions, please go to
+- link "Advanced":
+  - /url: "https://www.shipmentlink.com\n/tvs2/jsp/TVS2_InteractiveSchedule.jsp"
+- text: .
+- heading "All-in-One Services" [level=2]
+- text: Dashboard
+- list:
+  - listitem:
+    - link "Dashboard":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&defaultFunc=DASHBOARD"
+- text: Booking
+- list:
+  - listitem:
+    - link "Booking":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=EB"
+- text: VGM
+- list:
+  - listitem:
+    - link "Submitting VGM":
+      - /url: "https://www.shipmentlink.com\n/servlet/EVG1_ReportVGMController.do?action=vgmIndex"
+  - listitem:
+    - link "Container Tare Weight":
+      - /url: "https://www.shipmentlink.com\n/eqc1/jsp/EQC1_Container_Tare_Weight_Search.jsp"
+- text: My Export
+- list:
+  - listitem:
+    - link "B/L Instruction":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=BI"
+  - listitem:
+    - link "Supplementary EU ENS Data":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=BIENS"
+  - listitem:
+    - link "Proofreading":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=PF"
+  - listitem:
+    - link "Non-negotiable B/L":
+      - /url: "https://www.shipmentlink.com\n/tdb2/jsp/TDB2_InternetBL.jsp"
+  - listitem:
+    - link "i-B/L":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=ET"
+  - listitem:
+    - link "i-Dispatch":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=EP"
+  - listitem:
+    - link "eBL":
+      - /url: "https://www.shipmentlink.com\n/ebl1/jsp/EBL1_Information.jsp"
+- text: My Import
+- list:
+  - listitem:
+    - link "Arrival Notice":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=AN"
+  - listitem:
+    - link "Import Door Delivery":
+      - /url: "https://www.shipmentlink.com\n/mdb1/jsp/MDB1_QueryOrder.jsp"
+  - listitem:
+    - link "US Importer Security Filing (ISF)":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=IS"
+- text: My Payment
+- list:
+  - listitem:
+    - link "Freight details":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=FD"
+  - listitem:
+    - link "i-invoice":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=IV"
+  - listitem:
+    - link "e-Payment":
+      - /url: "https://www.shipmentlink.com\n/servlet/TUF1_ControllerServlet.do?action=allInOne&lang=en&defaultFunc=EC"
+- button "Next"
+- button "Slide 1"
+- button "Slide 2"
+- text: Tracking Tracking
+- list:
+  - listitem:
+    - link "Cargo Tracking":
+      - /url: "https://ct.shipmentlink.com\n/servlet/TDB1_CargoTracking.do"
+  - listitem:
+    - link "Member Tracking":
+      - /url: "https://www.shipmentlink.com\n/servlet/TDB1_MemberTracking.do"
+  - listitem:
+    - link "EverDRY SMART":
+      - /url: "https://www.shipmentlink.com\n/tdb1/jsp/iot/TDB1_SmartIOT.jsp"
+- text: Reefer
+- list:
+  - listitem:
+    - link "Reefer Online Service":
+      - /url: "https://www.shipmentlink.com\n/tdb1/jsp/sr/TDB1_SmartReefer.jsp"
+- text: N.American Information
+- list:
+  - listitem:
+    - link "Canada WareHouse & Sublocation Codes":
+      - /url: "https://www.shipmentlink.com\n/ena1/jsp/ENA1_CanadaWareHouse.jsp"
+  - listitem:
+    - link "U.S.A. IT Location":
+      - /url: "https://www.shipmentlink.com\n/tdb1/jsp/TDB1_UsaItLocation.jsp"
+  - listitem:
+    - link "N.America Rail Information":
+      - /url: "https://www.shipmentlink.com\n/ena1/jsp/ENA1_RailStatus.jsp"
+- text: e-Report
+- list:
+  - listitem:
+    - link "Shipment Statistics":
+      - /url: "https://www.shipmentlink.com\n/servlet/TAM1_ShipmentReportController.do"
+  - listitem:
+    - link "Tracking Report":
+      - /url: "https://www.shipmentlink.com\n/servlet/TDB1_TRController.do"
+  - listitem:
+    - link "Event Notification":
+      - /url: "https://www.shipmentlink.com\n/tdb1/jsp/en/TDB1_EventNotification.jsp"
+- text: Sailing Schedules Schedule
+- list:
+  - listitem:
+    - link "Search by Area":
+      - /url: "https://ss.shipmentlink.com\n/tvs2/jsp/TVS2_LongTermMenu.jsp?type=L"
+  - listitem:
+    - link "Search by Point":
+      - /url: "https://ss.shipmentlink.com\n/tvs2/jsp/TVS2_InteractiveSchedule.jsp"
+  - listitem:
+    - link "Search by Vessel":
+      - /url: "https://ss.shipmentlink.com\n/tvs2/jsp/TVS2_VesselSchedule.jsp"
+- text: Vessel
+- list:
+  - listitem:
+    - link "Vessel Arrival Time":
+      - /url: "https://ss.shipmentlink.com\n/tvs2/jsp/TVS2_VesselArrivalTime.jsp"
+  - listitem:
+    - link "Terminal Prospect":
+      - /url: "https://ss.shipmentlink.com\n/tvs2/jsp/TVS2_TerminalProspect.jsp"
+  - listitem:
+    - link "Routing Network":
+      - /url: "https://ss.shipmentlink.com\n/tvs2/jsp/TVS2_LongTermMenu.jsp?type=S"
+  - listitem:
+    - link "Vessel Particulars":
+      - /url: "https://ss.shipmentlink.com\n/tvi1/jsp/TVI1_VesselParticulars.jsp"
+- text: Subscription
+- list:
+  - listitem:
+    - link "Schedule e-mail":
+      - /url: "https://www.shipmentlink.com\n/tvs3/jsp/TVS3_SchedulesMail.jsp"
+- text: EDI/API EDI
+- list:
+  - listitem:
+    - link "EDI Service":
+      - /url: "https://www.shipmentlink.com\n/tam1/jsp/TAM1_EdiRegisterNotice.jsp"
+- text: API
+- list:
+  - listitem:
+    - link "API Portal":
+      - /url: /_ec/APIPORTAL_Home
+- text: Other
+- list:
+  - listitem:
+    - link "Tariff & Rates":
+      - /url: "https://www.shipmentlink.com\n/msq1/jsp/MSQ1_Index.jsp"
+  - listitem:
+    - link "Booking Terms and Conditions":
+      - /url: "https://www.evergreen-line.com\n/blclauses/jsp/BookingTermsConditions.jsp"
+  - listitem:
+    - link "Bill of Lading Clauses":
+      - /url: "https://www.shipmentlink.com\n/tdb2/jsp/TDB2_Blclause.jsp"
+- heading "Carriers website" [level=2]
+- link " Evergreen Line":
+  - /url: "https://www.evergreen-line.com\n"
+- link " Evergreen Marine":
+  - /url: "https://www.evergreen-marine.com\n"
+- link " Evergreen Marine (UK)":
+  - /url: "https://www.evergreen-marine.co.uk\n"
+- link " Italia Marittima":
+  - /url: http://www.italiamarittima.it
+- link " Evergreen Marine (Hong Kong)":
+  - /url: "https://www.evergreen-marine.com.hk\n"
+- link " Evergreen Marine (Singapore)":
+  - /url: "https://www.evergreen-marine.com.sg\n"
+- link " Evergreen Marine (Asia)":
+  - /url: "https://www.evergreen-asia.com.sg\n"
+- text: Partner with EVERGREEN LINE
+- paragraph: Evergreen Line provides integrated e-Commerce services on ShipmentLink portal. We aim to expedite digitalization service for improved customer experience, keep developing advance web, EDI & API services to satisfy customer's demand globally.
+- text: 146K+ MEMBER COUNTS ———  ——— 2175K+ EDI/API CONNECTIONS ———  ——— 110K+ I-B/L COUNTS ———  ——— 130K+ E-SUBSCRIPTIONS ———  ———
+- heading "Connecting your supply chain around the world" [level=2]
+- link "長榮貨櫃通":
+  - /url: https://www.containerlink.com.tw/
+  - img "長榮貨櫃通"
+- link "Everport Terminal Services, INC.":
+  - /url: https://www.etslink.com/
+  - img "Everport Terminal Services, INC."
+- link "GreenX":
+  - /url: https://www.greenxtrade.com/
+  - img "GreenX"
+- link "Terms of Use":
+  - /url: "https://www.shipmentlink.com\n/tuf1/jsp/TUF1_DisclaimerClause.jsp?clause=terms"
+- text: ","
+- link "Copyright":
+  - /url: "https://www.shipmentlink.com\n/tuf1/jsp/TUF1_DisclaimerClause.jsp?clause=copyright"
+- text: ","
+- link "Privacy Policy":
+  - /url: "https://www.shipmentlink.com\n/tuf1/jsp/TUF1_DisclaimerClause.jsp?clause=privacy"
+- text: ","
+- link "Cookie Policy":
+  - /url: "https://www.shipmentlink.com\n/tuf1/jsp/TUF1_DisclaimerClause.jsp?clause=cookie"
+- text: for ShipmentLink Shipping & Transport Website. Copyright© 2001-2026 , All Rights Reserved.
+- list:
+  - listitem
+- status
+- status

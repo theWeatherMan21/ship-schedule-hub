@@ -1,0 +1,112 @@
+- navigation:
+  - link:
+    - /url: /
+  - list:
+    - listitem:
+      - link "About Us":
+        - /url: "#"
+    - listitem:
+      - link "Service Info":
+        - /url: "#"
+    - listitem:
+      - link "eBusiness":
+        - /url: "#"
+    - listitem:
+      - link "Local Office":
+        - /url: /contact/office_network
+    - listitem:
+      - link "Sustainability":
+        - /url: "#"
+  - link:
+    - /url: "#"
+  - link:
+    - /url: "#"
+- navigation "Breadcrumbs":
+  - list:
+    - listitem:
+      - link "Home":
+        - link "Home":
+          - /url: /en
+    - listitem:
+      - link "eBusiness":
+        - link "eBusiness":
+          - /url: /en/esolution/ov
+    - listitem:
+      - link "Schedule":
+        - link "Schedule":
+          - /url: /esolution/schedule/overview
+    - listitem:
+      - link "Point-to-Point Search" [disabled]
+- text: Schedule
+- img
+- tablist "Dynamic tabs":
+  - tab "Point-to-Point Search" [selected]
+  - tab "Long Term Schedule"
+  - tab "Port Schedule"
+  - tab "Vessel Schedule"
+- text: Point-to-Point Search
+- link:
+  - /url: "#"
+- text: "From Location From:"
+- log
+- text: "--input location name--"
+- combobox
+- radiogroup "Service Term:":
+  - text: "Service Term:"
+  - radio "Container yard" [checked]
+  - text: Container yard
+  - radio "Store door"
+  - text: Store door
+- text: "To Location To:"
+- log
+- text: "--input location name--"
+- radiogroup "Service Term:":
+  - text: "Service Term:"
+  - radio "Container yard" [checked]
+  - text: Container yard
+  - radio "Store door"
+  - text: Store door
+- separator
+- text: "Period Start Date:"
+- textbox: 2026/09/10
+- text: "End Date:"
+- textbox: 2026/09/24
+- radiogroup:
+  - radio "Departure Date" [checked]
+  - text: Departure Date
+  - radio "Arrival Date"
+  - text: Arrival Date
+- text: Priority
+- radiogroup:
+  - radio "All" [checked]
+  - text: All
+  - radio "Direct"
+  - text: Direct
+  - radio "T/S"
+  - text: T/S
+- separator
+- button "Search"
+- text: This Website uses necessary cookies to collect data in order to enable core functionality, including security and network management. If you continue without changing your settings, we will deem this as your consent to receive these cookies. To find out more about the cookies we use, see our
+- link "Cookie Policy":
+  - /url: https://www.yangming.com/en/footer/cookie_policy
+- text: .
+- button "Agree"
+- contentinfo:
+  - link "Terms of Use":
+    - /url: /footer/terms_of_use
+  - separator
+  - link "Privacy Policy":
+    - /url: /footer/privacy_and_security
+  - separator
+  - link "Cookie Policy":
+    - /url: /footer/cookie_policy
+  - separator
+  - link "Ethical Management Statement":
+    - /url: /footer/ethical_management_statement
+  - separator
+  - link "Fraud Prevention Statement":
+    - /url: /footer/fraud_prevention_statement
+  - text: Copyright © YANG MING Group. All Rights Reserved.
+- link:
+  - /url: "#"
+- alert

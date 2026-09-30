@@ -1,0 +1,264 @@
+{
+ "fresh": [
+  "https://www.cma-cgm.com/assets/public/images/1806CCJACQUESAADE-HD-046.jpg?VersionId=MJH42Oc6im8O9zApdPTorRU2GyTNvrB5",
+  "https://www.cma-cgm.com/assets/public/images/_NSU4056e-2.jpg?VersionId=LkyRs2urUiek_np_iaBa0pxT52LTCG7H",
+  "https://www.cma-cgm.com/assets/public/banner/Tutti%20fruti.jpg?VersionId=P4ooZGPJ3nAwFMCqzPp2cD.f89IGa_3v",
+  "https://www.cma-cgm.com/assets/public/banner/FMCG%203%20%281%29%20%281%29.jpg?VersionId=CX_F7hfb4y6gBoZ.DWlqfQEflqgRTffZ",
+  "https://www.cma-cgm.com/Images-pxp/v3-1/illustration/cms/bg-gradient.jpg?v=VK8X4ezUGn0vYoWLvOql8SSqS4E",
+  "https://monitor.cma-cgm.com/cedexis/r20.gif?t=lajixi",
+  "https://monitor.cma-cgm.com/cedexis/r20.gif?t=ox86gz",
+  "https://monitor.cma-cgm.com/cedexis/r20.gif?t=frwdtu",
+  "https://monitor-cf.cma-cgm.com/cedexis/r20.gif?t=nivr61",
+  "https://monitor-cf.cma-cgm.com/cedexis/r20.gif?t=wlotyf",
+  "https://monitor-cf.cma-cgm.com/cedexis/r20.gif?t=1a47cb",
+  "https://monitor-chinanet.cma-cgm.com/cedexis/r20.gif?t=gg1m86",
+  "https://monitor-chinanet.cma-cgm.com/cedexis/r20.gif?t=tqsh74",
+  "https://monitor-chinanet.cma-cgm.com/cedexis/r20.gif?t=g7j0yn",
+  "https://monitor-cc.cma-cgm.com/cedexis/r20.gif?t=jfrfxi",
+  "https://monitor-cc.cma-cgm.com/cedexis/r20.gif?t=2rvnmf",
+  "https://monitor-cc.cma-cgm.com/cedexis/r20.gif?t=vs0o6w",
+  "https://b.ns1p.net/?v=1695317842&x=1hdv9m4&r=akrb3u,2qsqpc,1hq2kf1:i5k,3i6,23,1z,1|i5k,3kd,2s,1y,1|i5k,3n9,21,1z!akrb3u,1vvfl62,1hq2kf1:i5k,3pe,1g|i5k,3qw,1m|i5k,3sj,1k!akrb3u,1eqwdw,1hq2kf1:i5k,3u7,1t,1s,1|i5k,3w2,1r,1q,1|i5k,3zc,1x,1x!akrb3u,1vw3dpi,1hq2kf1:i5k,41d,2w,2v,1|i5k,44c,2t,2s,1|i5k,47b,2r,2r,1"
+ ],
+ "posts": [
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/api/PortsWithInlands/GetAllPlaces?id=ningbo",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Content-acc/fonts/roboto-bold-webfont.woff2?v=4auUZGibV3jRBsfjlBlqBiC0-t4",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/api/PortsWithInlands/GetAllPlaces?id=istanbul",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/search?q=&searchType=Global",
+   "b": ""
+  },
+  {
+   "m": "POST",
+   "u": "https://cmacgm.matomo.cloud/matomo.php?ping=1&idsite=1&rec=1&r=422374&h=17&m=52&s=56&url=https%3A%2F%2Fwww.cma-cgm.com%2Febusiness%2Fschedules&_id=6d916c5daa3e33a1&_idn=0&send_image=0&_refts=0&dimensi",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Content-pxp/v4css.css?v=blKCmOEF30D3OcR-CQvOR93rL4s",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Content-pxp/musticons-fontcss.css?v=AGnwjWuO8xENWrEx-wK5KaKt7Ow",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/images/1806CCJACQUESAADE-HD-046.jpg?VersionId=MJH42Oc6im8O9zApdPTorRU2GyTNvrB5",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/images/KV%20cc%2B.png?VersionId=neWLYfHR.By_Xd8FNiDYu1j2PJe8P31S",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/images/_NSU4056e-2.jpg?VersionId=LkyRs2urUiek_np_iaBa0pxT52LTCG7H",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/images/Rail%202.png?VersionId=d9whfyRKBlE6B_rV11sSBYSB8X4ChJqd",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/images/CCAC%202.png?VersionId=C57VT2Zy1WyDApVqQO5yyfGzdVX8btqB",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/images/CCAC%201.png?VersionId=CTk8YJL3F1fzn_cCJwEmyFPj5HwYS8e4",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/bundles/pxp/carouselNavigation.js?v=WD7zvSGnt5dzXcaA9A9mT2lkFWg",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/images/image%20%2815%29.png?VersionId=DMAeJ.7OAbgjQ3cq.LQBchet_.44NxuD",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/images/visual-push-mycma%20%281%29.png?VersionId=GlZlZFRwiti3O2JLV8X9BaGclJp9p.bf",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/images/visual-push-contact%20%281%29_1.png?VersionId=G11J4s0yjk7sMUhShhfC84XCp5B.hQrA",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/bundles/pxp/v4TopMenu.js?v=XTPsq3-24A-yqCcMxrMZXQZRA2c",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/bundles/pxp/library2019scm.js?v=R7MbuqltLMRT6OefwjqpBAgt34I",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/bundles/pxp/must-en.js?v=uThxWOXSKB6QleFDjtXsHex97BM",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/bundles/pxp/v4Home.js?v=A-7H4ichfbtv38VyK-GIy95_Y7E",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Images-pxp/v3-1/icon/niji/MagnifyingGlassRed.svg?v=VK8X4ezUGn0vYoWLvOql8SSqS4E",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Images-pxp/v3-1/icon/niji/Angledown.svg?v=VK8X4ezUGn0vYoWLvOql8SSqS4E",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Images-pxp/v3-1/icon/niji/picto-mycma.svg?v=VK8X4ezUGn0vYoWLvOql8SSqS4E",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/banner/Neoline%20compress%C3%A9.png?VersionId=9LJvnLDVEZZZXE8jV6p..4VGWAHNdO5P",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/banner/Tutti%20fruti.jpg?VersionId=P4ooZGPJ3nAwFMCqzPp2cD.f89IGa_3v",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/assets/public/banner/FMCG%203%20%281%29%20%281%29.jpg?VersionId=CX_F7hfb4y6gBoZ.DWlqfQEflqgRTffZ",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Images-pxp/v3-1/illustration/cms/bg-gradient.jpg?v=VK8X4ezUGn0vYoWLvOql8SSqS4E",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Images-pxp/v3-1/icon/niji/arrow.svg?v=VK8X4ezUGn0vYoWLvOql8SSqS4E",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Content-pxp/fonts/roboto-regular-webfont.woff2?v=icIhxOHoBKfvx26_ADXV9X1Yoss",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Content-pxp/fonts/Resolve-Sans-W00_Regular.woff2?v=icIhxOHoBKfvx26_ADXV9X1Yoss",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Content-pxp/fonts/Resolve-Sans-W00_Light.woff2?v=icIhxOHoBKfvx26_ADXV9X1Yoss",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Content-pxp/fonts/Resolve-Sans-W00_SemiLight.woff2?v=icIhxOHoBKfvx26_ADXV9X1Yoss",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Content-pxp/fonts/roboto-bold-webfont.woff2?v=icIhxOHoBKfvx26_ADXV9X1Yoss",
+   "b": ""
+  },
+  {
+   "m": "POST",
+   "u": "https://cmacgm.matomo.cloud/matomo.php?action_name=CMA%20CGM%20%7C%20EXPERT%20SUPPORT%20for%20all%20transport%20needs&idsite=1&rec=1&r=242127&h=17&m=52&s=58&url=https%3A%2F%2Fwww.cma-cgm.com%2F&urlref",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor.cma-cgm.com/cedexis/r20.gif?t=lajixi",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor.cma-cgm.com/cedexis/r20.gif?t=ox86gz",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor.cma-cgm.com/cedexis/r20.gif?t=frwdtu",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor-cf.cma-cgm.com/cedexis/r20.gif?t=nivr61",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor-cf.cma-cgm.com/cedexis/r20.gif?t=wlotyf",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor-cf.cma-cgm.com/cedexis/r20.gif?t=1a47cb",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor-chinanet.cma-cgm.com/cedexis/r20.gif?t=gg1m86",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor-chinanet.cma-cgm.com/cedexis/r20.gif?t=tqsh74",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://www.cma-cgm.com/Images-pxp/v3-1/icon/niji/burgerIcon.svg?v=VK8X4ezUGn0vYoWLvOql8SSqS4E",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor-chinanet.cma-cgm.com/cedexis/r20.gif?t=g7j0yn",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor-cc.cma-cgm.com/cedexis/r20.gif?t=jfrfxi",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor-cc.cma-cgm.com/cedexis/r20.gif?t=2rvnmf",
+   "b": ""
+  },
+  {
+   "m": "GET",
+   "u": "https://monitor-cc.cma-cgm.com/cedexis/r20.gif?t=vs0o6w",
+   "b": ""
+  }
+ ]
+}

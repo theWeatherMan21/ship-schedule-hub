@@ -1,0 +1,20 @@
+{
+  "name": "shipschedulehub",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "engine": "node engine/query.mjs"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "vite": "^7"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2"
+  }
+}

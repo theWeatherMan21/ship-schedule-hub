@@ -1,0 +1,58 @@
+{
+ "url": "https://www.maersk.com/schedules/pointToPoint",
+ "title": "Search for Shipping and Vessel Schedules | Maersk",
+ "ctrls": [
+  {
+   "tag": "mc-segmented-control",
+   "type": "single",
+   "role": "listbox",
+   "class": "schedule-type-control",
+   "visible": true,
+   "label": ""
+  },
+  {
+   "tag": "input",
+   "name": "sortBy",
+   "type": "text",
+   "visible": false,
+   "label": ""
+  },
+  {
+   "tag": "input",
+   "name": "ptpDatePicker",
+   "type": "text",
+   "visible": false,
+   "label": ""
+  },
+  {
+   "tag": "input",
+   "name": "containerType",
+   "type": "text",
+   "visible": false,
+   "label": ""
+  },
+  {
+   "tag": "input",
+   "name": "vesselFlag",
+   "type": "text",
+   "visible": false,
+   "label": ""
+  }
+ ],
+ "buttons": [],
+ "iframes": [
+  {
+   "src": "https://policy.app.cookieinformation.com/cookiesharingiframe.html",
+   "title": "Cookie Information cookie sharing library",
+   "id": "",
+   "visible": false
+  },
+  {
+   "src": "",
+   "title": "",
+   "id": "jEiRbM2LMq3rK5i6",
+   "visible": false
+  }
+ ],
+ "bodyText": "Skip to content Skip to footer Ask Maersk EN Notifications one Support Contact Us Prices Book Schedules Tracking Manage Services Company Register Login Schedules Search our extensive routes to find the schedule which fits your supply chain. Plan your next Maersk shipment. Find schedules and route information with ChatGPT. Containers Boxes & Pallets Search Plan & Book Prices Book Container Tracking Vessel Schedules Help Local Offices & Information Support Contact Us Logistics Services Ocean Transport Maersk Customs Services Inland Transport Lead Logistics Warehousing Air Freight E-Commerce Logistics Less-than-Container Load (LCL) Cold Chain Logistics Maersk Project Logistics Depot Cold Storage Maersk Ground Freight Transport Decarbonising Logistics Value Protect View all Resources News & Advisories Industry Sectors Insights Logistics Explained Quick Links MyFinance Maersk App Data Integrations Captain Peter Emissions Studio About Careers About Us Investors Procurement Container Sales Press Sustainability Accessibility Maersk Growth © A.P. Moller - Maersk Follow our journey. #AllTheWay LinkedIn Facebook YouTube X Instagram Terms & conditions Whistleblower Data Privacy Notification Co"
+}

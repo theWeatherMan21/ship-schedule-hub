@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>变体 C · 网格卡片式</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", Roboto, sans-serif;
+         -webkit-font-smoothing: antialiased; color: #16181d; background: #f6f7f9; line-height: 1.45; padding: 22px; }
+  .panel { max-width: 900px; margin: 0 auto; }
+  .queryline { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+  .queryline h2 { font-size: 17px; font-weight: 650; letter-spacing: -.2px; }
+  .queryline .meta { font-size: 12.5px; color: #8a9099; }
+
+  .carrier { margin-bottom: 16px; }
+  .chead { display: flex; align-items: center; gap: 9px; padding: 0 4px 9px; }
+  .cname { font-size: 13.5px; font-weight: 640; }
+  .ccode { font-size: 10.5px; color: #a6adb7; letter-spacing: .06em; }
+  .chead .spacer { flex: 1; }
+  .badge { font-size: 11.5px; padding: 2px 9px; border-radius: 999px; font-weight: 560; }
+  .badge.ok { background: #e8f7ee; color: #17794a; }
+  .badge.cache { background: #fff4e5; color: #a2620a; }
+  .badge.none { background: #f2f3f5; color: #8a9099; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 12px; }
+
+  /* 单条 = 一张卡 */
+  .card { position: relative; background: #fff; border: 1px solid #e6e8ec; border-radius: 16px; padding: 14px 15px 13px;
+          overflow: hidden; box-shadow: 0 1px 2px rgba(16,24,40,.05);
+          transition: transform .24s cubic-bezier(.2,.8,.3,1), box-shadow .24s ease, border-color .24s ease; }
+  .card::after { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--accent); opacity: .0; transition: opacity .24s ease; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(16,24,40,.13); border-color: color-mix(in srgb, var(--accent) 45%, #e6e8ec); }
+  .card:hover::after { opacity: 1; }
+
+  .top { display: flex; align-items: center; gap: 7px; font-size: 12.4px; color: #6b737d; }
+  .top .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .voy { margin-left: auto; font-size: 10.5px; font-weight: 640; color: #26303a; background: #f1f3f6; border-radius: 5px; padding: 1.5px 6px; }
+  .vessel { font-size: 13.6px; font-weight: 640; letter-spacing: -.2px; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* 主信息：开船日期（大） */
+  .etd { margin-top: 9px; display: flex; align-items: flex-end; gap: 7px; }
+  .etd .num { font-size: 32px; font-weight: 720; letter-spacing: -1.4px; line-height: .95; font-variant-numeric: tabular-nums; }
+  .etd .unit { font-size: 11.5px; color: #98a0aa; margin-bottom: 4px; }
+  .etd .wd { font-size: 11.5px; color: #98a0aa; margin-bottom: 4px; margin-left: auto; }
+  .label { font-size: 10.5px; color: #b0b7c0; letter-spacing: .08em; text-transform: uppercase; margin-top: 2px; }
+
+  .foot { margin-top: 11px; padding-top: 10px; border-top: 1px solid #f2f3f6; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6b737d; }
+  .foot .arrow { color: #c9ced6; }
+  .foot .spacer { flex: 1; }
+  .days { font-size: 13.5px; font-weight: 680; font-variant-numeric: tabular-nums; color: #16181d; }
+  .days span { font-size: 10.5px; color: #98a0aa; font-weight: 540; margin-left: 1px; }
+  .pill { font-size: 10.8px; font-weight: 620; padding: 2.5px 8px; border-radius: 999px; }
+  .pill.direct { background: #e8f7ee; color: #17794a; }
+  .pill.trans { background: #eef2ff; color: #3d4ea8; }
+
+  .none { background: #fff; border: 1px dashed #dfe2e8; border-radius: 16px; padding: 18px; font-size: 12.6px; color: #8a9099; }
+  .none a { color: #2f6df6; text-decoration: none; font-weight: 560; }
+  .hint { text-align: center; font-size: 12px; color: #9aa1ab; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="panel">
+  <div class="queryline"><h2>宁波 → 伊斯坦布尔</h2><span class="meta">11 家 · 79 条船期 · 开船日期为主信息</span></div>
+
+  <section class="carrier" style="--accent:#0f766e">
+    <div class="chead"><span class="cname">HMM 现代商船</span><span class="ccode">HMM</span><span class="spacer"></span><span class="badge ok">✓ 3 条</span></div>
+    <div class="grid">
+      <article class="card">
+        <div class="top"><span class="dot"></span>宁波 → 伊斯坦布尔<span class="voy">0064W</span></div>
+        <div class="vessel">SEASPAN BREEZE</div>
+        <div class="etd"><span class="num">10.01</span><span class="unit">开船</span><span class="wd">周四</span></div>
+        <div class="foot"><span>12.02 到港</span><span class="spacer"></span><span class="days">62<span>天</span></span><span class="pill trans">转</span></div>
+      </article>
+      <article class="card">
+        <div class="top"><span class="dot"></span>宁波 → 伊斯坦布尔<span class="voy">0051W</span></div>
+        <div class="vessel">YM WELCOME</div>
+        <div class="etd"><span class="num">10.06</span><span class="unit">开船</span><span class="wd">周二</span></div>
+        <div class="foot"><span>12.04 到港</span><span class="spacer"></span><span class="days">58<span>天</span></span><span class="pill direct">直达</span></div>
+      </article>
+      <article class="card">
+        <div class="top"><span class="dot"></span>宁波 → 伊斯坦布尔<span class="voy">0103W</span></div>
+        <div class="vessel">MSC VIVIANA</div>
+        <div class="etd"><span class="num">10.07</span><span class="unit">开船</span><span class="wd">周三</span></div>
+        <div class="foot"><span>11.04 到港</span><span class="spacer"></span><span class="days">28<span>天</span></span><span class="pill direct">直达</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="carrier" style="--accent:#1b4fd8">
+    <div class="chead"><span class="cname">Maersk 马士基</span><span class="ccode">MAER</span><span class="spacer"></span><span class="badge cache">⚡ 缓存 2 条</span></div>
+    <div class="grid">
+      <article class="card">
+        <div class="top"><span class="dot"></span>宁波 → 安巴利（伊斯坦布尔港区）<span class="voy">639W</span></div>
+        <div class="vessel">MOGENS MAERSK</div>
+        <div class="etd"><span class="num">10.05</span><span class="unit">开船</span><span class="wd">周一</span></div>
+        <div class="foot"><span>10.29 到港</span><span class="spacer"></span><span class="days">24<span>天</span></span><span class="pill trans">转 Port Said</span></div>
+      </article>
+      <article class="card">
+        <div class="top"><span class="dot"></span>宁波 → 安巴利（伊斯坦布尔港区）<span class="voy">641W</span></div>
+        <div class="vessel">MAREN MAERSK</div>
+        <div class="etd"><span class="num">10.13</span><span class="unit">开船</span><span class="wd">周二</span></div>
+        <div class="foot"><span>11.16 到港</span><span class="spacer"></span><span class="days">34<span>天</span></span><span class="pill trans">转 Port Said</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="carrier" style="--accent:#c3c8d0">
+    <div class="chead"><span class="cname">ZIM 以星</span><span class="ccode">ZIM</span><span class="spacer"></span><span class="badge none">该线无班次</span></div>
+    <div class="none">官网查无此航线班次 · <a href="#">🔍 维运网查「宁波 → 伊斯坦布尔」</a></div>
+  </section>
+
+  <div class="hint">鼠标移上去：卡片上浮 4px + 顶部船司色条点亮 + 边框染色 + 阴影扩散</div>
+</div>
+</body>
+</html>

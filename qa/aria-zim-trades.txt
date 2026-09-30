@@ -1,0 +1,209 @@
+- list "Global Network":
+  - listitem:
+    - link "Homepage":
+      - /url: /
+  - listitem: "> Global Network"
+- heading "Global Network" [level=1]
+- heading "Delivering on our promise" [level=2]:
+  - paragraph: Delivering on our promise
+- tablist:
+  - tab "Trades & Lines" [selected]
+  - tab "Ports of call"
+  - tab "Offices"
+- tabpanel "Trades & Lines":
+  - heading "Asia - Africa" [level=2]:
+    - button "Asia - Africa"
+  - heading "Asia - America" [level=2]:
+    - button "Asia - America"
+  - heading "Asia - Europe" [level=2]:
+    - button "Asia - Europe"
+  - heading "Asia - Oceania" [level=2]:
+    - button "Asia - Oceania"
+  - heading "Asia - South America East Coast" [level=2]:
+    - button "Asia - South America East Coast"
+  - heading "Intra America Caribbean" [level=2]:
+    - button "Intra America Caribbean"
+  - heading "Intra Asia" [level=2]:
+    - button "Intra Asia"
+  - heading "Intra Mediterranean And Black Sea" [level=2]:
+    - button "Intra Mediterranean And Black Sea"
+  - heading "Mediterranean - North America" [level=2]:
+    - button "Mediterranean - North America"
+  - heading "Mediterranean - North Europe" [level=2]:
+    - button "Mediterranean - North Europe"
+  - heading "Mediterranean - South America East Coast" [level=2]:
+    - button "Mediterranean - South America East Coast"
+  - heading "South America - North America" [level=2]:
+    - button "South America - North America"
+- region "Map"
+- button "Zoom in"
+- button "Zoom out" [disabled]
+- link "Mapbox logo":
+  - /url: https://www.mapbox.com/
+- list:
+  - link "Mapbox":
+    - /url: https://www.mapbox.com/about/maps
+    - text: © Mapbox
+  - link "OpenStreetMap":
+    - /url: https://www.openstreetmap.org/copyright/
+    - text: © OpenStreetMap
+  - link "Map feedback":
+    - /url: https://apps.mapbox.com/feedback/?owner=zim-integrated-shipping&id=cm4bfssvc01ej01sd8m0qd38e&access_token=pk.eyJ1IjoiemltLWludGVncmF0ZWQtc2hpcHBpbmciLCJhIjoiY205NW1oYmlmMGw3ejJrc2pnMGFsbXZiNiJ9.Q9dofRNjVXBjjmmRIan2gQ#/-92.2/37.8/1
+    - text: Improve this map
+- contentinfo:
+  - img "logo"
+  - heading "NEWS" [level=4]
+  - list:
+    - listitem:
+      - link "Customer Updates":
+        - /url: https://www.zim.com/customer-updates
+    - listitem:
+      - link "News":
+        - /url: https://investors.zim.com/news/default.aspx
+    - listitem:
+      - link "Shipping News (Regulations)":
+        - /url: https://www.zim.com/news/shipping-news-regulations
+  - heading "ABOUT ZIM" [level=4]
+  - list:
+    - listitem:
+      - link "Global Network":
+        - /url: https://www.zim.com/schedules/trades
+    - listitem:
+      - link "Cargo Services":
+        - /url: https://www.zim.com/cargo-services
+    - listitem:
+      - link "Digital Solutions":
+        - /url: https://www.zim.com/digital-solutions
+    - listitem:
+      - link "Whistleblower":
+        - /url: https://www.zim.com/about-zim/sustainability/whistleblower
+    - listitem:
+      - link "Investors":
+        - /url: https://www.zim.com/investors
+    - listitem:
+      - link "ZIM Ventures":
+        - /url: https://zimventures.zim.com/
+    - listitem:
+      - link "80 Anniversary Album":
+        - /url: https://www.zim.com/objects/zim-80/index.html
+  - heading "HELP" [level=4]
+  - list:
+    - listitem:
+      - link "Useful Information":
+        - /url: https://www.zim.com/help
+    - listitem:
+      - link "ZIM Shipping Containers":
+        - /url: https://www.zim.com/help/zim-shipping-containers
+    - listitem:
+      - link "Quotation Terms and Conditions":
+        - /url: https://www.zim.com/help/quotation-terms-and-conditions
+    - listitem:
+      - link "Booking Confirmation Clauses":
+        - /url: https://www.zim.com/help/booking-confirmation-clauses
+    - listitem:
+      - link "B/L Terms & conditions":
+        - /url: https://www.zim.com/help/bl-terms-and-conditions
+    - listitem:
+      - link "Sea Waybill":
+        - /url: https://www.zim.com/help/waybill
+  - heading "CONTACT US" [level=4]
+  - list:
+    - listitem:
+      - link "Global Network":
+        - /url: https://www.zim.com/global-network
+    - listitem:
+      - link "Customer Service":
+        - /url: https://www.zim.com/contact-us/customer-service-form
+    - listitem:
+      - link "Who We Are":
+        - /url: https://www.zim.com/careers
+    - listitem:
+      - link "IR Contact":
+        - /url: https://investors.zim.com/resources/ir-contact/default.aspx
+  - heading "USEFUL TOOLS" [level=4]
+  - list:
+    - listitem:
+      - link "Tariff Calculator":
+        - /url: https://www.zim.com/tools/tariff-calculator
+    - listitem:
+      - link "SOLAS VGM":
+        - /url: https://www.zim.com/tools/solas-vgm
+    - listitem:
+      - link "Demurrage & Detention Tariff":
+        - /url: https://www.zim.com/tools/demurrage-detention-tariff
+    - listitem:
+      - link "Local Charges":
+        - /url: https://www.zim.com/tools/local-charges
+    - listitem:
+      - link "Country Requirements & Regulations":
+        - /url: https://www.zim.com/tools/country-requirements-regulations
+    - listitem:
+      - link "eContainer":
+        - /url: https://www.zim.com/tools/econtainer
+  - group "Subscribe to our mailing list to receive the latest updates and offer from ZIM":
+    - text: Subscribe to our mailing list to receive the latest updates and offer from ZIM First Name
+    - textbox "First Name"
+    - text: Last Name
+    - textbox "Last Name"
+    - text: Enter Your Email
+    - textbox "Enter Your Email"
+    - button "Submit button" [disabled]
+    - checkbox
+    - paragraph:
+      - text: I agree to receive marketing communications and updates from ZIM and its affiliated companies. We will use your information as part of
+      - link "our data protection policy":
+        - /url: /help/data-protection-policy
+      - text: .
+  - link "Google Play 0":
+    - /url: https://play.google.com/store/apps/details?id=com.zim
+    - button "Google Play 0"
+  - link "App Store 1":
+    - /url: https://apps.apple.com/us/app/zim-shipping/id1084970104
+    - button "App Store 1"
+  - list:
+    - listitem: © 2018 ZIM Integrated Shipping Services Ltd.
+    - listitem:
+      - link "Terms of Use":
+        - /url: https://www.zim.com/help/terms-of-use
+    - listitem:
+      - link "Data Protection Policy":
+        - /url: https://www.zim.com/help/data-protection-policy
+    - listitem:
+      - link "ZIM Cookies and Tracking Policy":
+        - /url: https://www.zim.com/help/cookies-tracking-policy
+    - listitem:
+      - link "Cookie Preferences":
+        - /url: https://www.zim.com/
+  - link "Facebook":
+    - /url: https://www.facebook.com/zimshippingservices
+    - img "Go To Facebook"
+  - link "LinkedIn":
+    - /url: http://www.linkedin.com/company/zim
+    - img "LinkedIn"
+  - link "YouTube":
+    - /url: https://www.youtube.com/ZIMShipping
+    - img "YouTube"
+  - link "Instagram":
+    - /url: https://www.instagram.com/zimshipping/
+    - img "Go To Instagram"
+  - link "Twitter":
+    - /url: https://twitter.com/zimshipping/
+    - img "Go To Twitter"
+  - link "Glassdoor":
+    - /url: https://www.glassdoor.com/Overview/Working-at-ZIM-Integrated-Shipping-Services-EI_IE194592.11,43.htm
+    - img "Glassdoor"
+  - link "WeChat":
+    - /url: https://www.zim.com/landing-pages/zim-wechat-qr
+    - img "Go To WeChat"
+  - paragraph:
+    - text: ZIM Integrated Shipping Services Ltd. is one of the leading carriers in the global container shipping industry. ZIM operates a modern fleet and a
+    - link "network of shipping lines":
+      - /url: /schedules/trades
+    - text: offering cargo transportation services on all major global trade routes, supported by the
+    - link "company's local offices":
+      - /url: /global-network
+    - text: and representatives around the world.
+  - paragraph: © ZIM Integrated Shipping Services Ltd. | All rights reserved
+  - paragraph:
+    - link "沪ICP备2025110343号-2":
+      - /url: https://beian.miit.gov.cn/#/Integrated/index

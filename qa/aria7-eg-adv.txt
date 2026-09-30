@@ -1,0 +1,193 @@
+- link "shipmentlink logo":
+  - /url: https://www.shipmentlink.com
+  - img "shipmentlink logo"
+- button "All-in-One "
+- button "Tracking "
+- button "Sailing Schedule "
+- button "EDI/API "
+- button "Location "
+- button "Others "
+- link "Contact us":
+  - /url: https://www.shipmentlink.com/tcc1/jsp/TCC1_Contact.jsp
+- button ""
+- table:
+  - rowgroup:
+    - row "Search by Point":
+      - cell "Search by Point":
+        - heading "Search by Point" [level=1]
+- table:
+  - rowgroup:
+    - row "All mandatory fields are denoted by .":
+      - cell "All mandatory fields are denoted by .":
+        - text: All mandatory fields are denoted by
+        - img
+        - text: .
+    - row "Query Criteria Please enter or select the location of origin and destination to view the sailing schedules for Non-Reefer Cargo or Reefer Cargo. Origin Destination Departure On/After September 10 2026 Arrival Before ====== = 2026 Duration 2 Weeks Cargo Type Non-Reefer Cargo Reefer Cargo Submit Reset":
+      - cell "Query Criteria Please enter or select the location of origin and destination to view the sailing schedules for Non-Reefer Cargo or Reefer Cargo. Origin Destination Departure On/After September 10 2026 Arrival Before ====== = 2026 Duration 2 Weeks Cargo Type Non-Reefer Cargo Reefer Cargo Submit Reset":
+        - text: Query Criteria
+        - table:
+          - rowgroup:
+            - row "Please enter or select the location of origin and destination to view the sailing schedules for Non-Reefer Cargo or Reefer Cargo.":
+              - cell "Please enter or select the location of origin and destination to view the sailing schedules for Non-Reefer Cargo or Reefer Cargo."
+            - row "Origin Destination":
+              - cell "Origin":
+                - img
+                - text: Origin
+                - textbox
+              - cell "Destination":
+                - img
+                - text: Destination
+                - textbox
+            - row:
+              - cell
+            - row "Departure On/After September 10 2026 Arrival Before ====== = 2026 Duration 2 Weeks Cargo Type Non-Reefer Cargo Reefer Cargo":
+              - cell "Departure On/After September 10 2026 Arrival Before ====== = 2026":
+                - table:
+                  - rowgroup:
+                    - row "Departure On/After September 10 2026":
+                      - cell "Departure On/After":
+                        - img
+                        - text: Departure On/After
+                      - cell "September 10 2026":
+                        - combobox:
+                          - option "January"
+                          - option "February"
+                          - option "March"
+                          - option "April"
+                          - option "May"
+                          - option "June"
+                          - option "July"
+                          - option "August"
+                          - option "September" [selected]
+                          - option "October"
+                          - option "November"
+                          - option "December"
+                        - combobox:
+                          - option "01"
+                          - option "02"
+                          - option "03"
+                          - option "04"
+                          - option "05"
+                          - option "06"
+                          - option "07"
+                          - option "08"
+                          - option "09"
+                          - option "10" [selected]
+                          - option "11"
+                          - option "12"
+                          - option "13"
+                          - option "14"
+                          - option "15"
+                          - option "16"
+                          - option "17"
+                          - option "18"
+                          - option "19"
+                          - option "20"
+                          - option "21"
+                          - option "22"
+                          - option "23"
+                          - option "24"
+                          - option "25"
+                          - option "26"
+                          - option "27"
+                          - option "28"
+                          - option "29"
+                          - option "30"
+                        - combobox:
+                          - option "2025"
+                          - option "2026" [selected]
+                          - option "2027"
+                        - img
+                    - row "Arrival Before ====== = 2026":
+                      - cell "Arrival Before"
+                      - cell "====== = 2026":
+                        - combobox:
+                          - option "======" [selected]
+                          - option "January"
+                          - option "February"
+                          - option "March"
+                          - option "April"
+                          - option "May"
+                          - option "June"
+                          - option "July"
+                          - option "August"
+                          - option "September"
+                          - option "October"
+                          - option "November"
+                          - option "December"
+                        - combobox:
+                          - option "=" [selected]
+                          - option "01"
+                          - option "02"
+                          - option "03"
+                          - option "04"
+                          - option "05"
+                          - option "06"
+                          - option "07"
+                          - option "08"
+                          - option "09"
+                          - option "10"
+                          - option "11"
+                          - option "12"
+                          - option "13"
+                          - option "14"
+                          - option "15"
+                          - option "16"
+                          - option "17"
+                          - option "18"
+                          - option "19"
+                          - option "20"
+                          - option "21"
+                          - option "22"
+                          - option "23"
+                          - option "24"
+                          - option "25"
+                          - option "26"
+                          - option "27"
+                          - option "28"
+                          - option "29"
+                          - option "30"
+                        - combobox:
+                          - option "==="
+                          - option "2025"
+                          - option "2026" [selected]
+                          - option "2027"
+                        - img
+              - cell "Duration 2 Weeks Cargo Type Non-Reefer Cargo Reefer Cargo":
+                - table:
+                  - rowgroup:
+                    - row "Duration 2 Weeks":
+                      - cell "Duration":
+                        - img
+                        - text: Duration
+                      - cell "2 Weeks":
+                        - combobox:
+                          - option "1Week"
+                          - option "2 Weeks" [selected]
+                          - option "3Weeks"
+                          - option "4Weeks"
+                    - row "Cargo Type Non-Reefer Cargo Reefer Cargo":
+                      - cell "Cargo Type"
+                      - cell "Non-Reefer Cargo Reefer Cargo":
+                        - radio "Non-Reefer Cargo" [checked]
+                        - text: Non-Reefer Cargo
+                        - radio "Reefer Cargo"
+                        - text: Reefer Cargo
+            - row:
+              - cell
+            - row "Submit Reset":
+              - cell "Submit Reset":
+                - button "Submit"
+                - button "Reset"
+- link "Terms of Use":
+  - /url: https://www.shipmentlink.com/tuf1/jsp/TUF1_DisclaimerClause.jsp?clause=terms
+- text: ","
+- link "Copyright":
+  - /url: https://www.shipmentlink.com/tuf1/jsp/TUF1_DisclaimerClause.jsp?clause=copyright
+- text: ","
+- link "Privacy Policy":
+  - /url: https://www.shipmentlink.com/tuf1/jsp/TUF1_DisclaimerClause.jsp?clause=privacy
+- text: and
+- link "Cookie Policy":
+  - /url: https://www.shipmentlink.com/tuf1/jsp/TUF1_DisclaimerClause.jsp?clause=cookie
+- text: for ShipmentLink Shipping & Transport Website. Copyright© 2001-2026 , All Rights Reserved.

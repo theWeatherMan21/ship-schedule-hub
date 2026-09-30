@@ -1,0 +1,14 @@
+{
+ "zim_endpoints": [
+  "https://www.zim.com/Z8cDihkWO/Vu/Pj/i79X8Z0dwcAlVA/pJN1/UHMUdQAD/DXsYYgo/rURpY",
+  "https://www.zim.com/Z8cDihkWO/Vu/Pj/i79X8Z0dwcAlVA/pJN1/UHMUdQAD/OhAyNx0/-JyIt",
+  "https://www.zim.com/Z8cDihkWO/Vu/Pj/i79X8Z0dwcAlVA/pJN1/UHMUdQAD/CH0zQnd/iRiAAAQ",
+  "https://www.zim.com/Z8cDihkWO/Vu/Pj/i79X8Z0dwcAlVA/pJN1/UHMUdQAD/VRwPVgY/zXWp-",
+  "https://www.zim.com/favicon.ico"
+ ],
+ "cma_endpoints": [
+  "https://api-js.datadome.co/js/",
+  "https://prompts.maze.co/api/widgets"
+ ],
+ "cosco_endpoints": []
+}

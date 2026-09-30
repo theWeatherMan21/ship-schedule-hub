@@ -1,0 +1,76 @@
+- link "logo":
+  - /url: http://lines.coscoshipping.com/home/
+  - img "logo"
+- text:  Message Center 中文
+- link "Help ":
+  - /url: javascript:void(0)
+- text: Login /
+- link "Register":
+  - /url: /ebusiness/register/
+- text: Search
+- link "Home":
+  - /url: /ebusiness/dashboard/
+- text: Tracking New BK Rate Control Tower Schedule Doc Inbound Container Reefer Subscr
+- heading "Sailing Schedules/Find Schedule by City Pairs" [level=3]
+- list:
+  - listitem: Find Schedule by City Pairs
+  - listitem: Find Schedule by Service
+  - listitem: Find Schedule by Vessel
+- text: "* Origin City"
+- textbox "Origin City (City,Province,Country/Region)"
+- text: Haulage (CY/Door) BOTH  * Destination City
+- textbox "Destination City (City,Province,Country/Region)"
+- text: Haulage (CY/Door) BOTH 
+- radio "Earliest Departure Date" [checked]
+- text: Earliest Departure Date
+- radio "Latest Arrival Date"
+- text: Latest Arrival Date 
+- textbox "Earliest Departure Date": 2026-09-10
+- text: Weeks to Display Four Weeks  Cargo Nature Both 
+- button "Search"
+- text: Related Function
+- separator
+- text: Control Tower Visualize and track entire process of supply chain operations, proactively alert and handle abnormal issues.
+- button "Search"
+- text: Cargo Tracking Real-time view of shipment status and cargo transportation trends
+- button "Search"
+- text: Rate Quotations Submit a request to receive a rate quotation
+- button "Search"
+- text: Vessel Particulars Enquire vessel information by service or vessel name
+- button "Search"
+- img "service-icon"
+- text:  Email Hotline 4009 601919 (China)
+- link "Contact Us":
+  - /url: javascript:void(0);
+- link "About Us":
+  - /url: javascript:void(0);
+- link "Privacy Policy(EU)":
+  - /url: javascript:void(0);
+- link "Privacy Policy(US)":
+  - /url: javascript:void(0);
+- link "Terms of Use":
+  - /url: javascript:void(0);
+- link "Check Network":
+  - /url: javascript:void(0);
+- link "Cookie Preference":
+  - /url: javascript:void(0);
+- separator
+- text: COPYRIGHT*1998-2026 ALL RIGHTS RESERVED
+- link "沪ICP备13003917号-1":
+  - /url: https://beian.miit.gov.cn
+- link "沪公网安备31022102000157号":
+  - /url: http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=31022102000157
+- link "沪ICP备16018315号-1":
+  - /url: https://beian.miit.gov.cn
+- link "沪公网安备 31022102000135号":
+  - /url: http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=31022102000135
+- img
+- link "上海工商":
+  - /url: http://wap.scjgj.sh.gov.cn/businessCheck/verifKey.do?showType=extShow&serial=9031000020200709093534000006070085-SAIC_SHOW_310000-20200928105913857526&signData=MEUCIQDqAvUJpVMTTb+nqhKQxGRVZlqZg5/gRZ57cbs+OVvVhgIgIeTr6k4xGvFV2bJ75eDF97xgk05XZPH6k4/DfyT1H8Q=
+- text: Cookie Notice
+- paragraph: Cookies are used by the website and third parties to provide website functionality, to analyze site usage and measure performance, and to personalize content. The information gained from this helps us to improve our products and our website and to adapt it to better meet the needs of our users. An overview of which service providers set cookies in your browser on the website can be found by clicking the “MANAGE PREFERENCE” button below.
+- paragraph: You can withdraw your consent at any time by clicking the “MANAGE PREFERENCE” button below, and by changing the cookie selections shown.
+- button "MANAGE PREFERENCE"
+- button "Allow All"
+- button "Reject All"
+- button "Read More"

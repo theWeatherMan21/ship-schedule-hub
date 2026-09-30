@@ -1,0 +1,56 @@
+[
+ {
+  "sel": "li",
+  "t": "Find Schedule by City Pairs",
+  "tag": "LI",
+  "cls": "active"
+ },
+ {
+  "sel": "li",
+  "t": "Find Schedule by Service",
+  "tag": "LI",
+  "cls": ""
+ },
+ {
+  "sel": "li",
+  "t": "Find Schedule by Vessel",
+  "tag": "LI",
+  "cls": ""
+ },
+ {
+  "sel": "li",
+  "t": "Ningbo,Ningbo,Zhejiang,China",
+  "tag": "LI",
+  "cls": "ivu-select-item"
+ },
+ {
+  "sel": "li",
+  "t": "Ningboxinxingjiancai(yangming),Ningbo,Ningbo,Zhejiang,China",
+  "tag": "LI",
+  "cls": "ivu-select-item"
+ },
+ {
+  "sel": "[class*=\"dropdown\"]",
+  "t": "Help Mobile Service EDI Serivce User Guides LOI format",
+  "tag": "DIV",
+  "cls": "ivu-dropdown"
+ },
+ {
+  "sel": "[class*=\"dropdown\"]",
+  "t": "Help",
+  "tag": "DIV",
+  "cls": "ivu-dropdown-rel"
+ },
+ {
+  "sel": "[class*=\"dropdown\"]",
+  "t": "Ningbo,Ningbo,Zhejiang,China Ningboxinxingjiancai(yangming),Ningbo,Ningbo,Zhejiang,China Loading",
+  "tag": "DIV",
+  "cls": "ivu-select-dropdown"
+ },
+ {
+  "sel": "[class*=\"dropdown\"]",
+  "t": "Ningbo,Ningbo,Zhejiang,China Ningboxinxingjiancai(yangming),Ningbo,Ningbo,Zhejiang,China",
+  "tag": "UL",
+  "cls": "ivu-select-dropdown-list"
+ }
+]

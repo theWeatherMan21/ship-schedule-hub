@@ -1,0 +1,43 @@
+- navigation:
+  - link "Hapag-Lloyd Logo":
+    - /url: https://www.hapag-lloyd.com
+    - img "Hapag-Lloyd Logo"
+  - list:
+    - listitem:
+      - link "EN":
+        - /url: "#"
+        - text: EN
+        - img
+- heading "Security Check" [level=1]
+- paragraph: "Your browser was tested against security. Please check following result:"
+- paragraph
+- main:
+  - heading [level=2]
+  - paragraph
+- paragraph
+- paragraph: "Technical Details: hapag-lloyd.com , Managed Challenge , IP: 42.200.172.116 , RayID: a38cad74dcfdc147"
+- heading "Why did this happen?" [level=4]
+- paragraph: This website is using a security service to protect itself from online attacks. The page or application that you want to use, triggered the security solution.
+- heading "How can I proceed?" [level=4]
+- paragraph: Please follow the instructions from above. In case you see a Captcha displayed, please continue solving it. In case of issues, maybe try another browser or clearing caches related to our website.
+- list:
+  - listitem: "Terms and Conditions:"
+  - listitem:
+    - link "Terms of Use Website":
+      - /url: https://www.hapag-lloyd.com/en/meta/legal-terms.html
+  - listitem:
+    - link "Terms of Transport":
+      - /url: https://www.hapag-lloyd.com/en/meta/terms-conditions-transport.html
+  - listitem:
+    - link "Terms of Purchase":
+      - /url: https://www.hapag-lloyd.com/en/meta/terms-conditions-purchase.html
+  - listitem:
+    - link "Imprint":
+      - /url: https://www.hapag-lloyd.com/en/meta/imprint.html
+  - listitem:
+    - link "Privacy Terms":
+      - /url: https://www.hapag-lloyd.com/en/meta/privacy-statement.html
+  - listitem:
+    - link "Cookie Policy":
+      - /url: https://www.hapag-lloyd.com/en/meta/cookie-policy.html
+- paragraph: © Hapag-Lloyd AG

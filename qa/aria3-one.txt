@@ -1,0 +1,135 @@
+- main:
+  - link "Ocean Network Express":
+    - /url: https://www.one-line.com
+    - img "Ocean Network Express"
+  - button "Search":
+    - img
+    - text: Search
+  - button "English":
+    - img
+    - text: English
+  - button "Login":
+    - img
+    - text: Login
+  - link "Price":
+    - /url: /en/price
+  - link "Book":
+    - /url: /one-ecom/booking/quick-booking
+  - link "Track":
+    - /url: /one-ecom/manage-shipment/cargo-tracking
+  - link "Schedule":
+    - /url: /one-ecom/schedule/point-to-point-schedule
+  - button "Services":
+    - text: Services
+    - img
+  - button "Digital Solutions":
+    - text: Digital Solutions
+    - img
+  - button "Industries":
+    - text: Industries
+    - img
+  - link "Local Information":
+    - /url: /en/local-information
+  - link "Contact Us":
+    - /url: /en/contact-us
+  - button "About ONE":
+    - text: About ONE
+    - img
+  - img
+  - button:
+    - img
+  - link:
+    - /url: https://www.one-line.com/one-ecom/
+    - img
+  - img
+  - img
+  - img
+  - img
+  - img
+  - img
+  - link:
+    - /url: /one-ecom/support-page
+    - img
+  - iframe
+  - heading "Search Schedule" [level=1]
+  - paragraph: Search for schedules, book, and manage your shipment.
+  - button "User Guide":
+    - img
+    - text: User Guide
+    - img
+  - tablist:
+    - link "Point to Point":
+      - /url: /one-ecom/schedule/point-to-point-schedule
+      - tab "Point to Point" [selected]
+    - link "Vessel":
+      - /url: /one-ecom/schedule/vessel-schedule
+      - tab "Vessel"
+    - link "Port":
+      - /url: /one-ecom/schedule/port-schedule
+      - tab "Port"
+    - link "Long Range":
+      - /url: /one-ecom/schedule/long-range-schedule
+      - tab "Long Range"
+  - separator
+  - group:
+    - radio "List" [checked]
+    - radio "Calendar"
+  - switch "POL/ POD Selection"
+  - text: POL/ POD Selection
+  - switch "go green"
+  - img
+  - paragraph: go green
+  - img
+  - text: Origin *
+  - combobox "Origin *":
+    - textbox "Origin *":
+      - /placeholder: Input up to 3 Origin(s)
+  - img
+  - text: Destination *
+  - combobox "Destination *":
+    - textbox "Destination *":
+      - /placeholder: Input up to 3 Destination(s)
+  - button [disabled]:
+    - img
+  - text: Date
+  - textbox "Date":
+    - /placeholder: YYYY-MM-DD
+    - text: 2026-09-10
+  - button "calendar-trigger":
+    - img
+  - text: Next
+  - combobox "Next":
+    - text: 2 Weeks
+    - img
+  - text: Cargo Type
+  - combobox "Cargo Type":
+    - text: Dry/General
+    - img
+  - button "Advanced Search":
+    - img
+    - text: Advanced Search
+    - img
+  - button "Clear"
+  - button "Search"
+  - paragraph: Search for point to point schedules
+  - img "Cargo vessel on global map for point-to-point schedule search."
+  - text: ONE Cookie Preferences ONE uses cookies to deliver the best possible web experience. By using our website you consent to all cookies in accordance with our Cookie Policy.
+  - link "Read more":
+    - /url: https://www.one-line.com/en/cookies-policy
+  - button "Close":
+    - img
+  - paragraph: © Ocean Network Express Pte. Ltd. All rights reserved.
+  - link "Copyright":
+    - /url: /copyright
+  - separator
+  - link "Cookies Policy":
+    - /url: /cookies-policy
+  - link "Terms and Rules":
+    - /url: /terms-and-rules
+  - link "Disclaimer":
+    - /url: /disclaimer
+  - link "Data Deletion Request":
+    - /url: /data-deletion-request
+- region "Notifications Alt+T"
+- alert
+- img

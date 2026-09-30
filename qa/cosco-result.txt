@@ -1,0 +1,360 @@
+Message Center
+ 
+ 中文
+ Help 
+ Login / Register
+Search
+Home
+Tracking
+New BK
+Rate
+Control Tower
+Schedule
+Doc
+Inbound
+Container
+Reefer
+Subscr
+Sailing Schedules
+Shortest Transit Time: 26 Days
+Ningbo,Ningbo,Zhejiang,China  Istanbul: :Istanbul:Turkey
+Estimated time of departure: 2026-09-28 Four Weeks
+  
+OB Haulage
+BOTH
+IB Haulage
+BOTH
+Transportation path
+All
+Departure Day (Multiselect)
+All.
+Service(Multiple Choice)
+
+Directions:1. Transit time is the transportation time from the place of origin to the destination.
+
+Directions:2. Inland transportation mode： :Truck, : Rail, :Feeder, :Barge
+
+Cargo Nature	Cut Off 
+	Vessel/Service/Voyage 
+	Voyage Info	Available 
+	OB Haulage	IB Haulage	More Info
+GC,RF
+	
+2026-10-02
+20:00
+	
+CSCL VENUS
+/AEM3/090W
+	
+
+2026-10-03
+
+19:00(Sat.)
+
+2026-10-29
+
+16:00(Thu.)
+
+NO
+NO
+ Transit 26 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Safiport
+Istanbul
+	
+2026-10-31
+04:00
+	
+CY/DOOR
+	
+DOOR
+	
+More Info
+
+
+GC,RF
+	
+2026-10-02
+20:00
+	
+CSCL VENUS
+/AEM3/090W
+	
+
+2026-10-03
+
+19:00(Sat.)
+
+2026-10-31
+
+12:00(Sat.)
+
+NO
+NO
+ Transit 28 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Istanbul
+Istanbul
+	
+2026-11-01
+18:00
+	
+CY/DOOR
+	
+CY/DOOR
+	
+More Info
+
+
+GC,RF
+	
+2026-10-04
+20:00
+	
+CSCL JUPITER
+/AEM3/095W
+	
+
+2026-10-05
+
+18:00(Mon.)
+
+2026-11-05
+
+16:00(Thu.)
+
+NO
+NO
+ Transit 31 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Safiport
+Istanbul
+	
+2026-11-07
+04:00
+	
+CY/DOOR
+	
+DOOR
+	
+More Info
+
+
+GC,RF
+	
+2026-10-04
+20:00
+	
+CSCL JUPITER
+/AEM3/095W
+	
+
+2026-10-05
+
+18:00(Mon.)
+
+2026-11-07
+
+12:00(Sat.)
+
+NO
+NO
+ Transit 33 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Istanbul
+Istanbul
+	
+2026-11-08
+18:00
+	
+CY/DOOR
+	
+CY/DOOR
+	
+More Info
+
+
+GC,RF
+	
+2026-10-07
+20:00
+	
+COSCO SPAIN
+/AEM3/080W
+	
+
+2026-10-08
+
+07:00(Thu.)
+
+2026-11-12
+
+16:00(Thu.)
+
+NO
+NO
+ Transit 35 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Safiport
+Istanbul
+	
+2026-11-14
+04:00
+	
+CY/DOOR
+	
+DOOR
+	
+More Info
+
+
+GC,RF
+	
+2026-10-07
+20:00
+	
+COSCO SPAIN
+/AEM3/080W
+	
+
+2026-10-08
+
+07:00(Thu.)
+
+2026-11-14
+
+12:00(Sat.)
+
+NO
+NO
+ Transit 37 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Istanbul
+Istanbul
+	
+2026-11-15
+18:00
+	
+CY/DOOR
+	
+CY/DOOR
+	
+More Info
+
+
+GC,RF
+	
+2026-10-21
+20:00
+	
+CSCL STAR
+/AEM3/094W
+	
+
+2026-10-22
+
+07:00(Thu.)
+
+2026-11-26
+
+16:00(Thu.)
+
+NO
+NO
+ Transit 35 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Safiport
+Istanbul
+	
+2026-11-28
+04:00
+	
+CY/DOOR
+	
+DOOR
+	
+More Info
+
+
+GC,RF
+	
+2026-10-21
+20:00
+	
+CSCL STAR
+/AEM3/094W
+	
+
+2026-10-22
+
+07:00(Thu.)
+
+2026-11-28
+
+12:00(Sat.)
+
+NO
+NO
+ Transit 37 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Istanbul
+Istanbul
+	
+2026-11-29
+18:00
+	
+CY/DOOR
+	
+CY/DOOR
+	
+More Info
+Related Function
+Control Tower
+Visualize and track entire process of supply chain operations, proactively alert and handle abnormal issues.
+Search
+Cargo Tracking
+Real-time view of shipment status and cargo transportation trends
+Search
+ Email
+ Hotline 4009 601919 (China)
+
+
+Contact Us  About Us  Privacy Policy(EU)  Privacy Policy(US)  Terms of Use  Check Network  Cookie Preference
+COPYRIGHT*1998-2026 ALL RIGHTS RESERVED
+沪ICP备13003917号-1 
+沪公网安备31022102000157号 
+沪ICP备16018315号-1 
+沪公网安备 31022102000135号
+ 上海工商

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>变体 B · 时间轴行程式</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", Roboto, sans-serif;
+         -webkit-font-smoothing: antialiased; color: #16181d; background: #f6f7f9; line-height: 1.45; padding: 22px; }
+  .panel { max-width: 880px; margin: 0 auto; }
+  .queryline { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+  .queryline h2 { font-size: 17px; font-weight: 650; letter-spacing: -.2px; }
+  .queryline .meta { font-size: 12.5px; color: #8a9099; }
+
+  .carrier { margin-bottom: 14px; }
+  .chead { display: flex; align-items: center; gap: 9px; padding: 0 6px 8px; }
+  .cbar { width: 3px; height: 14px; border-radius: 2px; }
+  .cname { font-size: 13.5px; font-weight: 640; }
+  .ccode { font-size: 10.5px; color: #a6adb7; letter-spacing: .06em; }
+  .chead .spacer { flex: 1; }
+  .badge { font-size: 11.5px; padding: 2px 9px; border-radius: 999px; font-weight: 560; }
+  .badge.ok { background: #e8f7ee; color: #17794a; }
+  .badge.cache { background: #fff4e5; color: #a2620a; }
+  .badge.none { background: #f2f3f5; color: #8a9099; }
+
+  .list { background: #fff; border: 1px solid #e6e8ec; border-radius: 14px; box-shadow: 0 1px 2px rgba(16,24,40,.04); overflow: hidden; }
+
+  /* 时间轴行 */
+  .row { display: grid; grid-template-columns: 74px 18px 1fr auto; align-items: center; gap: 0 10px;
+         padding: 11px 16px 11px 12px; position: relative; cursor: default;
+         transition: background .18s ease, box-shadow .22s ease, transform .22s cubic-bezier(.2,.8,.3,1); }
+  .row + .row { border-top: 1px solid #f2f3f6; }
+  .row:hover { background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, #fff), #fff 62%);
+               box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent); transform: translateX(3px); }
+
+  .when { text-align: right; }
+  .when .md { font-size: 17px; font-weight: 700; letter-spacing: -.4px; font-variant-numeric: tabular-nums; }
+  .when .wd { font-size: 11px; color: #a6adb7; }
+  .when .ago { font-size: 10.5px; color: #c0c6ce; }
+
+  .rail { position: relative; align-self: stretch; display: flex; justify-content: center; }
+  .rail::before { content: ""; position: absolute; top: 0; bottom: 0; width: 1.5px; background: #e9ebef; }
+  .row:first-child .rail::before { top: 50%; }
+  .row:last-child .rail::before { bottom: 50%; }
+  .node { position: relative; width: 9px; height: 9px; border-radius: 50%; background: #fff;
+          border: 2px solid var(--accent); align-self: center; transition: transform .22s ease, box-shadow .22s ease; }
+  .row:hover .node { transform: scale(1.35); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent); }
+
+  .body { min-width: 0; }
+  .line1 { display: flex; align-items: center; gap: 8px; font-size: 13.6px; font-weight: 600; }
+  .leg { color: #47505a; font-weight: 540; }
+  .arrow { color: #c0c6ce; }
+  .vessel { font-size: 12.6px; color: #6b737d; margin-top: 2px; display: flex; gap: 7px; align-items: center; }
+  .voy { font-size: 10.5px; font-weight: 620; color: #26303a; background: #f1f3f6; border-radius: 5px; padding: 1px 6px; }
+
+  .right { display: flex; align-items: center; gap: 10px; }
+  .days { font-size: 15px; font-weight: 680; font-variant-numeric: tabular-nums; }
+  .days span { font-size: 11px; color: #98a0aa; font-weight: 540; margin-left: 1px; }
+  .pill { font-size: 11px; font-weight: 600; padding: 2.5px 9px; border-radius: 999px; white-space: nowrap; }
+  .pill.direct { background: #e8f7ee; color: #17794a; }
+  .pill.trans { background: #eef2ff; color: #3d4ea8; }
+
+  .empty { background: #fff; border: 1px solid #e6e8ec; border-radius: 14px; padding: 14px 16px; font-size: 12.6px; color: #8a9099; }
+  .empty a { color: #2f6df6; text-decoration: none; font-weight: 560; }
+  .hint { text-align: center; font-size: 12px; color: #9aa1ab; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="panel">
+  <div class="queryline"><h2>宁波 → 伊斯坦布尔</h2><span class="meta">11 家 · 79 条船期 · 按船司分组</span></div>
+
+  <section class="carrier" style="--accent:#0f766e">
+    <div class="chead"><span class="cbar" style="background:#0f766e"></span><span class="cname">HMM 现代商船</span><span class="ccode">HMM</span><span class="spacer"></span><span class="badge ok">✓ 3 条</span></div>
+    <div class="list">
+      <div class="row">
+        <div class="when"><div class="md">10.01</div><div class="wd">周四</div></div>
+        <div class="rail"><span class="node"></span></div>
+        <div class="body">
+          <div class="line1">宁波 <span class="arrow">→</span> 伊斯坦布尔</div>
+          <div class="vessel">SEASPAN BREEZE <span class="voy">0064W</span> · 12.02 到港</div>
+        </div>
+        <div class="right"><span class="days">62<span>天</span></span><span class="pill trans">转 T/S</span></div>
+      </div>
+      <div class="row">
+        <div class="when"><div class="md">10.06</div><div class="wd">周二</div></div>
+        <div class="rail"><span class="node"></span></div>
+        <div class="body">
+          <div class="line1">宁波 <span class="arrow">→</span> 伊斯坦布尔</div>
+          <div class="vessel">YM WELCOME <span class="voy">0051W</span> · 12.04 到港</div>
+        </div>
+        <div class="right"><span class="days">58<span>天</span></span><span class="pill direct">直达</span></div>
+      </div>
+      <div class="row">
+        <div class="when"><div class="md">10.07</div><div class="wd">周三</div></div>
+        <div class="rail"><span class="node"></span></div>
+        <div class="body">
+          <div class="line1">宁波 <span class="arrow">→</span> 伊斯坦布尔</div>
+          <div class="vessel">MSC VIVIANA <span class="voy">0103W</span> · 11.04 到港</div>
+        </div>
+        <div class="right"><span class="days">28<span>天</span></span><span class="pill direct">直达</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="carrier" style="--accent:#1b4fd8">
+    <div class="chead"><span class="cbar" style="background:#1b4fd8"></span><span class="cname">Maersk 马士基</span><span class="ccode">MAER</span><span class="spacer"></span><span class="badge cache">⚡ 缓存 2 条</span></div>
+    <div class="list">
+      <div class="row">
+        <div class="when"><div class="md">10.05</div><div class="wd">周一</div></div>
+        <div class="rail"><span class="node"></span></div>
+        <div class="body">
+          <div class="line1">宁波 <span class="arrow">→</span> 安巴利</div>
+          <div class="vessel">MOGENS MAERSK <span class="voy">639W</span> · 10.29 到港</div>
+        </div>
+        <div class="right"><span class="days">24<span>天</span></span><span class="pill trans">转 Port Said</span></div>
+      </div>
+      <div class="row">
+        <div class="when"><div class="md">10.13</div><div class="wd">周二</div></div>
+        <div class="rail"><span class="node"></span></div>
+        <div class="body">
+          <div class="line1">宁波 <span class="arrow">→</span> 安巴利</div>
+          <div class="vessel">MAREN MAERSK <span class="voy">641W</span> · 11.16 到港</div>
+        </div>
+        <div class="right"><span class="days">34<span>天</span></span><span class="pill trans">转 Port Said</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="carrier" style="--accent:#c3c8d0">
+    <div class="chead"><span class="cbar" style="background:#c3c8d0"></span><span class="cname">ZIM 以星</span><span class="ccode">ZIM</span><span class="spacer"></span><span class="badge none">该线无班次</span></div>
+    <div class="empty">官网查无此航线班次 · <a href="#">🔍 维运网查「宁波 → 伊斯坦布尔」</a></div>
+  </section>
+
+  <div class="hint">鼠标移上去：整行右移 3px + 底色透出船司色 + 时间轴节点放大发光</div>
+</div>
+</body>
+</html>

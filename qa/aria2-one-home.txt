@@ -1,0 +1,384 @@
+- main:
+  - link "Ocean Network Express":
+    - /url: https://www.one-line.com
+    - img "Ocean Network Express"
+  - button "Search":
+    - img
+    - text: Search
+  - button "English":
+    - img
+    - text: English
+  - button "Login":
+    - img
+    - text: Login
+  - link "Price":
+    - /url: /en/price
+  - link "Book":
+    - /url: /one-ecom/booking/quick-booking
+  - link "Track":
+    - /url: /one-ecom/manage-shipment/cargo-tracking
+  - link "Schedule":
+    - /url: /one-ecom/schedule/point-to-point-schedule
+  - button "Services":
+    - text: Services
+    - img
+  - button "Digital Solutions":
+    - text: Digital Solutions
+    - img
+  - button "Industries":
+    - text: Industries
+    - img
+  - link "Local Information":
+    - /url: /en/local-information
+  - link "Contact Us":
+    - /url: /en/contact-us
+  - button "About ONE":
+    - text: About ONE
+    - img
+  - img "Modern ONE container ship delivering cargoes to global ports"
+  - heading "Your Number ONE Shipping Partner" [level=1]
+  - tablist:
+    - tab "Tracking" [selected]:
+      - img
+      - text: Tracking
+    - tab "Schedule":
+      - img
+      - text: Schedule
+    - tab "Offices":
+      - img
+      - text: Offices
+    - tab "ONE QUOTE":
+      - img
+      - text: ONE QUOTE
+  - separator
+  - tabpanel:
+    - text: BL, Booking, Container, or Purchase Order No. *
+    - textbox "BL, Booking, Container, or Purchase Order No. *":
+      - /placeholder: E.g. ABCD12345678
+    - text: Enter your tracking numbers. Separate multiple entries with a space or comma.
+    - button "Track"
+  - heading "Our Solutions" [level=2]
+  - paragraph: We combine global expertise with dedicated industry specialists to provide personalized support around the clock. This ensures that we deliver reliable transit times and customized solutions that fit your specific needs.
+  - link "Reefer containers neatly stacked as part of a shipping transport solutions Transportation Solutions ONE delivers various cargo (Reefer, OOG, etc.) worldwide safely and quickly, ensuring optimal logistics.":
+    - /url: /en/all-transportation-solutions
+    - img "Reefer containers neatly stacked as part of a shipping transport solutions"
+    - heading "Transportation Solutions" [level=3]
+    - paragraph: ONE delivers various cargo (Reefer, OOG, etc.) worldwide safely and quickly, ensuring optimal logistics.
+  - link "ONE ecommerce digital solutions Digital Solutions Streamline your shipping with ONE's Digital Solutions.":
+    - /url: /all-digital-solutions
+    - img "ONE ecommerce digital solutions"
+    - heading "Digital Solutions" [level=3]
+    - paragraph: Streamline your shipping with ONE's Digital Solutions.
+  - link "Shipping vessel leaving port Service Maps Comprehensive view of ONE's global shipping routes.":
+    - /url: /en/service-maps
+    - img "Shipping vessel leaving port"
+    - heading "Service Maps" [level=3]
+    - paragraph: Comprehensive view of ONE's global shipping routes.
+  - heading "ONE Scale of Operations" [level=2]
+  - img "TEU fleet size icon"
+  - text: 2 , 2 0 0 , 0 0 0 + TEU fleet size
+  - img "Port calls icon"
+  - text: 2 4 4 + Ports of call around the world
+  - img "Weekly loops icon"
+  - text: 1 6 5 + Weekly service loops
+  - heading "Latest News" [level=2]
+  - paragraph: Stay updated on the latest articles, trends, and research to enhance your supply chain strategy.
+  - group:
+    - radio "Press Releases" [checked]
+    - radio "Customer Advisories"
+    - radio "News"
+    - radio "Insights"
+  - tabpanel:
+    - button "previous slide" [disabled]:
+      - img
+    - button "next slide":
+      - img
+    - button "Q1 FY2026 Financial Results August 04, 2026 Ocean Network Express Announces Financial Results For Q1 FY2026 Press Releases":
+      - img "Q1 FY2026 Financial Results"
+      - paragraph: August 04, 2026
+      - heading "Ocean Network Express Announces Financial Results For Q1 FY2026" [level=5]
+      - text: Press Releases
+    - button "FY2025 Financial Results April 30, 2026 Ocean Network Express Announces Financial Results for FY2025 Press Releases":
+      - img "FY2025 Financial Results"
+      - paragraph: April 30, 2026
+      - heading "Ocean Network Express Announces Financial Results for FY2025" [level=5]
+      - text: Press Releases
+    - button "ONE purchased 30% stake in Hutchison Laemchabang Terminal Limited (HLT). March 30, 2026 Ocean Network Express Secures Stake in Hutchison Laemchabang Terminal Press Releases":
+      - img "ONE purchased 30% stake in Hutchison Laemchabang Terminal Limited (HLT)."
+      - paragraph: March 30, 2026
+      - heading "Ocean Network Express Secures Stake in Hutchison Laemchabang Terminal" [level=5]
+      - text: Press Releases
+    - button "ONE's Strategic Partnership with Dongwon Group and Investment in Busan Terminal March 24, 2026 Ocean Network Express to Enhance Network Reliability Through Strategic Partnership with Dongwon Group and Investment in Busan Terminal Press Releases":
+      - img "ONE's Strategic Partnership with Dongwon Group and Investment in Busan Terminal"
+      - paragraph: March 24, 2026
+      - heading "Ocean Network Express to Enhance Network Reliability Through Strategic Partnership with Dongwon Group and Investment in Busan Terminal" [level=5]
+      - text: Press Releases
+    - button "ONE acquires an additional stake in Poseidon Corp, holding company of Seaspan Corporation. March 10, 2026 Ocean Network Express Announces Additional Investment in Poseidon Corp. Press Releases":
+      - img "ONE acquires an additional stake in Poseidon Corp, holding company of Seaspan Corporation."
+      - paragraph: March 10, 2026
+      - heading "Ocean Network Express Announces Additional Investment in Poseidon Corp." [level=5]
+      - text: Press Releases
+    - button "Ocean Network Express Announces CEO Succession Plan February 25, 2026 Ocean Network Express Announces CEO Succession Plan - Mr Till Ole Barrelet Appointed as Chief Executive Officer-Designate Press Releases":
+      - img "Ocean Network Express Announces CEO Succession Plan"
+      - paragraph: February 25, 2026
+      - heading "Ocean Network Express Announces CEO Succession Plan - Mr Till Ole Barrelet Appointed as Chief Executive Officer-Designate" [level=5]
+      - text: Press Releases
+    - button "Q3 FY2025 Financial Results January 30, 2026 Ocean Network Express Releases Financial Results For FY2025 3rd Quarter Press Releases":
+      - img "Q3 FY2025 Financial Results"
+      - paragraph: January 30, 2026
+      - heading "Ocean Network Express Releases Financial Results For FY2025 3rd Quarter" [level=5]
+      - text: Press Releases
+    - button "ONE and MTI Ltd. established a joint venture, QUAVEO, in Ho Chi Minh City, Vietnam, in December 2025. January 07, 2026 ONE and MTI Establish Joint Venture “QUAVEO” in Vietnam Leading the Shipping Industry's DX with AI to Create New Value Press Releases":
+      - img "ONE and MTI Ltd. established a joint venture, QUAVEO, in Ho Chi Minh City, Vietnam, in December 2025."
+      - paragraph: January 07, 2026
+      - heading "ONE and MTI Establish Joint Venture “QUAVEO” in Vietnam Leading the Shipping Industry's DX with AI to Create New Value" [level=5]
+      - text: Press Releases
+    - button "ONE secures minority stake in Dalian Terminal December 23, 2025 Ocean Network Express Secures Minority Stake in Dalian Container Terminal Press Releases":
+      - img "ONE secures minority stake in Dalian Terminal"
+      - paragraph: December 23, 2025
+      - heading "Ocean Network Express Secures Minority Stake in Dalian Container Terminal" [level=5]
+      - text: Press Releases
+    - button "Ocean Network Express Announces Updated East-West Service Network for 2026 December 15, 2025 Ocean Network Express Announces Updated East-West Service Network for 2026 Press Releases":
+      - img "Ocean Network Express Announces Updated East-West Service Network for 2026"
+      - paragraph: December 15, 2025
+      - heading "Ocean Network Express Announces Updated East-West Service Network for 2026" [level=5]
+      - text: Press Releases
+    - button "Q2 FY2025 Financial Results November 04, 2025 FINANCIAL RESULTS FOR FY2025 2nd Quarter Press Releases":
+      - img "Q2 FY2025 Financial Results"
+      - paragraph: November 04, 2025
+      - heading "FINANCIAL RESULTS FOR FY2025 2nd Quarter" [level=5]
+      - text: Press Releases
+    - button "one-line October 15, 2025 Ocean Network Express Supports Nike’s Sustainability Goals through ONE LEAF+ Press Releases":
+      - img "one-line"
+      - paragraph: October 15, 2025
+      - heading "Ocean Network Express Supports Nike’s Sustainability Goals through ONE LEAF+" [level=5]
+      - text: Press Releases
+    - button "one-line September 17, 2025 Ocean Network Express Releases Sustainability Report 2025 Press Releases":
+      - img "one-line"
+      - paragraph: September 17, 2025
+      - heading "Ocean Network Express Releases Sustainability Report 2025" [level=5]
+      - text: Press Releases
+    - button "Q1 FY2025 Financial Results August 01, 2025 FINANCIAL RESULTS FOR FY2025 1st Quarter Press Releases":
+      - img "Q1 FY2025 Financial Results"
+      - paragraph: August 01, 2025
+      - heading "FINANCIAL RESULTS FOR FY2025 1st Quarter" [level=5]
+      - text: Press Releases
+    - button "one-line July 01, 2025 OCEAN NETWORK EXPRESS LAUNCHES NEW OFFICE IN GREECE Press Releases":
+      - img "one-line"
+      - paragraph: July 01, 2025
+      - heading "OCEAN NETWORK EXPRESS LAUNCHES NEW OFFICE IN GREECE" [level=5]
+      - text: Press Releases
+    - button "one-line June 17, 2025 Ocean Network Express Strengthens Global Capacity as Latest Newbuilding, ONE Singapore, Joins Fleet Press Releases":
+      - img "one-line"
+      - paragraph: June 17, 2025
+      - heading "Ocean Network Express Strengthens Global Capacity as Latest Newbuilding, ONE Singapore, Joins Fleet" [level=5]
+      - text: Press Releases
+    - button "one-line June 03, 2025 Hamburg Port Authority and Ocean Network Express Sign Agreement to Supply Container ships with shore power Press Releases":
+      - img "one-line"
+      - paragraph: June 03, 2025
+      - heading "Hamburg Port Authority and Ocean Network Express Sign Agreement to Supply Container ships with shore power" [level=5]
+      - text: Press Releases
+    - button "one-line May 29, 2025 Ocean Network Express Advances Green Strategy with Ship Recycling Policy and Membership in Ship Recycling Transparency Initiative Press Releases":
+      - img "one-line"
+      - paragraph: May 29, 2025
+      - heading "Ocean Network Express Advances Green Strategy with Ship Recycling Policy and Membership in Ship Recycling Transparency Initiative" [level=5]
+      - text: Press Releases
+    - button "FY2024 Financial Results April 30, 2025 FINANCIAL RESULTS FOR FY2024 Press Releases":
+      - img "FY2024 Financial Results"
+      - paragraph: April 30, 2025
+      - heading "FINANCIAL RESULTS FOR FY2024" [level=5]
+      - text: Press Releases
+    - 'button "one-line March 27, 2025 ONE hosts 4th Container Shipping Summit in Hong Kong: Sailing Towards a More Sustainable Future with ONE Press Releases"':
+      - img "one-line"
+      - paragraph: March 27, 2025
+      - 'heading "ONE hosts 4th Container Shipping Summit in Hong Kong: Sailing Towards a More Sustainable Future with ONE" [level=5]'
+      - text: Press Releases
+    - tablist "slides indicator":
+      - tab "slide 1" [selected]
+      - tab "slide 2"
+      - tab "slide 3"
+      - tab "slide 4"
+      - tab "slide 5"
+    - link "Read All Press Releases":
+      - /url: /en/newsroom?tab=press-releases
+      - button "Read All Press Releases":
+        - text: Read All Press Releases
+        - img
+  - list:
+    - option "Transportation Solutions":
+      - paragraph: Transportation Solutions
+    - link "All Transportation Solutions":
+      - /url: /en/all-transportation-solutions
+      - option "All Transportation Solutions":
+        - paragraph: All Transportation Solutions
+    - link "Dry Cargo":
+      - /url: /en/all-transportation-solutions/dry-cargo
+      - option "Dry Cargo":
+        - paragraph: Dry Cargo
+    - link "Refrigerated Cargo":
+      - /url: /en/all-transportation-solutions/refrigerated-cargo
+      - option "Refrigerated Cargo":
+        - paragraph: Refrigerated Cargo
+    - link "Dangerous Cargo":
+      - /url: /en/all-transportation-solutions/dangerous-cargo
+      - option "Dangerous Cargo":
+        - paragraph: Dangerous Cargo
+    - link "Special Cargo":
+      - /url: /en/all-transportation-solutions/special-cargo
+      - option "Special Cargo":
+        - paragraph: Special Cargo
+    - link "Inland and Intermodal Solutions":
+      - /url: /en/all-transportation-solutions/inland-and-intermodal-solutions
+      - option "Inland and Intermodal Solutions":
+        - paragraph: Inland and Intermodal Solutions
+    - link "Green Solutions":
+      - /url: /en/all-transportation-solutions/green-solutions
+      - option "Green Solutions":
+        - paragraph: Green Solutions
+  - list:
+    - option "Digital Solutions":
+      - paragraph: Digital Solutions
+    - link "All Digital Solutions":
+      - /url: /en/all-digital-solutions
+      - option "All Digital Solutions":
+        - paragraph: All Digital Solutions
+    - link "ONE QUOTE":
+      - /url: /en/all-digital-solutions/one-quote
+      - option "ONE QUOTE":
+        - paragraph: ONE QUOTE
+    - link "ONE QUOTE OOG":
+      - /url: /en/all-digital-solutions/one-quote-oog
+      - option "ONE QUOTE OOG":
+        - paragraph: ONE QUOTE OOG
+    - link "eBL":
+      - /url: /en/all-digital-solutions/ebl
+      - option "eBL":
+        - paragraph: eBL
+    - link "ONE Finance":
+      - /url: /en/all-digital-solutions/one-finance
+      - option "ONE Finance":
+        - paragraph: ONE Finance
+    - link "ePayment":
+      - /url: /en/all-digital-solutions/epayment
+      - option "ePayment":
+        - paragraph: ePayment
+    - link "CONTAINER+":
+      - /url: /en/all-digital-solutions/container-plus
+      - option "CONTAINER+":
+        - paragraph: CONTAINER+
+    - link "ONE Mobile App":
+      - /url: /en/all-digital-solutions/one-mobile-app
+      - option "ONE Mobile App":
+        - paragraph: ONE Mobile App
+    - link "Data Integration":
+      - /url: /en/all-digital-solutions/data-integration
+      - option "Data Integration":
+        - paragraph: Data Integration
+  - list:
+    - link "Service Maps":
+      - /url: /en/service-maps
+      - option "Service Maps":
+        - paragraph: Service Maps
+    - link "Local Information":
+      - /url: /en/local-information
+      - option "Local Information":
+        - paragraph: Local Information
+    - link "Contact Us":
+      - /url: /en/contact-us
+      - option "Contact Us":
+        - paragraph: Contact Us
+    - link "Sustainability":
+      - /url: /en/sustainability
+      - option "Sustainability":
+        - paragraph: Sustainability
+    - link "Industries":
+      - /url: /en/industries
+      - option "Industries":
+        - paragraph: Industries
+    - option "Resources":
+      - paragraph: Resources
+    - link "Container Information":
+      - /url: /en/container-information
+      - option "Container Information":
+        - paragraph: Container Information
+    - link "Fleet List":
+      - /url: /en/fleet-list
+      - option "Fleet List":
+        - paragraph: Fleet List
+  - list:
+    - option "About":
+      - paragraph: About
+    - link "Company":
+      - /url: /en/company
+      - option "Company":
+        - paragraph: Company
+    - link "Core Values":
+      - /url: /en/core-values
+      - option "Core Values":
+        - paragraph: Core Values
+    - link "Leadership":
+      - /url: /en/leadership-team
+      - option "Leadership":
+        - paragraph: Leadership
+    - link "Corporate Publications":
+      - /url: /en/corporate-publications
+      - option "Corporate Publications":
+        - paragraph: Corporate Publications
+    - link "Newsroom":
+      - /url: /en/newsroom
+      - option "Newsroom":
+        - paragraph: Newsroom
+    - link "Media Room":
+      - /url: /en/media-room
+      - option "Media Room":
+        - paragraph: Media Room
+    - link "Careers":
+      - /url: /en/careers
+      - option "Careers":
+        - paragraph: Careers
+  - paragraph: Subscribe
+  - paragraph: Receive the latest updates from ONE
+  - textbox "Enter your email address"
+  - button "Subscribe"
+  - text: Manage Subscription
+  - paragraph: Download ONE Mobile App
+  - paragraph: Access ONE anytime, anywhere
+  - link "Mobile QR":
+    - /url: /en/mobile-app-download
+    - img "Mobile QR"
+  - paragraph: Follow ONE on social media
+  - link:
+    - /url: https://www.linkedin.com/company/oceannetworkexpress/
+    - img
+  - link:
+    - /url: https://www.facebook.com/ocean.network.express.global
+    - img
+  - link:
+    - /url: https://www.youtube.com/oceannetworkexpress
+    - img
+  - link:
+    - /url: https://www.instagram.com/ocean_network_express/?hl=
+    - img
+  - link:
+    - /url: https://x.com/oceannetworkexp
+    - img
+  - text: ONE Cookie Preferences ONE uses cookies to deliver the best possible web experience. By using our website you consent to all cookies in accordance with our Cookie Policy.
+  - link "Read more":
+    - /url: /cookies-policy
+  - button "cookie-policy-close":
+    - img
+  - paragraph: © Ocean Network Express Pte. Ltd. All rights reserved.
+  - link "Copyright":
+    - /url: /copyright
+  - separator
+  - link "Cookies Policy":
+    - /url: /cookies-policy
+  - link "Terms and Rules":
+    - /url: /terms-and-rules
+  - link "Disclaimer":
+    - /url: /disclaimer
+  - link "Data Deletion Request":
+    - /url: /data-deletion-request
+- button "Feedback"
+- alert
+- img

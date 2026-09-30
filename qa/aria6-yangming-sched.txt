@@ -1,0 +1,166 @@
+- text: This Website uses necessary cookies to collect data in order to enable core functionality, including security and network management. If you continue without changing your settings, we will deem this as your consent to receive these cookies. To find out more about the cookies we use, see our
+- link "Cookie Policy":
+  - /url: https://www.yangming.com/en/footer/cookie_policy
+- text: .
+- button "Agree"
+- navigation:
+  - link:
+    - /url: /
+  - list
+  - link:
+    - /url: "#"
+  - link:
+    - /url: "#"
+- separator
+- listbox "Dynamic Actions":
+  - option "About Us":
+    - link "About Us":
+      - /url: "#"
+  - option "Service Info":
+    - link "Service Info":
+      - /url: "#"
+  - option "eBusiness":
+    - link "eBusiness":
+      - /url: "#"
+  - option "Local Office":
+    - link "Local Office":
+      - /url: /contact/office_network
+  - option "Sustainability":
+    - link "Sustainability":
+      - /url: "#"
+- listitem: About Us
+- listitem:
+  - link "Profile":
+    - /url: "#"
+- listitem:
+  - link "Vessel Certificate":
+    - /url: "#"
+- listitem:
+  - link "Jobs & Career":
+    - /url: "#"
+- listitem:
+  - link "News":
+    - /url: "#"
+- listitem:
+  - link "Related Websites":
+    - /url: "#"
+- listitem: Service Info
+- listitem:
+  - link "Service Overview":
+    - /url: "#"
+- listitem:
+  - link "Terminal Info.":
+    - /url: "#"
+- listitem:
+  - link "Useful Info.":
+    - /url: "#"
+- listitem:
+  - link "24-Hour Manifest Rule":
+    - /url: "#"
+- listitem:
+  - link "Reefer Info.":
+    - /url: "#"
+- listitem:
+  - link "Dangerous Goods Info.":
+    - /url: "#"
+- listitem:
+  - link "Special Cargo":
+    - /url: "#"
+- listitem: eBusiness
+- listitem:
+  - link "Schedule":
+    - /url: /esolution/schedule/overview&lang=en-us
+- listitem:
+  - link "Price & Tariff":
+    - /url: /esolution/price_and_tariff_ov&lang=en-us
+- listitem:
+  - link "My Shipment":
+    - /url: /esolution/my_shipment_ov&lang=en-us
+- listitem:
+  - link "Tracking":
+    - /url: /esolution/tracking_ov&lang=en-us
+- listitem:
+  - link "Report & Notification":
+    - /url: /esolution/report_and_notification_ov&lang=en-us
+- listitem:
+  - link "Import Arrangement":
+    - /url: /esolution/import_arrangement_ov&lang=en-us
+- listitem:
+  - link "Subscription":
+    - /url: /esolution/subscription_ov&lang=en-us
+- listitem:
+  - link "Digital Solution":
+    - /url: /esolution/digital_solution_ov&lang=en-us
+- listitem:
+  - link "Local Office":
+    - /url: contact/office_network
+- listitem:
+  - link "Asia":
+    - /url: "#"
+- listitem:
+  - link "Europe":
+    - /url: "#"
+- listitem:
+  - link "North America":
+    - /url: "#"
+- listitem:
+  - link "Oceania":
+    - /url: "#"
+- listitem:
+  - link "Africa":
+    - /url: "#"
+- listitem:
+  - link "South America":
+    - /url: "#"
+- listitem: Sustainability
+- listitem:
+  - link "Sustainability Development":
+    - /url: "#"
+- listitem:
+  - link "Shareholder Service":
+    - /url: "#"
+- listitem: others
+- listitem:
+  - link "Dangerous Goods Info.":
+    - /url: "#"
+- listitem:
+  - link "Awkward Cargo":
+    - /url: "#"
+- listitem:
+  - link "Reefer Info.":
+    - /url: "#"
+- listitem:
+  - link "My YM Account":
+    - /url: "#"
+- listitem:
+  - link "footer":
+    - /url: "#"
+- link "Cargo Tracking":
+  - /url: "#"
+- link "Point-to-Point":
+  - /url: "#"
+- link "Vessel Tracking":
+  - /url: "#"
+- link "Schedule":
+  - /url: /esolution/schedule/long_term_schedule_download
+- text: Container No. or B/L No. or Booking No.
+- textbox "Container No. or B/L No. or Booking No. Container No. or B/L No. or Booking No.":
+  - /placeholder: Input max 12 items, space or comma separated.
+- button "Search"
+- alert
+- list:
+  - listitem:
+    - link "Section%201":
+      - /url: "#"
+  - listitem:
+    - link "Section%202":
+      - /url: "#"
+  - listitem:
+    - link "Section%203":
+      - /url: "#"
+  - listitem:
+    - link "Section%204":
+      - /url: "#"
+  - listitem:
+    - link "Section%205":
+      - /url: "#"

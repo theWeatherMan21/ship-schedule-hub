@@ -1,0 +1,7 @@
+{
+ "fresh": [
+  "https://www.cma-cgm.com/api/PortsWithInlands/GetAllPlaces?id=ningbo",
+  "https://www.cma-cgm.com/api/PortsWithInlands/GetAllPlaces?id=istanbul"
+ ],
+ "realReq": null
+}

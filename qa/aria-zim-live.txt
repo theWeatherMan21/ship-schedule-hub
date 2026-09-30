@@ -1,0 +1,446 @@
+- heading "Innovative Shipping Dedicated to You" [level=2]
+- link "Contact Sales":
+  - /url: /tools/request-a-quote
+- link "View rates on myZIM":
+  - /url: https://my.zim.com/app/booking/spot
+- img "ZIM Sammy Ofer LNG Vessel in Panama Canal, Photograph by Wellington Luck"
+- tablist:
+  - tab "Tracking" [selected]
+  - tab "Schedules"
+  - tab "Offices"
+- tabpanel "Tracking":
+  - text: Track
+  - list:
+    - listitem:
+      - textbox "quick action shipping tracking":
+        - /placeholder: Container(s) / Booking(s) / B/L(s) Number
+  - paragraph: Trace multiple shipments by using your reference number(s)
+  - button "Search"
+- link "07 SEPT 2026 NBF (New Bunker Factor) update October 1st, 2026":
+  - /url: https://www.zim.com/customer-updates/nbf-new-bunker-factor-update-october-2026
+- link "07 SEPT 2026 Green Fuel Surcharge (GFS) update - October 1st, 2026":
+  - /url: https://www.zim.com/customer-updates/green-fuel-surcharge-gfs-update-october-1st-2026
+- button "Show more"
+- paragraph
+- paragraph
+- link:
+  - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=Notifications
+- figure "Customize how and when you receive shipment updates. Ship smarter with myZIM":
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=Notifications
+  - link "Customize how and when you receive shipment updates.":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=Notifications
+    - heading "Customize how and when you receive shipment updates." [level=3]
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=Notifications
+  - link "Ship smarter with myZIM":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=Notifications
+- link:
+  - /url: /cargo-services/reefer-cargo-zimonitor?utm_source=homepage&utm_medium=web&utm_campaign=ZIMONITOR
+- figure "Explore our Reefer Cargo solutions! Reefer Cargo solutions":
+  - link:
+    - /url: /cargo-services/reefer-cargo-zimonitor?utm_source=homepage&utm_medium=web&utm_campaign=ZIMONITOR
+  - link "Explore our Reefer Cargo solutions!":
+    - /url: /cargo-services/reefer-cargo-zimonitor?utm_source=homepage&utm_medium=web&utm_campaign=ZIMONITOR
+    - heading "Explore our Reefer Cargo solutions!" [level=3]
+  - link:
+    - /url: /cargo-services/reefer-cargo-zimonitor?utm_source=homepage&utm_medium=web&utm_campaign=ZIMONITOR
+  - link "Reefer Cargo solutions":
+    - /url: /cargo-services/reefer-cargo-zimonitor?utm_source=homepage&utm_medium=web&utm_campaign=ZIMONITOR
+- link:
+  - /url: /landing-pages/zex?utm_source=homepage&utm_medium=web&utm_campaign=zex
+- figure "Just 12.5 from Yantian to Los Angeles! ZEX - ZIM eCommerce eXpress":
+  - link:
+    - /url: /landing-pages/zex?utm_source=homepage&utm_medium=web&utm_campaign=zex
+  - link "Just 12.5 from Yantian to Los Angeles!":
+    - /url: /landing-pages/zex?utm_source=homepage&utm_medium=web&utm_campaign=zex
+    - heading "Just 12.5 from Yantian to Los Angeles!" [level=3]
+  - link:
+    - /url: /landing-pages/zex?utm_source=homepage&utm_medium=web&utm_campaign=zex
+  - link "ZEX - ZIM eCommerce eXpress":
+    - /url: /landing-pages/zex?utm_source=homepage&utm_medium=web&utm_campaign=zex
+- figure "Join ZIM this September at Peru Expoalimentaria 2026!":
+  - heading "Join ZIM this September at Peru Expoalimentaria 2026!" [level=3]
+- link:
+  - /url: /customer-updates/a-message-from-zims-incoming-ceo
+- figure "A letter to ZIM customers from Chen Lichtenstein, ZIM President & CEO A Message from ZIM's Incoming CEO":
+  - link:
+    - /url: /customer-updates/a-message-from-zims-incoming-ceo
+  - link "A letter to ZIM customers from Chen Lichtenstein, ZIM President & CEO":
+    - /url: /customer-updates/a-message-from-zims-incoming-ceo
+    - heading "A letter to ZIM customers from Chen Lichtenstein, ZIM President & CEO" [level=3]
+  - link:
+    - /url: /customer-updates/a-message-from-zims-incoming-ceo
+  - link "A Message from ZIM's Incoming CEO":
+    - /url: /customer-updates/a-message-from-zims-incoming-ceo
+- link:
+  - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=SpotBooking
+- figure "Secure your cargo with just a few clicks through myZIM. Explore myZIM":
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=SpotBooking
+  - link "Secure your cargo with just a few clicks through myZIM.":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=SpotBooking
+    - heading "Secure your cargo with just a few clicks through myZIM." [level=3]
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=SpotBooking
+  - link "Explore myZIM":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=SpotBooking
+- link:
+  - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=DigitalPersonal
+- figure "Digital solutions powered by ZIM experts always ready to support you. Start booking on myZIM":
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=DigitalPersonal
+  - link "Digital solutions powered by ZIM experts always ready to support you.":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=DigitalPersonal
+    - heading "Digital solutions powered by ZIM experts always ready to support you." [level=3]
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=DigitalPersonal
+  - link "Start booking on myZIM":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=DigitalPersonal
+- link:
+  - /url: /landing-pages/usa-careers?utm_source=homepage&utm_medium=web&utm_campaign=US-EB-Nov-2024
+- figure "We make waveZ across the globe! Join our USA team. USA Careers":
+  - link:
+    - /url: /landing-pages/usa-careers?utm_source=homepage&utm_medium=web&utm_campaign=US-EB-Nov-2024
+  - link "We make waveZ across the globe! Join our USA team.":
+    - /url: /landing-pages/usa-careers?utm_source=homepage&utm_medium=web&utm_campaign=US-EB-Nov-2024
+    - heading "We make waveZ across the globe!" [level=3]
+    - heading "Join our USA team." [level=3]
+  - link:
+    - /url: /landing-pages/usa-careers?utm_source=homepage&utm_medium=web&utm_campaign=US-EB-Nov-2024
+  - link "USA Careers":
+    - /url: /landing-pages/usa-careers?utm_source=homepage&utm_medium=web&utm_campaign=US-EB-Nov-2024
+- link:
+  - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=ManageShipments
+- figure "Discover even more digital tools on myZIM. Plan your shipment on myZIM":
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=ManageShipments
+  - link "Discover even more digital tools on myZIM.":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=ManageShipments
+    - heading "Discover even more digital tools on myZIM." [level=3]
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=ManageShipments
+  - link "Plan your shipment on myZIM":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=ManageShipments
+- link:
+  - /url: /careers
+- figure "Explore ZIM’s company culture and job opportunities. Careers":
+  - link:
+    - /url: /careers
+  - link "Explore ZIM’s company culture and job opportunities.":
+    - /url: /careers
+    - heading "Explore ZIM’s company culture and job opportunities." [level=3]
+  - link:
+    - /url: /careers
+  - link "Careers":
+    - /url: /careers
+- link:
+  - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=ContractBooking
+- figure "Book by Contract directly in myZIM Personal Area using your existing agreement. Book with myZIM":
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=ContractBooking
+  - link "Book by Contract directly in myZIM Personal Area using your existing agreement.":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=ContractBooking
+    - heading "Book by Contract directly in myZIM Personal Area using your existing agreement." [level=3]
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=ContractBooking
+  - link "Book with myZIM":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=ContractBooking
+- link:
+  - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=Notifications
+- figure "Customize how and when you receive shipment updates. Ship smarter with myZIM":
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=Notifications
+  - link "Customize how and when you receive shipment updates.":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=Notifications
+    - heading "Customize how and when you receive shipment updates." [level=3]
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=Notifications
+  - link "Ship smarter with myZIM":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=Notifications
+- link:
+  - /url: /cargo-services/reefer-cargo-zimonitor?utm_source=homepage&utm_medium=web&utm_campaign=ZIMONITOR
+- figure "Explore our Reefer Cargo solutions! Reefer Cargo solutions":
+  - link:
+    - /url: /cargo-services/reefer-cargo-zimonitor?utm_source=homepage&utm_medium=web&utm_campaign=ZIMONITOR
+  - link "Explore our Reefer Cargo solutions!":
+    - /url: /cargo-services/reefer-cargo-zimonitor?utm_source=homepage&utm_medium=web&utm_campaign=ZIMONITOR
+    - heading "Explore our Reefer Cargo solutions!" [level=3]
+  - link:
+    - /url: /cargo-services/reefer-cargo-zimonitor?utm_source=homepage&utm_medium=web&utm_campaign=ZIMONITOR
+  - link "Reefer Cargo solutions":
+    - /url: /cargo-services/reefer-cargo-zimonitor?utm_source=homepage&utm_medium=web&utm_campaign=ZIMONITOR
+- link:
+  - /url: /landing-pages/zex?utm_source=homepage&utm_medium=web&utm_campaign=zex
+- figure "Just 12.5 from Yantian to Los Angeles! ZEX - ZIM eCommerce eXpress":
+  - link:
+    - /url: /landing-pages/zex?utm_source=homepage&utm_medium=web&utm_campaign=zex
+  - link "Just 12.5 from Yantian to Los Angeles!":
+    - /url: /landing-pages/zex?utm_source=homepage&utm_medium=web&utm_campaign=zex
+    - heading "Just 12.5 from Yantian to Los Angeles!" [level=3]
+  - link:
+    - /url: /landing-pages/zex?utm_source=homepage&utm_medium=web&utm_campaign=zex
+  - link "ZEX - ZIM eCommerce eXpress":
+    - /url: /landing-pages/zex?utm_source=homepage&utm_medium=web&utm_campaign=zex
+- figure "Join ZIM this September at Peru Expoalimentaria 2026!":
+  - heading "Join ZIM this September at Peru Expoalimentaria 2026!" [level=3]
+- link:
+  - /url: /customer-updates/a-message-from-zims-incoming-ceo
+- figure "A letter to ZIM customers from Chen Lichtenstein, ZIM President & CEO A Message from ZIM's Incoming CEO":
+  - link:
+    - /url: /customer-updates/a-message-from-zims-incoming-ceo
+  - link "A letter to ZIM customers from Chen Lichtenstein, ZIM President & CEO":
+    - /url: /customer-updates/a-message-from-zims-incoming-ceo
+    - heading "A letter to ZIM customers from Chen Lichtenstein, ZIM President & CEO" [level=3]
+  - link:
+    - /url: /customer-updates/a-message-from-zims-incoming-ceo
+  - link "A Message from ZIM's Incoming CEO":
+    - /url: /customer-updates/a-message-from-zims-incoming-ceo
+- link:
+  - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=SpotBooking
+- figure "Secure your cargo with just a few clicks through myZIM. Explore myZIM":
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=SpotBooking
+  - link "Secure your cargo with just a few clicks through myZIM.":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=SpotBooking
+    - heading "Secure your cargo with just a few clicks through myZIM." [level=3]
+  - link:
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=SpotBooking
+  - link "Explore myZIM":
+    - /url: /digital-solutions/myzim-personal-area?utm_source=homepage&utm_medium=web&utm_campaign=OneMyZIM&utm_content=SpotBooking
+- button "Previous"
+- button "Next"
+- heading "Cargo Services" [level=2]
+- link "All Cargo Services":
+  - /url: /cargo-services
+- listbox:
+  - img "Dry Cargo"
+  - text: Dry Cargo
+  - img "Reefer Cargo"
+  - text: Reefer Cargo
+  - img "Special Cargo"
+  - text: Special Cargo
+  - img "Inland Transport"
+  - text: Inland Transport
+  - img "ZIMonitor"
+  - text: ZIMonitor
+- button "Previous"
+- button "Next"
+- heading "Interested in a price offer?" [level=1]
+- heading [level=2]
+- link "Request a Quote":
+  - /url: /tools/request-a-quote
+- text: Togetherness
+- paragraph: At ZIM, we believe that alongside exceptional digital services, a personal touch is essential.
+- link "Local Office(s)":
+  - /url: /contact-us/countries/USA
+- link "Global Offices":
+  - /url: /contact-us/countries
+- img "anchor"
+- text: 0 Ports of call
+- img "headphones"
+- text: 0 Offices
+- img "vessel"
+- text: 0 Vessels
+- heading "Latest News" [level=2]
+- link "All news":
+  - /url: /customer-updates
+- link "New Emission Fee (NEF) charge update – October 1st, 2026 Rates and Surcharges All Countries + New Emission Fee (NEF) charge update – October 1st, 2026 07-Sep-2026":
+  - /url: /customer-updates/new-emission-fee-nef-charge-update-october-1st-2026
+  - img "New Emission Fee (NEF) charge update – October 1st, 2026"
+  - text: Rates and Surcharges All Countries + New Emission Fee (NEF) charge update – October 1st, 2026 07-Sep-2026
+- link "NBF (New Bunker Factor) update October 1st, 2026 Rates and Surcharges All Countries + NBF (New Bunker Factor) update October 1st, 2026 07-Sep-2026":
+  - /url: /customer-updates/nbf-new-bunker-factor-update-october-2026
+  - img "NBF (New Bunker Factor) update October 1st, 2026"
+  - text: Rates and Surcharges All Countries + NBF (New Bunker Factor) update October 1st, 2026 07-Sep-2026
+- link "Green Fuel Surcharge (GFS) update - October 1st, 2026 Rates and Surcharges All Countries + Green Fuel Surcharge (GFS) update - October 1st, 2026 07-Sep-2026":
+  - /url: /customer-updates/green-fuel-surcharge-gfs-update-october-1st-2026
+  - img "Green Fuel Surcharge (GFS) update - October 1st, 2026"
+  - text: Rates and Surcharges All Countries + Green Fuel Surcharge (GFS) update - October 1st, 2026 07-Sep-2026
+- link "Updated Freight Rates from Mediterranean & Black Sea Ports Rates and Surcharges All Countries + Updated Freight Rates from Mediterranean & Black Sea Ports 03-Sep-2026":
+  - /url: /customer-updates/updated-freight-rates-from-mediterranean-black-sea-ports
+  - img "Updated Freight Rates from Mediterranean & Black Sea Ports"
+  - text: Rates and Surcharges All Countries + Updated Freight Rates from Mediterranean & Black Sea Ports 03-Sep-2026
+- text: Let's keep in touch! Follow us on social media
+- link "link to Linkedin":
+  - /url: http://www.linkedin.com/company/zim
+  - text: 
+- link "link to Facebook":
+  - /url: https://www.facebook.com/zimshippingservices
+  - text: 
+- link "link to YouTube":
+  - /url: https://www.youtube.com/ZIMShipping
+  - text: 
+- link "link to Instagram":
+  - /url: https://www.instagram.com/zimshipping/
+  - text: 
+- link "link to X (Former Twitter)":
+  - /url: https://twitter.com/zimshipping/
+  - img "X (Former Twitter)"
+  - img "X (Former Twitter)"
+- link "link to Glassdoor":
+  - /url: https://www.glassdoor.com/Overview/Working-at-ZIM-Integrated-Shipping-Services-EI_IE194592.11,43.htm
+  - img "Glassdoor"
+  - img "Glassdoor"
+- link "link to WeChat":
+  - /url: https://www.zim.com/landing-pages/zim-wechat-qr
+  - img "WeChat"
+  - img "WeChat"
+- contentinfo:
+  - img "logo"
+  - heading "NEWS" [level=4]
+  - list:
+    - listitem:
+      - link "Customer Updates":
+        - /url: https://www.zim.com/customer-updates
+    - listitem:
+      - link "News":
+        - /url: https://investors.zim.com/news/default.aspx
+    - listitem:
+      - link "Shipping News (Regulations)":
+        - /url: https://www.zim.com/news/shipping-news-regulations
+  - heading "ABOUT ZIM" [level=4]
+  - list:
+    - listitem:
+      - link "Global Network":
+        - /url: https://www.zim.com/schedules/trades
+    - listitem:
+      - link "Cargo Services":
+        - /url: https://www.zim.com/cargo-services
+    - listitem:
+      - link "Digital Solutions":
+        - /url: https://www.zim.com/digital-solutions
+    - listitem:
+      - link "Whistleblower":
+        - /url: https://www.zim.com/about-zim/sustainability/whistleblower
+    - listitem:
+      - link "Investors":
+        - /url: https://www.zim.com/investors
+    - listitem:
+      - link "ZIM Ventures":
+        - /url: https://zimventures.zim.com/
+    - listitem:
+      - link "80 Anniversary Album":
+        - /url: https://www.zim.com/objects/zim-80/index.html
+  - heading "HELP" [level=4]
+  - list:
+    - listitem:
+      - link "Useful Information":
+        - /url: https://www.zim.com/help
+    - listitem:
+      - link "ZIM Shipping Containers":
+        - /url: https://www.zim.com/help/zim-shipping-containers
+    - listitem:
+      - link "Quotation Terms and Conditions":
+        - /url: https://www.zim.com/help/quotation-terms-and-conditions
+    - listitem:
+      - link "Booking Confirmation Clauses":
+        - /url: https://www.zim.com/help/booking-confirmation-clauses
+    - listitem:
+      - link "B/L Terms & conditions":
+        - /url: https://www.zim.com/help/bl-terms-and-conditions
+    - listitem:
+      - link "Sea Waybill":
+        - /url: https://www.zim.com/help/waybill
+  - heading "CONTACT US" [level=4]
+  - list:
+    - listitem:
+      - link "Global Network":
+        - /url: https://www.zim.com/global-network
+    - listitem:
+      - link "Customer Service":
+        - /url: https://www.zim.com/contact-us/customer-service-form
+    - listitem:
+      - link "Who We Are":
+        - /url: https://www.zim.com/careers
+    - listitem:
+      - link "IR Contact":
+        - /url: https://investors.zim.com/resources/ir-contact/default.aspx
+  - heading "USEFUL TOOLS" [level=4]
+  - list:
+    - listitem:
+      - link "Tariff Calculator":
+        - /url: https://www.zim.com/tools/tariff-calculator
+    - listitem:
+      - link "SOLAS VGM":
+        - /url: https://www.zim.com/tools/solas-vgm
+    - listitem:
+      - link "Demurrage & Detention Tariff":
+        - /url: https://www.zim.com/tools/demurrage-detention-tariff
+    - listitem:
+      - link "Local Charges":
+        - /url: https://www.zim.com/tools/local-charges
+    - listitem:
+      - link "Country Requirements & Regulations":
+        - /url: https://www.zim.com/tools/country-requirements-regulations
+    - listitem:
+      - link "eContainer":
+        - /url: https://www.zim.com/tools/econtainer
+  - group "Subscribe to our mailing list to receive the latest updates and offer from ZIM":
+    - text: Subscribe to our mailing list to receive the latest updates and offer from ZIM First Name
+    - textbox "First Name"
+    - text: Last Name
+    - textbox "Last Name"
+    - text: Enter Your Email
+    - textbox "Enter Your Email"
+    - button "Submit button" [disabled]
+    - checkbox
+    - paragraph:
+      - text: I agree to receive marketing communications and updates from ZIM and its affiliated companies. We will use your information as part of
+      - link "our data protection policy":
+        - /url: /help/data-protection-policy
+      - text: .
+  - link "Google Play 0":
+    - /url: https://play.google.com/store/apps/details?id=com.zim
+    - button "Google Play 0"
+  - link "App Store 1":
+    - /url: https://apps.apple.com/us/app/zim-shipping/id1084970104
+    - button "App Store 1"
+  - list:
+    - listitem: © 2018 ZIM Integrated Shipping Services Ltd.
+    - listitem:
+      - link "Terms of Use":
+        - /url: https://www.zim.com/help/terms-of-use
+    - listitem:
+      - link "Data Protection Policy":
+        - /url: https://www.zim.com/help/data-protection-policy
+    - listitem:
+      - link "ZIM Cookies and Tracking Policy":
+        - /url: https://www.zim.com/help/cookies-tracking-policy
+    - listitem:
+      - link "Cookie Preferences":
+        - /url: https://www.zim.com/
+  - link "Facebook":
+    - /url: https://www.facebook.com/zimshippingservices
+    - img "Go To Facebook"
+  - link "LinkedIn":
+    - /url: http://www.linkedin.com/company/zim
+    - img "LinkedIn"
+  - link "YouTube":
+    - /url: https://www.youtube.com/ZIMShipping
+    - img "YouTube"
+  - link "Instagram":
+    - /url: https://www.instagram.com/zimshipping/
+    - img "Go To Instagram"
+  - link "Twitter":
+    - /url: https://twitter.com/zimshipping/
+    - img "Go To Twitter"
+  - link "Glassdoor":
+    - /url: https://www.glassdoor.com/Overview/Working-at-ZIM-Integrated-Shipping-Services-EI_IE194592.11,43.htm
+    - img "Glassdoor"
+  - link "WeChat":
+    - /url: https://www.zim.com/landing-pages/zim-wechat-qr
+    - img "Go To WeChat"
+  - paragraph:
+    - text: ZIM Integrated Shipping Services Ltd. is one of the leading carriers in the global container shipping industry. ZIM operates a modern fleet and a
+    - link "network of shipping lines":
+      - /url: /schedules/trades
+    - text: offering cargo transportation services on all major global trade routes, supported by the
+    - link "company's local offices":
+      - /url: /global-network
+    - text: and representatives around the world.
+  - paragraph: © ZIM Integrated Shipping Services Ltd. | All rights reserved
+  - paragraph:
+    - link "沪ICP备2025110343号":
+      - /url: https://beian.miit.gov.cn/#/Integrated/index
+  - paragraph

@@ -1,0 +1,168 @@
+- banner:
+  - button
+  - link "":
+    - /url: /
+  - navigation "Header Menu":
+    - list:
+      - listitem:
+        - button " Search"
+      - listitem:
+        - link " Tracking":
+          - /url: /en/track-a-shipment
+      - listitem:
+        - button " EN"
+      - listitem:
+        - button " myMSC"
+- navigation "breadcrumbs":
+  - list:
+    - listitem:
+      - link "Schedules":
+        - /url: https://www.msc.com/en/search-a-schedule
+- heading "Find a Schedule" [level=1]
+- button "Point-to-point"
+- button "Vessel"
+- button "Arrivals/Departures"
+- textbox "From (ports or countries)"
+- text: 
+- button ""
+- textbox "To (ports or countries)"
+- text: 
+- button "Choose Date": 
+- textbox "dd/MM/yyyy": 10/09/2026
+- button " Search"
+- paragraph:
+  - text: By using the Search Schedule service you agree to the
+  - link "terms of use":
+    - /url: /en/terms-and-conditions
+  - text: of msc.com.
+- heading "Did you know?" [level=2]
+- text: You could search for schedules via our APIs MSC Integration Suite
+- paragraph
+- link " Read more":
+  - /url: /en/solutions/digital-solutions/direct-integrations
+- contentinfo:
+  - paragraph: COUNTRY-LOCATION / LOCAL OFFICE
+  - textbox: HK
+  - button ""
+  - button "" [disabled]
+  - textbox: MSC HONG KONG
+  - button ""
+  - navigation:
+    - list:
+      - listitem:
+        - link " +852 29025555":
+          - /url: tel:+852 29025555
+      - listitem:
+        - link " hkg-info@msc.com":
+          - /url: mailto:hkg-info@msc.com
+      - listitem:
+        - link " Office details":
+          - /url: /en/local-information/asia-pacific/hong-kong-sar?office=msc-hong-kong#Offices
+  - navigation:
+    - paragraph: Doing business together
+    - list:
+      - listitem:
+        - link "Solutions /":
+          - /url: /en/solutions
+      - listitem:
+        - link "Local information /":
+          - /url: /en/local-information
+      - listitem:
+        - link "E-Business /":
+          - /url: /en/ebusiness
+      - listitem:
+        - link "Sustainability /":
+          - /url: /en/sustainability
+      - listitem:
+        - link "myMSC":
+          - /url: https://mymsc.com/mymsc/
+  - navigation:
+    - paragraph: Get to know us
+    - list:
+      - listitem:
+        - link "MSC Group /":
+          - /url: https://www.mscgroup.com/
+      - listitem:
+        - link "Newsroom /":
+          - /url: /en/newsroom
+      - listitem:
+        - link "Events /":
+          - /url: /en/events
+      - listitem:
+        - link "Blog /":
+          - /url: /en/lp/blog
+      - listitem:
+        - link "Careers /":
+          - /url: /en/careers
+      - listitem:
+        - link "Contact us":
+          - /url: /en/contact-us
+  - navigation:
+    - list:
+      - listitem:
+        - link "":
+          - /url: https://www.facebook.com/MSCCargo/
+      - listitem:
+        - link "":
+          - /url: https://x.com/msccargo
+      - listitem:
+        - link "":
+          - /url: https://www.instagram.com/msccargo/
+      - listitem:
+        - link "":
+          - /url: https://www.linkedin.com/company/msc-mediterranean-shipping-co--s-a-/mycompany/verification/
+      - listitem:
+        - link "":
+          - /url: https://www.youtube.com/@MSCCargo
+  - navigation:
+    - list:
+      - listitem: "Headquarters: -"
+      - listitem:
+        - link "+41 227038888-":
+          - /url: tel:+41 227038888
+      - listitem:
+        - link "info@msc.com-":
+          - /url: mailto:info@msc.com
+      - listitem: Chemin Rieu 12, 1208 Geneva-
+      - listitem: Switzerland
+  - navigation:
+    - list:
+      - listitem:
+        - link "Cookie Settings -":
+          - /url: javascript:Optanon.ToggleInfoDisplay()
+      - listitem:
+        - link "Data Privacy -":
+          - /url: /en/data-privacy
+      - listitem:
+        - link "Personal Data Request -":
+          - /url: /en/personal-data-request
+      - listitem:
+        - link "Terms of Use -":
+          - /url: /en/terms-and-conditions
+      - listitem:
+        - link "Carrier's Terms & Conditions -":
+          - /url: /en/carrier-terms
+      - listitem:
+        - link "EU Commitments -":
+          - /url: /-/media/files/legal-files/signed_commitments_160620_fine.pdf?rev=41212e85711f4a9ca7c2d51128b3fa42
+      - listitem:
+        - link "Code of Conduct -":
+          - /url: /en/sustainability/msc-code-of-conduct
+      - listitem:
+        - link "Certifications -":
+          - /url: /en/sustainability/certifications
+      - listitem:
+        - link "Speak Up Line":
+          - /url: /en/speak-up
+- region "Cookie banner":
+  - dialog "We value your privacy":
+    - button "Cookies":
+      - img "Cookies Button"
+    - heading "We value your privacy" [level=2]
+    - text: We use cookies to offer you the most relevant information. By accepting all cookies, you help us optimize your experience navigating our website. You can adjust your preferences at any moment or find more information in our
+    - link "More information about your privacy, opens in a new tab":
+      - /url: https://www.msc.com/en/cookie-policy
+      - text: Cookie Policy
+    - button "Accept All"
+    - button "Reject All"
+    - button "Cookies Settings, Opens the preference center dialog": Cookies Settings

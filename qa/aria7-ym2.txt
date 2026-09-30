@@ -1,0 +1,110 @@
+- navigation:
+  - link:
+    - /url: /
+  - list:
+    - listitem:
+      - link "About Us":
+        - /url: "#"
+    - listitem:
+      - link "Service Info":
+        - /url: "#"
+    - listitem:
+      - link "eBusiness":
+        - /url: "#"
+    - listitem:
+      - link "Local Office":
+        - /url: /contact/office_network
+    - listitem:
+      - link "Sustainability":
+        - /url: "#"
+  - link:
+    - /url: "#"
+  - link:
+    - /url: "#"
+- navigation "Breadcrumbs":
+  - list:
+    - listitem:
+      - link "Home":
+        - link "Home":
+          - /url: /en
+    - listitem:
+      - link "eBusiness":
+        - link "eBusiness":
+          - /url: /en/esolution/ov
+    - listitem:
+      - link "Schedule"
+    - listitem:
+      - link "Overview" [disabled]
+- text: Schedule
+- img "Schedule Overview Banner"
+- tablist "Dynamic tabs":
+  - tab "Overview" [selected]
+  - tab "Point-to-Point Search"
+  - tab "Long Term Schedule"
+  - tab "Port Schedule"
+  - tab "Vessel Schedule"
+- text: Overview
+- img "Point to Point Search"
+- heading "Point-to-Point Search" [level=3]:
+  - link "Point-to-Point Search":
+    - /url: /esolution/schedule/point_to_point_search
+- separator
+- paragraph: To obtain all feasible schedules by inserting start location and end location. The result provides a quick view on feasible next available sailings.
+- list:
+  - listitem:
+    - link "User Guide":
+      - /url: /WebGroup/user_manual/Schedule/Schedule_Point-to-Point%20Search.pdf
+- img "Long Term Schedule"
+- heading "Long Term Schedule" [level=3]:
+  - link "Long Term Schedule":
+    - /url: /esolution/schedule/long_term_schedule_download
+- separator
+- paragraph: Sailing schedule can be downloaded at your request. HTML, TEXT, CSV and XML formats are available.
+- list:
+  - listitem:
+    - link "User Guide":
+      - /url: /WebGroup/user_manual/Schedule/Schedule_Long%20term%20Schedule.pdf
+- img "Port Schedule"
+- heading "Port Schedule" [level=3]:
+  - link "Port Schedule":
+    - /url: /esolution/schedule/port_schedule
+- separator
+- paragraph: You can view vessel status by selecting calling port.
+- list:
+  - listitem:
+    - link "User Guide":
+      - /url: /WebGroup/user_manual/Schedule/Schedule_Port%20Schedule.pdf
+- img "Vessel Schedule"
+- heading "Vessel Schedule" [level=3]:
+  - link "Vessel Schedule":
+    - /url: /esolution/schedule/vessel_schedule
+- separator
+- paragraph: You can view current schedule by selecting mainline vessel name. Vessel sailing history or future schedule can be obtained as well.
+- list:
+  - listitem:
+    - link "User Guide":
+      - /url: /WebGroup/user_manual/Schedule/Schedule_Vessel%20Schedule.pdf
+- text: This Website uses necessary cookies to collect data in order to enable core functionality, including security and network management. If you continue without changing your settings, we will deem this as your consent to receive these cookies. To find out more about the cookies we use, see our
+- link "Cookie Policy":
+  - /url: https://www.yangming.com/en/footer/cookie_policy
+- text: .
+- button "Agree"
+- contentinfo:
+  - link "Terms of Use":
+    - /url: /footer/terms_of_use
+  - separator
+  - link "Privacy Policy":
+    - /url: /footer/privacy_and_security
+  - separator
+  - link "Cookie Policy":
+    - /url: /footer/cookie_policy
+  - separator
+  - link "Ethical Management Statement":
+    - /url: /footer/ethical_management_statement
+  - separator
+  - link "Fraud Prevention Statement":
+    - /url: /footer/fraud_prevention_statement
+  - text: Copyright © YANG MING Group. All Rights Reserved.
+- link:
+  - /url: "#"
+- alert

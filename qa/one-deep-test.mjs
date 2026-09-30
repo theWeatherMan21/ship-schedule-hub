@@ -1,0 +1,10 @@
+import { launchHeadedQuiet, openPage, sleep } from '../engine/browser.mjs';
+import { oneDeep } from '../engine/fastpath.mjs';
+const { ctx } = await launchHeadedQuiet();
+const { page } = await openPage(ctx, 'about:blank', { reuse: true });
+const t0 = Date.now();
+const r = await oneDeep(page, 'CNNGB', 'TRIST', '');
+console.log('耗时', ((Date.now() - t0) / 1000).toFixed(1) + 's');
+console.log(JSON.stringify(r, null, 1).slice(0, 900));
+await ctx.close().catch(() => {});
+process.exit(0);

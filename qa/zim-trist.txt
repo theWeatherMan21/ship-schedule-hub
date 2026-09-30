@@ -1,0 +1,10 @@
+Homepage Schedules Port Schedule
+Point to Point
+Vessel Schedule
+Port Schedule
+Line Schedule
+ETA for EU24 Vessels
+
+Schedule information is based on ZIM’s internal systems and operational data, and may include inputs from third parties. It may not fully reflect real time developments due to timing gaps in data updates. All information is subject to the actual operational arrangements and instructions of the relevant local ZIM office. Customers should verify details with their local ZIM office prior to taking operational decisions, as reliance on website information may result in discrepancies or additional charges.
+
+ 

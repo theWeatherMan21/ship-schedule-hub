@@ -1,0 +1,230 @@
+- button "Open chat":
+  - paragraph: Need help?
+  - paragraph: AI Chat Service
+  - img "chatbot"
+- banner:
+  - link:
+    - /url: /company.do
+  - list:
+    - listitem:
+      - text: COMPANY
+      - list
+    - listitem:
+      - text: SERVICE
+      - list
+    - listitem:
+      - link "IR":
+        - /url: /ir.do
+      - list
+    - listitem:
+      - text: ESG
+      - list
+    - listitem:
+      - text: CONTACT US
+      - list
+  - link "e-Service":
+    - /url: javascript:void(0);
+  - text: CN
+  - list:
+    - listitem: KR
+    - listitem: EN
+  - link:
+    - /url: /company.do
+- img
+- text: Connect Values Navigate Growth
+- link "查看更多":
+  - /url: /company/aboutUs.do
+- list:
+  - listitem: Schedule
+  - listitem: Track & Trace
+- text: From
+- textbox "input a location name (at least 3 letters) or a code"
+- combobox:
+  - option "CY" [selected]
+  - option "DR"
+- text: To
+- textbox "input a location name (at least 3 letters) or a code"
+- combobox:
+  - option "CY" [selected]
+  - option "DR"
+- text: Departure Date
+- textbox: 2026-09-21
+- text: Duration
+- combobox:
+  - option "2 Weeks"
+  - option "3 Weeks"
+  - option "4 Weeks" [selected]
+  - option "5 Weeks"
+  - option "6 Weeks"
+  - option "7 Weeks"
+  - option "8 Weeks"
+- text: Schedule Option
+- combobox:
+  - option "All" [selected]
+  - option "Direct"
+  - option "T/S"
+- text: Sorting Option
+- combobox:
+  - option "Departure Date" [selected]
+  - option "T/Time"
+- text: View Type List Calendar
+- button "Search"
+- text: ESG 将成为创造可持续未来价值的全球领导
+- img
+- text: ESG报告 建立基于风险应对和道德文化的健全公司治理
+- link "查看更多":
+  - /url: /company/esg/esgReport.do
+- text: SERVICE 以最新的技术提供超越规模和形式的服务
+- link "内陆运输":
+  - /url: /company/intermodal.do
+  - img
+  - text: 内陆运输
+- link "Service Network":
+  - /url: /e-service/general/schedule/serviceNetwork/serviceNetworkCustomizedMain.do?siteTp=C
+  - img
+  - text: Service Network
+- link "普通货物":
+  - /url: /company/container/containerGeneral.do
+  - img
+  - text: 普通货物
+- text: NEWS HMM Signs Long-Term Contract with Vale 查看更多 HMM secures stable profitability in H1 2026 查看更多 HMM Launches New East Africa Service, Expanding Network Across Africa 查看更多 HMM’s U.S. West Coast Terminal WUT to Acquire Four New Port Cranes 查看更多
+- link:
+  - /url: javascript:void(0)
+  - img
+- text: 查看更多
+- link "最新通知":
+  - /url: /e-service/cmsBoard/CmsBoard.do?sc1=C004
+- link "当地办事处":
+  - /url: /company/contactUs/contactUs.do?siteTp=C
+- contentinfo:
+  - text: COMPANY
+  - list:
+    - link "关于我们":
+      - /url: /company/aboutUs.do
+      - listitem: 关于我们
+    - link "CEO致辞":
+      - /url: /company/ceoGreeting.do
+      - listitem: CEO致辞
+    - link "公司历史":
+      - /url: /company/history.do
+      - listitem: 公司历史
+    - link "品牌":
+      - /url: /company/ci.do
+      - listitem: 品牌
+  - text: SERVICE
+  - list:
+    - listitem:
+      - list:
+        - link "Container":
+          - /url: /company/container/containerMain.do
+        - listitem:
+          - link "Service Network":
+            - /url: /e-service/general/schedule/serviceNetwork/serviceNetworkCustomizedMain.do?siteTp=C
+        - link "普通货物":
+          - /url: /company/container/containerGeneral.do
+          - listitem: 普通货物
+        - link "冷冻货物":
+          - /url: /company/container/containerReefer.do
+          - listitem: 冷冻货物
+        - link "超限货物":
+          - /url: /company/container/containerOversized.do
+          - listitem: 超限货物
+        - link "危险货物":
+          - /url: /company/container/containerDanger.do
+          - listitem: 危险货物
+        - link "e-Operation Solution":
+          - /url: /company/operarion/operationSolutionContainer.do
+          - listitem: e-Operation Solution
+  - list:
+    - listitem:
+      - list:
+        - link "Bulk":
+          - /url: /company/bulk/bulkMain.do
+        - listitem:
+          - link "散货班轮":
+            - /url: /company/bulk/liner.do
+        - link "不定期船":
+          - /url: /company/bulk/linerTramper.do
+          - listitem: 不定期船
+        - link "油轮":
+          - /url: /company/bulk/linerTanker.do
+          - listitem: 油轮
+        - link "重货":
+          - /url: /company/bulk/linerHmmHeavyLift.do
+          - listitem: 重货
+  - list:
+    - link "码头":
+      - /url: /company/service/terminalMain.do
+      - listitem: 码头
+    - link "内陆运输":
+      - /url: /company/intermodal.do
+      - listitem: 内陆运输
+  - link "IR":
+    - /url: /ir.do
+  - list:
+    - link "Management":
+      - /url: /ir/management/irOverview.do
+      - listitem: Management
+    - link "Financials":
+      - /url: /ir/financial/irIncome.do
+      - listitem: Financials
+    - link "Disclosure":
+      - /url: /ir/disclosure/irDisclosure.do
+      - listitem: Disclosure
+    - link "Stock":
+      - /url: /ir/stock/irRealtime.do
+      - listitem: Stock
+    - link:
+      - /url: /ir/valueUp/roe.do
+    - link "Archive":
+      - /url: /ir/irBoard/irBoard.do?cateCd=C002007000000
+      - listitem: Archive
+  - text: ESG
+  - list:
+    - link "Sustainability":
+      - /url: /company/esg/sustainability.do
+      - listitem: Sustainability
+    - link "Sustainability Report":
+      - /url: /company/esg/esgReport.do
+      - listitem: Sustainability Report
+    - link "Evaluation":
+      - /url: /company/esg/evaluation.do
+      - listitem: Evaluation
+    - link "Eco Solutions":
+      - /url: /company/eco/ecoTransportation.do
+      - listitem: Eco Solutions
+  - text: Contact us
+  - list:
+    - link "Local Office":
+      - /url: /company/contactUs/contactUs.do?siteTp=C
+      - listitem: Local Office
+    - link "Enquiry":
+      - /url: /company/faq.do
+      - listitem: Enquiry
+    - link "Job Opportunities":
+      - /url: /company/contactUs/jobOpportunity.do
+      - listitem: Job Opportunities
+  - text: Media
+  - list:
+    - link "News Room":
+      - /url: /company/newsList.do
+      - listitem: News Room
+    - link "Gallery":
+      - /url: /company/media/gallery.do
+      - listitem: Gallery
+  - link "伦理经营":
+    - /url: /ethics/ethicsMain.do
+  - link "linkedin":
+    - /url: https://www.linkedin.com/company/hyundai-merchant-marine
+  - link "instagram":
+    - /url: https://www.instagram.com/hmm21.official/
+  - link "facebook":
+    - /url: https://www.facebook.com/hmm21.official/
+  - link "youtube":
+    - /url: https://www.youtube.com/hmmofficial1976
+  - paragraph:
+    - link "沪 公安网备31001002004767号":
+      - /url: https://beian.mps.gov.cn/#/query/webSearch?code=31010102004767
+    - link "沪ICP备11001683号-2":
+      - /url: https://beian.miit.gov.cn/
+  - text: 2023 HMM Co., Ltd. All Rights Reserved.

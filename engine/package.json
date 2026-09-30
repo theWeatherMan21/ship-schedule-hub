@@ -1,0 +1,13 @@
+{
+  "name": "shipschedulehub-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Playwright sidecar: opens carrier schedule pages with prefilled query",
+  "bin": {
+    "ssh-engine": "query.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "^1.62.1"
+  }
+}

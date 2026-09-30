@@ -1,0 +1,32 @@
+import { launchHeadedQuiet, openPage, sleep } from '../engine/browser.mjs';
+const { ctx } = await launchHeadedQuiet();
+const { page } = await openPage(ctx, 'https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule', { reuse: true });
+await sleep(18000);
+ctx.on('page', (p2) => { console.log('🆕 新页面:', p2.url()); });
+const oInp = page.locator('#tag-input-origin');
+await oInp.click({ timeout: 10000 });
+await page.keyboard.type('ningbo', { delay: 70 });
+await sleep(4500);
+await page.evaluate(() => {
+  const items = [...document.querySelectorAll('li, [role=option]')].filter((el) => el.offsetParent !== null && /ningbo/i.test(el.textContent || '') && (el.textContent || '').length < 120);
+  if (items.length) items[0].click();
+});
+await sleep(2500);
+const dInp = page.locator('#tag-input-destination');
+await dInp.click({ timeout: 10000 });
+await page.keyboard.type('istanbul', { delay: 70 });
+await sleep(4500);
+await page.evaluate(() => {
+  const items = [...document.querySelectorAll('li, [role=option]')].filter((el) => el.offsetParent !== null && /istanbul/i.test(el.textContent || '') && (el.textContent || '').length < 120);
+  if (items.length) items[0].click();
+});
+await sleep(2000);
+const before = page.url();
+await page.evaluate(() => { [...document.querySelectorAll('button')].filter((b) => /search/i.test(b.textContent || ''))[2]?.click() || [...document.querySelectorAll('button')].filter((b) => /search/i.test(b.textContent || ''))[0]?.click(); });
+await sleep(20000);
+console.log('URL 变化:', before, '→', page.url());
+console.log('页面标题:', await page.title().catch(() => '?'));
+const heads = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' ').slice(0, 250)).catch(() => '?');
+console.log('页面文字:', heads);
+await ctx.close().catch(() => {});
+process.exit(0);

@@ -1,0 +1,219 @@
+- main:
+  - link "Ocean Network Express":
+    - /url: https://www.one-line.com
+    - img "Ocean Network Express"
+  - button "Search":
+    - img
+    - text: Search
+  - button "English":
+    - img
+    - text: English
+  - button "Login":
+    - img
+    - text: Login
+  - link "Price":
+    - /url: /en/price
+  - link "Book":
+    - /url: /one-ecom/booking/quick-booking
+  - link "Track":
+    - /url: /one-ecom/manage-shipment/cargo-tracking
+  - link "Schedule":
+    - /url: /one-ecom/schedule/point-to-point-schedule
+  - button "Services":
+    - text: Services
+    - img
+  - button "Digital Solutions":
+    - text: Digital Solutions
+    - img
+  - button "Industries":
+    - text: Industries
+    - img
+  - link "Local Information":
+    - /url: /en/local-information
+  - link "Contact Us":
+    - /url: /en/contact-us
+  - button "About ONE":
+    - text: About ONE
+    - img
+  - img "error icon"
+  - heading "Page Not Found" [level=1]
+  - paragraph: Sorry, we couldn’t find the page you’re looking for.
+  - button "Back to Home"
+  - list:
+    - option "Transportation Solutions":
+      - paragraph: Transportation Solutions
+    - link "All Transportation Solutions":
+      - /url: /en/all-transportation-solutions
+      - option "All Transportation Solutions":
+        - paragraph: All Transportation Solutions
+    - link "Dry Cargo":
+      - /url: /en/all-transportation-solutions/dry-cargo
+      - option "Dry Cargo":
+        - paragraph: Dry Cargo
+    - link "Refrigerated Cargo":
+      - /url: /en/all-transportation-solutions/refrigerated-cargo
+      - option "Refrigerated Cargo":
+        - paragraph: Refrigerated Cargo
+    - link "Dangerous Cargo":
+      - /url: /en/all-transportation-solutions/dangerous-cargo
+      - option "Dangerous Cargo":
+        - paragraph: Dangerous Cargo
+    - link "Special Cargo":
+      - /url: /en/all-transportation-solutions/special-cargo
+      - option "Special Cargo":
+        - paragraph: Special Cargo
+    - link "Inland and Intermodal Solutions":
+      - /url: /en/all-transportation-solutions/inland-and-intermodal-solutions
+      - option "Inland and Intermodal Solutions":
+        - paragraph: Inland and Intermodal Solutions
+    - link "Green Solutions":
+      - /url: /en/all-transportation-solutions/green-solutions
+      - option "Green Solutions":
+        - paragraph: Green Solutions
+  - list:
+    - option "Digital Solutions":
+      - paragraph: Digital Solutions
+    - link "All Digital Solutions":
+      - /url: /en/all-digital-solutions
+      - option "All Digital Solutions":
+        - paragraph: All Digital Solutions
+    - link "ONE QUOTE":
+      - /url: /en/all-digital-solutions/one-quote
+      - option "ONE QUOTE":
+        - paragraph: ONE QUOTE
+    - link "ONE QUOTE OOG":
+      - /url: /en/all-digital-solutions/one-quote-oog
+      - option "ONE QUOTE OOG":
+        - paragraph: ONE QUOTE OOG
+    - link "eBL":
+      - /url: /en/all-digital-solutions/ebl
+      - option "eBL":
+        - paragraph: eBL
+    - link "ONE Finance":
+      - /url: /en/all-digital-solutions/one-finance
+      - option "ONE Finance":
+        - paragraph: ONE Finance
+    - link "ePayment":
+      - /url: /en/all-digital-solutions/epayment
+      - option "ePayment":
+        - paragraph: ePayment
+    - link "CONTAINER+":
+      - /url: /en/all-digital-solutions/container-plus
+      - option "CONTAINER+":
+        - paragraph: CONTAINER+
+    - link "ONE Mobile App":
+      - /url: /en/all-digital-solutions/one-mobile-app
+      - option "ONE Mobile App":
+        - paragraph: ONE Mobile App
+    - link "Data Integration":
+      - /url: /en/all-digital-solutions/data-integration
+      - option "Data Integration":
+        - paragraph: Data Integration
+  - list:
+    - link "Service Maps":
+      - /url: /en/service-maps
+      - option "Service Maps":
+        - paragraph: Service Maps
+    - link "Local Information":
+      - /url: /en/local-information
+      - option "Local Information":
+        - paragraph: Local Information
+    - link "Contact Us":
+      - /url: /en/contact-us
+      - option "Contact Us":
+        - paragraph: Contact Us
+    - link "Sustainability":
+      - /url: /en/sustainability
+      - option "Sustainability":
+        - paragraph: Sustainability
+    - link "Industries":
+      - /url: /en/industries
+      - option "Industries":
+        - paragraph: Industries
+    - option "Resources":
+      - paragraph: Resources
+    - link "Container Information":
+      - /url: /en/container-information
+      - option "Container Information":
+        - paragraph: Container Information
+    - link "Fleet List":
+      - /url: /en/fleet-list
+      - option "Fleet List":
+        - paragraph: Fleet List
+  - list:
+    - option "About":
+      - paragraph: About
+    - link "Company":
+      - /url: /en/company
+      - option "Company":
+        - paragraph: Company
+    - link "Core Values":
+      - /url: /en/core-values
+      - option "Core Values":
+        - paragraph: Core Values
+    - link "Leadership":
+      - /url: /en/leadership-team
+      - option "Leadership":
+        - paragraph: Leadership
+    - link "Corporate Publications":
+      - /url: /en/corporate-publications
+      - option "Corporate Publications":
+        - paragraph: Corporate Publications
+    - link "Newsroom":
+      - /url: /en/newsroom
+      - option "Newsroom":
+        - paragraph: Newsroom
+    - link "Media Room":
+      - /url: /en/media-room
+      - option "Media Room":
+        - paragraph: Media Room
+    - link "Careers":
+      - /url: /en/careers
+      - option "Careers":
+        - paragraph: Careers
+  - paragraph: Subscribe
+  - paragraph: Receive the latest updates from ONE
+  - textbox "Enter your email address"
+  - button "Subscribe"
+  - text: Manage Subscription
+  - paragraph: Download ONE Mobile App
+  - paragraph: Access ONE anytime, anywhere
+  - link "Mobile QR":
+    - /url: /en/mobile-app-download
+    - img "Mobile QR"
+  - paragraph: Follow ONE on social media
+  - link:
+    - /url: https://www.linkedin.com/company/oceannetworkexpress/
+    - img
+  - link:
+    - /url: https://www.facebook.com/ocean.network.express.global
+    - img
+  - link:
+    - /url: https://www.youtube.com/oceannetworkexpress
+    - img
+  - link:
+    - /url: https://www.instagram.com/ocean_network_express/?hl=
+    - img
+  - link:
+    - /url: https://x.com/oceannetworkexp
+    - img
+  - text: ONE Cookie Preferences ONE uses cookies to deliver the best possible web experience. By using our website you consent to all cookies in accordance with our Cookie Policy.
+  - link "Read more":
+    - /url: /cookies-policy
+  - button "cookie-policy-close":
+    - img
+  - paragraph: © Ocean Network Express Pte. Ltd. All rights reserved.
+  - link "Copyright":
+    - /url: /copyright
+  - separator
+  - link "Cookies Policy":
+    - /url: /cookies-policy
+  - link "Terms and Rules":
+    - /url: /terms-and-rules
+  - link "Disclaimer":
+    - /url: /disclaimer
+  - link "Data Deletion Request":
+    - /url: /data-deletion-request
+- button "Feedback"
+- alert
+- img

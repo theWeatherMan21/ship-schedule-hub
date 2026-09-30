@@ -1,0 +1,229 @@
+- button "Open chat":
+  - paragraph: Need help?
+  - paragraph: AI Chat Service
+  - img "chatbot"
+- banner:
+  - link:
+    - /url: /company.do
+  - list:
+    - listitem:
+      - text: COMPANY
+      - list
+    - listitem:
+      - text: SERVICE
+      - list
+    - listitem:
+      - link "IR":
+        - /url: /ir.do
+      - list
+    - listitem:
+      - text: ESG
+      - list
+    - listitem:
+      - text: CONTACT US
+      - list
+  - link "e-Service":
+    - /url: javascript:void(0);
+  - text: EN
+  - list:
+    - listitem: KR
+    - listitem: CN
+  - link "HMM Site":
+    - /url: /company.do
+- img
+- text: Connect Values Navigate Growth
+- link "Learn more":
+  - /url: /company/aboutUs.do
+- list:
+  - listitem: Schedule
+  - listitem: Track & Trace
+- text: From
+- textbox "input a location name (at least 3 letters) or a code"
+- combobox:
+  - option "CY" [selected]
+  - option "DR"
+- text: To
+- textbox "input a location name (at least 3 letters) or a code"
+- combobox:
+  - option "CY" [selected]
+  - option "DR"
+- text: Departure Date
+- textbox "Select date": 2026. 09. 10
+- text: Duration
+- combobox:
+  - option "2 Weeks" [selected]
+  - option "3 Weeks"
+  - option "4 Weeks"
+  - option "5 Weeks"
+  - option "6 Weeks"
+  - option "7 Weeks"
+  - option "8 Weeks"
+- text: Schedule Option
+- combobox:
+  - option "All" [selected]
+  - option "Direct"
+  - option "T/S"
+- text: Sorting Option
+- combobox:
+  - option "Departure Date" [selected]
+  - option "T/Time"
+- text: View Type List Calendar
+- button "Search"
+- text: ESG A leader in the global shipping and logistics industry that creates sustainable future values
+- img
+- text: Sustainability Systematic Environmental management and thorough response to climate change
+- link "Learn more":
+  - /url: /company/esg/sustainability.do
+- text: SERVICE We provide alternative services beyond scale and from with the leading technologies
+- link "Service Network":
+  - /url: /e-service/general/schedule/serviceNetwork/serviceNetworkCustomizedMain.do?siteTp=C
+  - img
+  - text: Service Network
+- link "General Cargo":
+  - /url: /company/container/containerGeneral.do
+  - img
+  - text: General Cargo
+- link "Reefer Cargo":
+  - /url: /company/container/containerReefer.do
+  - img
+  - text: Reefer Cargo
+- text: NEWS HMM Signs Long-Term Contract with Vale Learn more HMM secures stable profitability in H1 2026 Learn more HMM Launches New East Africa Service, Expanding Network Across Africa Learn more HMM’s U.S. West Coast Terminal WUT to Acquire Four New Port Cranes Learn more
+- link:
+  - /url: javascript:void(0)
+  - img
+- text: Find more
+- link "Customer Advisory":
+  - /url: /e-service/cmsBoard/CmsBoard.do?sc1=C004
+- link "Local Offices":
+  - /url: /company/contactUs/contactUs.do?siteTp=C
+- contentinfo:
+  - text: COMPANY
+  - list:
+    - link "About Us":
+      - /url: /company/aboutUs.do
+      - listitem: About Us
+    - link "CEO Greeting":
+      - /url: /company/ceoGreeting.do
+      - listitem: CEO Greeting
+    - link "History":
+      - /url: /company/history.do
+      - listitem: History
+    - link "Brand":
+      - /url: /company/ci.do
+      - listitem: Brand
+  - text: SERVICE
+  - list:
+    - listitem:
+      - list:
+        - link "Container":
+          - /url: /company/container/containerMain.do
+        - listitem:
+          - link "Service Network":
+            - /url: /e-service/general/schedule/serviceNetwork/serviceNetworkCustomizedMain.do?siteTp=C
+        - link "General Cargo":
+          - /url: /company/container/containerGeneral.do
+          - listitem: General Cargo
+        - link "Reefer Cargo":
+          - /url: /company/container/containerReefer.do
+          - listitem: Reefer Cargo
+        - link "Oversized Cargo":
+          - /url: /company/container/containerOversized.do
+          - listitem: Oversized Cargo
+        - link "Dangerous Cargo":
+          - /url: /company/container/containerDanger.do
+          - listitem: Dangerous Cargo
+        - link "e-Operation Solution":
+          - /url: /company/operarion/operationSolutionContainer.do
+          - listitem: e-Operation Solution
+  - list:
+    - listitem:
+      - list:
+        - link "Bulk":
+          - /url: /company/bulk/bulkMain.do
+        - listitem:
+          - link "Liner":
+            - /url: /company/bulk/liner.do
+        - link "Tramper":
+          - /url: /company/bulk/linerTramper.do
+          - listitem: Tramper
+        - link "Tanker":
+          - /url: /company/bulk/linerTanker.do
+          - listitem: Tanker
+        - link "Heavy Lift & Project":
+          - /url: /company/bulk/linerHmmHeavyLift.do
+          - listitem: Heavy Lift & Project
+  - list:
+    - link "Terminal":
+      - /url: /company/service/terminalMain.do
+      - listitem: Terminal
+    - link "Intermodal":
+      - /url: /company/intermodal.do
+      - listitem: Intermodal
+  - link "IR":
+    - /url: /ir.do
+  - list:
+    - link "Management":
+      - /url: /ir/management/irOverview.do
+      - listitem: Management
+    - link "Financials":
+      - /url: /ir/financial/irIncome.do
+      - listitem: Financials
+    - link "Disclosure":
+      - /url: /ir/disclosure/irDisclosure.do
+      - listitem: Disclosure
+    - link "Stock":
+      - /url: /ir/stock/irRealtime.do
+      - listitem: Stock
+    - link:
+      - /url: /ir/valueUp/roe.do
+    - link "Archive":
+      - /url: /ir/irBoard/irBoard.do?cateCd=C002007000000
+      - listitem: Archive
+  - text: ESG
+  - list:
+    - link "Sustainability":
+      - /url: /company/esg/sustainability.do
+      - listitem: Sustainability
+    - link "Sustainability Report":
+      - /url: /company/esg/esgReport.do
+      - listitem: Sustainability Report
+    - link "Evaluation":
+      - /url: /company/esg/evaluation.do
+      - listitem: Evaluation
+    - link "Eco Solutions":
+      - /url: /company/eco/ecoTransportation.do
+      - listitem: Eco Solutions
+  - text: Contact us
+  - list:
+    - link "Local Office":
+      - /url: /company/contactUs/contactUs.do?siteTp=C
+      - listitem: Local Office
+    - link "Enquiry":
+      - /url: /company/faq.do
+      - listitem: Enquiry
+    - link "Job Opportunities":
+      - /url: /company/contactUs/jobOpportunity.do
+      - listitem: Job Opportunities
+  - text: Media
+  - list:
+    - link "News Room":
+      - /url: /company/newsList.do
+      - listitem: News Room
+    - link "Gallery":
+      - /url: /company/media/gallery.do
+      - listitem: Gallery
+  - link "Ethics Management":
+    - /url: /ethics/ethicsMain.do
+  - link "Cookie Policy":
+    - /url: /company/emailcolrjt.do
+  - link "Privacy Policy":
+    - /url: /company/privacypolicy.do
+  - link "linkedin":
+    - /url: https://www.linkedin.com/company/hyundai-merchant-marine
+  - link "instagram":
+    - /url: https://www.instagram.com/hmm21.official/
+  - link "facebook":
+    - /url: https://www.facebook.com/hmm21.official/
+  - link "youtube":
+    - /url: https://www.youtube.com/hmmofficial1976
+  - text: 2023 HMM Co., Ltd. All Rights Reserved.

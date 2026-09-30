@@ -1,0 +1,6 @@
+- paragraph: Thank you for using HMM e-service. Your access to this site has been limited due to abnormal connection.
+- paragraph: "<Refernce Code : 14264694900806995138>"
+- paragraph:
+  - text: "For more details, Please contact below with full reference no. - Security Operation Contact :"
+  - link "security@hmm21.com":
+    - /url: "mailto: security@hmm21.com"
