@@ -214,6 +214,62 @@ fn find_node(app: Option<&AppHandle>) -> String {
     "node".to_string()
 }
 
+/// 诊断：把「引擎为什么没跑起来」一次问清（Windows 上点了没反应时尤其关键）。
+/// 返回 node/脚本/db/node_modules 的可达性，并真跑一次引擎 `--diagnose` 拿 node 版本与浏览器探测。
+#[tauri::command]
+fn diagnose(app: AppHandle) -> Result<serde_json::Value, String> {
+    let root = project_root(Some(&app));
+    let engine_dir = root.join("engine");
+    let script = engine_dir.join("query.mjs");
+    let node = find_node(Some(&app));
+    let node_exists = PathBuf::from(&node).exists();
+    let mut out = serde_json::json!({
+        "platform": std::env::consts::OS,
+        "arch": std::env::consts::ARCH,
+        "node": node,
+        "nodeExists": node_exists,
+        "script": script.display().to_string(),
+        "scriptExists": script.exists(),
+        "engineDir": engine_dir.display().to_string(),
+        "resourceDir": app.path().resource_dir().map(|p| p.display().to_string()).unwrap_or_default(),
+        "playwrightCore": engine_dir.join("node_modules").join("playwright-core").exists(),
+        "portsDb": root.join("db").join("ports.db").exists(),
+        "dataDir": std::env::var("LOCALAPPDATA").ok()
+            .map(|l| format!("{l}\\ShipScheduleHub"))
+            .unwrap_or_else(|| "（见引擎输出）".to_string()),
+    });
+    if node_exists && script.exists() {
+        let mut cmd = Command::new(&node);
+        cmd.arg(&script).arg("--diagnose").current_dir(&root)
+            .stdout(Stdio::piped()).stderr(Stdio::piped());
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            cmd.creation_flags(0x0800_0000);
+        }
+        match cmd.output() {
+            Ok(o) => {
+                let so = String::from_utf8_lossy(&o.stdout).to_string();
+                let line = so.lines().find(|l| l.contains("\"diagnose\"")).unwrap_or("").to_string();
+                if let Ok(j) = serde_json::from_str::<serde_json::Value>(&line) {
+                    for k in ["dataDir", "chrome", "playwrightCore", "portsDb", "node"] {
+                        if let Some(v) = j.get(k) { out[k] = v.clone(); }
+                    }
+                } else {
+                    out["engineRaw"] = serde_json::Value::String(so.chars().take(300).collect());
+                }
+                let se: String = String::from_utf8_lossy(&o.stderr).chars().take(500).collect();
+                out["engineStderr"] = serde_json::Value::String(se);
+                out["engineExit"] = serde_json::json!(o.status.code());
+            }
+            Err(e) => { out["engineErr"] = serde_json::Value::String(format!("引擎启动失败: {e}")); }
+        }
+    } else {
+        out["engineErr"] = serde_json::Value::String("缺少 node 或引擎脚本，未运行自检".to_string());
+    }
+    Ok(out)
+}
+
 #[tauri::command]
 fn run_query(
     app: AppHandle,
@@ -225,6 +281,36 @@ fn run_query(
         "run_query ENTER origin={:?} dest={:?} carriers={} ",
         args.origin, args.destination, args.carriers.join(",")
     ));
+    // ── 开工前预检（Windows「点了没反应」教训）：缺什么当场说清楚，不要静默失败 ──
+    {
+        let root = project_root(Some(&app));
+        let engine_dir = root.join("engine");
+        let script = engine_dir.join("query.mjs");
+        let checks: Vec<(&str, bool, String)> = vec![
+            ("引擎脚本", script.exists(), script.display().to_string()),
+            ("引擎依赖 node_modules/playwright-core",
+                engine_dir.join("node_modules").join("playwright-core").exists(),
+                engine_dir.join("node_modules").join("playwright-core").display().to_string()),
+            ("港口词典 db/ports.db", root.join("db").join("ports.db").exists(),
+                root.join("db").join("ports.db").display().to_string()),
+        ];
+        for (what, ok, path) in checks {
+            if !ok {
+                let msg = format!("安装不完整：缺少{what}（{path}）—— 点「诊断」查看详情");
+                *state.running.lock().unwrap() = false;
+                let _ = app.emit("engine://event", serde_json::json!({ "type": "engine-error", "msg": msg.clone() }));
+                return Err(msg);
+            }
+        }
+        let node = find_node(Some(&app));
+        if !PathBuf::from(&node).exists() && node == "node" {
+            let msg = "找不到 node：随包运行时缺失且系统 PATH 里也没有 —— 请重装安装包，或点「诊断」".to_string();
+            *state.running.lock().unwrap() = false;
+            let _ = app.emit("engine://event", serde_json::json!({ "type": "engine-error", "msg": msg.clone() }));
+            return Err(msg);
+        }
+    }
+
     // 已有引擎在跑 → 拒绝（防重复点击）
     {
         let mut running = state.running.lock().unwrap();
@@ -266,7 +352,9 @@ fn run_query(
     }
     let mut child = cmd.spawn().map_err(|e| {
         *state.running.lock().unwrap() = false;
-        format!("启动引擎失败: {e}（PATH 里找不到 node？）")
+        let msg = format!("启动引擎失败: {e}（node 不可用？点「诊断」查看 node 路径）");
+        let _ = app.emit("engine://event", serde_json::json!({ "type": "engine-error", "msg": msg.clone() }));
+        msg
     })?;
     *state.child_pid.lock().unwrap() = Some(child.id());
 
@@ -398,7 +486,7 @@ fn stop_query(app: AppHandle) -> Result<serde_json::Value, String> {
 pub fn run() {
     tauri::Builder::default()
         .manage(EngineState::default())
-        .invoke_handler(tauri::generate_handler![run_query, stop_query, open_external, selftest_enabled])
+        .invoke_handler(tauri::generate_handler![run_query, stop_query, open_external, selftest_enabled, diagnose])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

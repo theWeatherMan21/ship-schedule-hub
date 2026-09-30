@@ -76,7 +76,10 @@ app.innerHTML = `
     <span class="sub">船期聚合驾驶舱 v0.1</span>
     <span class="spacer"></span>
     <span><span id="engineDot" class="engine-dot"></span><span id="engineState">engine 未启动</span></span>
+    <button id="btnDiag" class="btn-ghost" title="查看引擎/node 路径与最近输出（排查「点了没反应」）">诊断</button>
   </header>
+  <div id="diagBox" class="diagbox" hidden></div>
+  <div id="errBox" class="errbox" hidden></div>
 
   <section class="formbar">
     <div class="field">
@@ -111,6 +114,13 @@ app.innerHTML = `
     </section>
   </section>
 `;
+
+document.getElementById('btnDiag').onclick = async () => {
+  const box = document.getElementById('diagBox');
+  box.hidden = !box.hidden;
+  if (!box.hidden && !diagInfo) await loadDiagnostics();
+  else renderDiagnostics();
+};
 
 // ---------- 船司列表 ----------
 const listEl = document.getElementById('carrierList');
@@ -303,6 +313,7 @@ document.getElementById('btnGo').onclick = async () => {
   lastQuery = { origin, destination };  // 修 9-25『点击无反应』：此前误用未定义变量 originInput/destInput（async 里 ReferenceError 被静默吞）
   if (!selected.length) { alert('至少勾选一家船司'); return; }
 
+  clearEngineError();
   renderInitialStatus(selected);
   setEngineDot('busy');
   engineRunning = true;
@@ -345,6 +356,49 @@ function setEngineDot(state) {
     state === 'on' ? 'engine 在线' : state === 'busy' ? 'engine 执行中' : 'engine 未启动';
 }
 
+// ---------- 错误条（独立显示，永不被摘要覆盖）----------
+function showEngineError(msg) {
+  const box = document.getElementById('errBox');
+  if (!box) return;
+  box.hidden = false;
+  box.textContent = '⚠️ ' + String(msg).slice(0, 300);
+  renderDiagnostics();
+}
+function clearEngineError() {
+  const box = document.getElementById('errBox');
+  if (box) { box.hidden = true; box.textContent = ''; }
+}
+
+// ---------- 诊断（爹地 9-30：Windows 上「点了没反应」必须能自查）----------
+const stderrTail = [];
+let diagInfo = null;
+async function loadDiagnostics() {
+  if (!hasTauri) return null;
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    diagInfo = await invoke('diagnose', {});
+  } catch (e) { diagInfo = { error: String(e) }; }
+  renderDiagnostics();
+  return diagInfo;
+}
+function renderDiagnostics() {
+  const box = document.getElementById('diagBox');
+  if (!box || box.hidden) return;
+  const d = diagInfo || {};
+  const line = (k, v, ok) => `<div class="drow"><span class="dk">${k}</span><span class="dv${ok === false ? ' bad' : ''}">${v ?? '—'}</span></div>`;
+  box.innerHTML = [
+    line('引擎状态', document.getElementById('engineState').textContent),
+    line('node 可执行', d.node || '（未解析）', d.nodeExists),
+    line('引擎脚本', d.script || '—', d.scriptExists),
+    line('数据目录', d.dataDir || '—'),
+    line('浏览器', d.chrome || '（未探测）'),
+    (diagInfo && diagInfo.net ? Object.entries(diagInfo.net).map(([h, v]) => `<div class="drow"><span class="dk">连通 ${h.split('.')[0]}</span><span class="dv${String(v).startsWith('ok') ? '' : ' bad'}">${String(v).replace(/[<>&]/g, '')}</span></div>`).join('') : ''),
+    (diagInfo && diagInfo.engineStderr ? `<div class="drow"><span class="dk">引擎自检错误</span><span class="dv bad">${String(diagInfo.engineStderr).replace(/[<>&]/g, '').slice(0, 300)}</span></div>` : ''),
+    (diagInfo && diagInfo.engineErr ? `<div class="drow"><span class="dk">启动失败</span><span class="dv bad">${String(diagInfo.engineErr).replace(/[<>&]/g, '').slice(0, 300)}</span></div>` : ''),
+    stderrTail.length ? `<div class="drow"><span class="dk">引擎输出</span><span class="dv bad">${stderrTail.slice(-4).map((x) => String(x).replace(/[<>&]/g, '')).join('<br>')}</span></div>` : '',
+  ].filter(Boolean).join('');
+}
+
 // ---------- 引擎事件（Tauri event）----------
 async function listenEngineEvents() {
   if (!hasTauri) return;
@@ -363,6 +417,17 @@ async function listenEngineEvents() {
       setEngineDot('off');
       engineRunning = false;
       updateGoBtn();
+    } else if (ev.type === 'engine-stderr') {
+      // 引擎的 stderr：node 找不到、脚本路径错、依赖缺失、被系统拦……全都只走这里。
+      // 不显示出来，用户看到的就是「点了查询毫无反应」（爹地 9-30 Windows 无 Chrome 环境实测）。
+      const m = String(ev.msg || '').trim();
+      if (m) {
+        stderrTail.push(m);
+        if (stderrTail.length > 8) stderrTail.shift();
+        const fatal = /Error|error:|Cannot find|MODULE_NOT_FOUND|not found|EACCES|EPERM|ENOENT|throw/i.test(m);
+        if (fatal) showEngineError(m);
+        renderDiagnostics();
+      }
     } else if (ev.type === 'engine-log') {
       const box = document.getElementById('summary');
       if (box && !box.textContent.includes('⚠️')) box.textContent = String(ev.msg || '').slice(0, 160);
@@ -371,6 +436,15 @@ async function listenEngineEvents() {
       engineRunning = false;
       updateGoBtn();
       refreshSummary(true);
+      // 引擎退出但一条结果都没有 → 必须说清原因，别让人对着空卡片猜
+      const produced = Object.values(statusRows).some((g) => (g.querySelectorAll('.trow').length > 0));
+      if (!produced) {
+        const tail = stderrTail.slice(-2).join(' ⏎ ');
+        showEngineError(tail
+          ? `查询结束但没有任何结果　引擎输出：${tail.slice(0, 200)}`
+          : '查询结束但没有任何结果（点上方「诊断」查看 node / 引擎路径）');
+      }
+      renderDiagnostics();
     }
     });
   } catch (err) {

@@ -86,6 +86,18 @@ body {
 .field input::placeholder { color: var(--ink-3); }
 .field input.invalid { border-color: var(--err); box-shadow: 0 0 0 3px var(--err-bg); }
 
+/* 错误条：引擎起不来时必须显眼（Windows「点了没反应」根治） */
+.errbox {
+  margin: 0; padding: 9px 18px; background: #fff4f4; color: #b42318;
+  border-bottom: 1px solid #f3c6c6; font-size: 12px; line-height: 1.5;
+  word-break: break-all; flex-shrink: 0;
+}
+.diagbox { padding: 10px 18px; background: #f7f9fc; border-bottom: 1px solid var(--line); font-size: 11.5px; }
+.diagbox .drow { display: flex; gap: 10px; padding: 2px 0; }
+.diagbox .dk { min-width: 92px; color: var(--ink-3); }
+.diagbox .dv { color: var(--ink-2); font-family: var(--mono); word-break: break-all; }
+.diagbox .dv.bad { color: #b42318; }
+
 /* ---------- 按钮 ---------- */
 .btn-primary {
   font: inherit; font-weight: 620; color: var(--accent-ink);

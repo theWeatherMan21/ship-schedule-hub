@@ -18,6 +18,24 @@ const LAZY = () => import('./browser.mjs').then((m) => m.DATA_DIR); // 避免与
 const isWin = process.platform === 'win32';
 const isMac = process.platform === 'darwin';
 
+/**
+ * 各平台「系统 Edge」的常见安装位置 —— Windows 10/11 自带，比「下载 150MB Chrome」省事得多。
+ * Chromium 内核，同样支持 --headless=new；Playwright 直接吃可执行文件路径。
+ */
+function systemEdgeCandidates() {
+  if (isWin) {
+    const out = [];
+    const keys = ['PROGRAMFILES(X86)', 'PROGRAMFILES', 'LOCALAPPDATA'];
+    for (const k of keys) {
+      const b = process.env[k];
+      if (b) out.push(path.join(b, 'Microsoft', 'Edge', 'Application', 'msedge.exe'));
+    }
+    return out;
+  }
+  if (isMac) return ['/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'];
+  return ['/usr/bin/microsoft-edge', '/usr/bin/microsoft-edge-stable'];
+}
+
 /** 各平台「系统 Chrome」的常见安装位置 */
 function systemChromeCandidates() {
   if (isWin) {
@@ -183,11 +201,17 @@ export async function resolveChrome({ allowDownload = true, log = () => {} } = {
     for (const p of systemChromeCandidates()) {
       if (p && fs.existsSync(p)) return { path: p, source: 'system' };
     }
-    // ③ Playwright 自带 Chromium
+    // ③ 系统 Edge（Windows 自带，省掉 150MB 下载；Chromium 内核，同样支持 --headless=new）
+    if (process.env.SSH_NO_EDGE !== '1') {
+      for (const p of systemEdgeCandidates()) {
+        if (p && fs.existsSync(p)) return { path: p, source: 'edge' };
+      }
+    }
+    // ④ Playwright 自带 Chromium
     const pw = playwrightChromium();
     if (pw) return { path: pw, source: 'playwright' };
   }
-  // ④ 受管 Chrome for Testing（按需下载）
+  // ⑤ 受管 Chrome for Testing（按需下载）
   const dataDir = process.env.SSH_DATA_DIR || (await LAZY());
   const cached = readManaged(dataDir);
   if (cached) return { path: cached.path, source: 'chrome-for-testing' };

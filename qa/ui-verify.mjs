@@ -37,6 +37,14 @@ await page.addInitScript(() => {
     invoke: async (cmd, args) => {
       window.__calls.push({ cmd, args });
       if (cmd === 'plugin:event|listen') { window.__listenEvent = args.event; return 1; }
+      if (cmd === 'diagnose') {
+        return {
+          platform: 'win32', arch: 'x86_64', node: 'C:\\Program Files\\ShipScheduleHub\\engine\\node-bin\\node.exe',
+          nodeExists: true, script: 'C:\\Program Files\\ShipScheduleHub\\engine\\query.mjs', scriptExists: true,
+          playwrightCore: true, portsDb: true, dataDir: 'C:\\Users\\x\\AppData\\Local\\ShipScheduleHub',
+          chrome: 'edge → C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+        };
+      }
       return { ok: true };
     },
     transformCallback: (cb) => { const id = window.__cbSeq++; window.__cbMap[id] = cb; return id; },
@@ -129,6 +137,30 @@ const back = await page.evaluate(() => {
 });
 console.log(`  再点一次     → collapsed=${back.collapsed}  body 可见=${back.bodyVisible}`);
 await page.screenshot({ path: path.join(OUT, '4-expanded.png'), fullPage: true });
+
+// ---------- ④ 引擎挂掉时的可见性（Windows「点了没反应」的核心诉求）----------
+await emit({ type: 'engine-stderr', msg: "Error: Cannot find module 'playwright-core'" });
+await page.waitForTimeout(200);
+const warn1 = await page.evaluate(() => (document.getElementById('errBox').hidden ? '' : document.getElementById('errBox').textContent));
+await emit({ type: 'engine-exit', total: 0, prefilled: 0, opened: 0, failed: 0 });
+await page.waitForTimeout(300);
+const warn2 = await page.evaluate(() => (document.getElementById('errBox').hidden ? '' : document.getElementById('errBox').textContent) + ' || 摘要: ' + document.getElementById('summary').textContent);
+console.log('\n═══ ④ 引擎报错可见性 ═══');
+console.log('  收到 stderr 后 错误条:', warn1.slice(0, 90));
+console.log('  引擎退出后   错误条+摘要:', warn2.slice(0, 110));
+console.log(`  ${/playwright-core|引擎/.test(warn1 + warn2) ? '✅ 能看到原因（不再静默）' : '❌ 仍然静默'}`);
+
+// ---------- ⑤ 诊断面板 ----------
+await page.click('#btnDiag');
+await page.waitForTimeout(400);
+const diag = await page.evaluate(() => {
+  const b = document.getElementById('diagBox');
+  return { hidden: b.hidden, text: b.innerText.replace(/\s+/g, ' ').slice(0, 200) };
+});
+console.log('\n═══ ⑤ 诊断面板 ═══');
+console.log(`  hidden=${diag.hidden}`);
+console.log('  内容:', diag.text || '(空)');
+await page.screenshot({ path: path.join(OUT, '5-diagnostics.png'), fullPage: true });
 
 console.log('\n═══ ③ 报错 ═══');
 console.log('  页面错误数:', errs.length);

@@ -15,6 +15,58 @@ import { dateFormats } from './lib/utils.mjs';
 import { dismissCookies, isBlockPage, waitThroughChallenge, pickOption, portPick, typeAndPickCandidate } from './lib/utils.mjs';
 import { withTimeout, setValue, setInputByValueShape, clickByText, fillAutocomplete } from './lib/dom.mjs';
 import { resolvePort } from './lib/portsolve.mjs';
+
+// ---------- 自检 / 诊断（--diagnose）：把「引擎为什么起不来」一次问清 ----------
+// App 的「诊断」按钮与远程排障都用它（Windows 无 Chrome / node 找不到这两个场景尤其需要）。
+if (process.argv.includes('--diagnose')) {
+  const os = await import('node:os');
+  const ROOT = path.dirname(new URL(import.meta.url).pathname);
+  const info = {
+    platform: process.platform,
+    arch: process.arch,
+    node: process.version,
+    execPath: process.execPath,
+    dataDir: (await import('./browser.mjs')).DATA_DIR,
+    tmpdir: os.tmpdir(),
+    cwd: process.cwd(),
+    engineDir: ROOT,
+    portsDb: null,
+    playwrightCore: null,
+    chrome: null,
+    chromeDownloadAllowed: true,
+  };
+  try {
+    const db = path.join(ROOT, '..', 'db', 'ports.db');
+    info.portsDb = fs.existsSync(db) ? `ok (${(fs.statSync(db).size / 1048576).toFixed(1)} MB)` : `缺失: ${db}`;
+  } catch (e) { info.portsDb = 'error: ' + String(e).slice(0, 80); }
+  try {
+    await import('./node_modules/playwright-core/index.mjs');
+    info.playwrightCore = 'ok';
+  } catch (e) { info.playwrightCore = '导入失败: ' + String(e).slice(0, 120); }
+  try {
+    const { resolveChrome } = await import('./chrome.mjs');
+    const c = await resolveChrome({ allowDownload: false, log: () => {} });
+    info.chrome = c ? `${c.source} → ${c.path}` : '未找到（首次查询会自动下载 Chrome for Testing）';
+  } catch (e) { info.chrome = '探测异常: ' + String(e).slice(0, 120); }
+  // 网络连通性（同事机器最常踩的坑：防火墙/代理拦 node 出网 → 查询「毫无反应」）
+  info.net = {};
+  for (const host of ['ecomm.one-line.com', 'api.maersk.com', 'www.zim.com']) {
+    const t0 = Date.now();
+    try {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 8000);
+      const r = await fetch(`https://${host}/`, { method: 'HEAD', signal: ctl.signal, redirect: 'manual' });
+      clearTimeout(timer);
+      info.net[host] = `ok (HTTP ${r.status}, ${Date.now() - t0}ms)`;
+    } catch (e) {
+      info.net[host] = `不通 (${String(e && e.message || e).slice(0, 80)}, ${Date.now() - t0}ms)`;
+    }
+  }
+
+  process.stdout.write(JSON.stringify({ type: 'diagnose', ...info }) + '\n');
+  process.exit(0);
+}
+
 import { tryFastPath, mscInPage, coscoInPage, hapagInPage, zimInPage, maerskInPage, oneDeep } from './fastpath.mjs';
 
 // ---------- 参数 ----------

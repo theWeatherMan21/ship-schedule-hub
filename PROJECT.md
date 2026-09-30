@@ -528,3 +528,29 @@ fastpath 的 in-page 闭包与配方调用全部改用私有的 `oRes/dRes/qLoca
 
 **全量回归（部署态 · 宁波→伊斯坦布尔）**：`11/11 家 · 104 条`（修前 90 条），每家 ≥6 条。
 新增探针：`qa/probe-oocl-window.mjs`（抓页面真实请求体 → 定位 `weeks=2` 这个真凶）、`qa/probe-oocl-form.mjs`。
+
+### 9-30 · 全平台安装包发布（Release v1.0.0 · 婉宜）
+
+- **CI 出包成功**：`.github/workflows/build-installers.yml`（三 job：windows / macos×2 架构 + release 汇总）
+- **Release 产物**（github.com/theWeatherMan21/ship-schedule-hub/releases/tag/v1.0.0）：
+  | 文件 | 大小 | 系统 |
+  |---|---|---|
+  | `ShipScheduleHub_1.0.0_x64-setup.exe` | 25.9 MB | Windows 10/11 |
+  | `ShipScheduleHub_1.0.0_aarch64.dmg` | 42.1 MB | Mac M 系列 |
+  | `ShipScheduleHub_1.0.0_x64.dmg` | 43.3 MB | Mac Intel |
+- **零依赖已实测验证**（挂载 dmg 读真包，非 CI 自述）：`Contents/Resources/engine/node-bin/node` = **112.9 MB**、
+  engine 12 项、11 个船司配方齐全 → 同事机器**不需要装 Node**；没 Chrome 时引擎自动下载 Chrome for Testing
+- **踩坑（已修）**：CI 第一次 Windows 打包失败，报 ``icons/icon.ico` not found; required for generating
+  a Windows Resource file during tauri-build` —— Tauri 在 Windows 上强制要 .ico，macOS 构建不需要所以本地不报。
+  同时发现原图标是占位黑方块 → 用 `qa/make-icon.mjs`（SVG→1024 PNG，走 playwright-core 渲染）重做，
+  `tauri icon` 生成全套
+- **打包与源码一致性**：改 UI 后必须重打 tag 才会进安装包（本次 UI 折叠/对齐改动重出了一次）
+
+### 9-30 · UI：卡片折叠 + 搜索框对齐（爹地要求 · 婉宜）
+
+- 卡片头整条可点折叠/展开（事件委托挂 #statusList，重建 DOM 后仍有效；Enter/Space 可用）
+- 指示箭头改**内联 SVG**：先试 10px 字体符号 `▾`，真机截图里几乎看不见还被压扁（视觉验收抓出来的）
+- 搜索框「一高一低」真因：`.formbar` 用 `align-items:flex-end`，字段底部是港口识别提示，
+  提示行数不同（起运港两行/目的港一行）→ 输入框被顶到不同高度；改 `flex-start` + 标签定高 + 按钮 margin-top:20px
+- 实测（Playwright 量像素）：三输入框顶边极差 **0.0px**
+- 新工具 `qa/ui-verify.mjs`：不开真实屏幕验 UI（Tauri 桩 + 事件回调捕获 + 量几何 + 点折叠 + 截图 + 数报错）
