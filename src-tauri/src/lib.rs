@@ -49,6 +49,33 @@ fn open_external(_app: tauri::AppHandle, url: String) -> Result<(), String> {
 /// 解析引擎根目录（定位 engine/，不假设 cwd）
 /// 优先级：环境变量 → Tauri resource_dir（打包态，.app 拷到任何位置都能用）
 /// → cwd 探测（开发态）→ 可执行文件向上探测（开发态 target/ 下）
+/// 去掉 Windows「扩展长度路径前缀」`\\?\`（以及 `\\?\UNC\`）。
+/// 真凶实测（爹地 9-30，Windows 装什么位置都报错）：
+///   Tauri 给出的路径是 `\\?\D:\Program Files\...\query.mjs`，交给 Node 当入口脚本后，
+///   `path.win32` 把 `\\?\D:` 误解析成 UNC 主机，最终 realpathSync 到一个光秃秃盘符
+///   `Error: EISDIR: illegal operation on a directory, lstat 'D:'`
+///   栈：resolveMainPath → _findPath → toRealPath → realpathSync（Node 启动阶段即死，
+///   所以 App 表现为「点查询毫无反应」——连事件都到不了前端）。
+fn strip_verbatim(p: PathBuf) -> PathBuf {
+    let s = p.to_string_lossy().to_string();
+    const PREFIX_VERBATIM: &str = r"\\?\";
+    const PREFIX_UNC: &str = r"UNC\";
+    if let Some(rest) = s.strip_prefix(PREFIX_VERBATIM) {
+        // \\?\UNC\server\share → \\server\share ；\\?\D:\x → D:\x
+        let out = match rest.strip_prefix(PREFIX_UNC) {
+            Some(unc) => format!(r"\\{unc}"),
+            None => rest.to_string(),
+        };
+        return PathBuf::from(out);
+    }
+    p
+}
+
+/// 统一的路径规范化：去 `\\?\` 前缀 + 盘符根补反斜杠
+fn normalize_path(p: PathBuf) -> PathBuf {
+    fix_root(strip_verbatim(p))
+}
+
 /// 规范化根路径：Windows 上「装在盘符根目录」时，路径可能是不带反斜杠的 `D:`。
 /// 这种「驱动器相对路径」（drive-relative）交给 Node 会被解析成 D 盘当前目录，
 /// 模块解析拿它做 realpath 直接抛 `EISDIR: illegal operation on a directory, lstat 'D:'`
@@ -68,14 +95,14 @@ fn project_root(app: Option<&AppHandle>) -> PathBuf {
     }
     if let Some(app) = app {
         if let Ok(res) = app.path().resource_dir() {
-            let res = fix_root(res);
+            let res = normalize_path(res);
             if res.join("engine/query.mjs").exists() {
                 return res;
             }
         }
     }
     if let Ok(dir) = std::env::current_dir() {
-        let dir = fix_root(dir);
+        let dir = normalize_path(dir);
         if dir.join("engine/query.mjs").exists() {
             return dir;
         }
@@ -90,7 +117,7 @@ fn project_root(app: Option<&AppHandle>) -> PathBuf {
         let mut p = exe.as_path();
         for _ in 0..12 {
             if p.join("engine/query.mjs").exists() {
-                return fix_root(p.to_path_buf());
+                return normalize_path(p.to_path_buf());
             }
             match p.parent() {
                 Some(par) if !par.as_os_str().is_empty() => p = par,
@@ -137,7 +164,7 @@ fn find_node(app: Option<&AppHandle>) -> String {
     if let Some(app) = app {
         let mut bases: Vec<PathBuf> = Vec::new();
         if let Ok(res) = app.path().resource_dir() {
-            let res = fix_root(res);
+            let res = normalize_path(res);
             bases.push(res.clone());
             bases.push(res.join("binaries"));
             // CI 把 node 打进 engine/node-bin/（engine 整个目录是 resource）
@@ -524,8 +551,34 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::fix_root;
+    use super::{fix_root, normalize_path, strip_verbatim};
     use std::path::PathBuf;
+
+    #[test]
+    fn 去掉扩展长度前缀() {
+        // Tauri 在 Windows 上会给 \\?\ 前缀；交给 Node 会被 path.win32 误当 UNC 主机
+        assert_eq!(
+            strip_verbatim(PathBuf::from(r"\\?\D:\Program Files\X\query.mjs")),
+            PathBuf::from(r"D:\Program Files\X\query.mjs")
+        );
+        // UNC 形式要还原成 \\server\share
+        assert_eq!(
+            strip_verbatim(PathBuf::from(r"\\?\UNC\srv\share\x.mjs")),
+            PathBuf::from(r"\\srv\share\x.mjs")
+        );
+        // 正常路径不动
+        assert_eq!(strip_verbatim(PathBuf::from(r"D:\x")), PathBuf::from(r"D:\x"));
+        assert_eq!(strip_verbatim(PathBuf::from("/usr/local")), PathBuf::from("/usr/local"));
+    }
+
+    #[test]
+    fn 规范化组合生效() {
+        // 前缀 + 盘符根：两种毛病一起修
+        assert_eq!(
+            normalize_path(PathBuf::from(r"\\?\D:")),
+            PathBuf::from(r"D:\")
+        );
+    }
 
     #[test]
     fn 盘符根会补反斜杠() {
