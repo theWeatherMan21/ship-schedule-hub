@@ -3,7 +3,8 @@
 > 唯一真相源。中断后靠这份 + 芝麻仓重建上下文。更新频率：每轮收工 3 行。
 > 主管：婉宜 · 执行：码农（manong）· 最近更新：**2026-09-30**
 > 路径：`/Users/russospencer/Documents/trae_projects/ShipScheduleHub`
-> 部署位置：**`/Applications/ShipScheduleHub.app`**（已上线自用）· 仓库：GitHub（见 README 顶部）
+> 部署位置：**`/Applications/ShipScheduleHub.app`**（已上线自用）
+> 仓库：**https://github.com/theWeatherMan21/ship-schedule-hub**（私有，2026-09-30 首推，402 文件）
 
 ## 〇、当前状态（2026-09-30 · 婉宜）
 
@@ -468,3 +469,12 @@ OOCL 维持 DOM 填表路径（38-77s）。它慢不影响体验：结果是流�
   包内 Resources 只剩 `ShipScheduleHub.icns / db / engine`，修后再无新写入；
   修后跑完整查询（msc 19 条 + maersk 5 条）→ **App 管理相关事件新增 0**
 - **附带收益**：以后重装 App 不再丢 Chrome 档案与缓存；无需给「App 管理」权限（保持拒绝更安全）
+
+### 9-30 · 转 git 仓库并推 GitHub（婉宜）
+
+- `git init -b main` + 提交 402 文件（`.gitignore` 挡住 node_modules / src-tauri/target / dist / evidence / browser-profile —— 项目 4.0G，实际入库 ~15MB）
+- 提交身份：`theWeatherMan21 <theWeatherMan21@users.noreply.github.com>`（gh 已登录账号）
+- **私有仓库**：https://github.com/theWeatherMan21/ship-schedule-hub （`gh repo create --private --source=. --push`）
+- 远端核验：`visibility=PRIVATE`、`defaultBranchRef=main`、远端文件数 **402**、本地 HEAD 与 origin/main 一致（fa1af78）
+- 安全体检：源码内**无密码/私钥/token**；命中的是各家页面**公开常量**（Maersk consumer-key、ZIM subscription-key 等，本就写在对方页面 JS 里），私有仓库无外泄风险
+- 项目管理同步更新：`PROJECT.md` 〇节当前状态 + `PORTFOLIO.md`（在推区 + 芝麻仓）
