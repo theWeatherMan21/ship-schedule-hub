@@ -178,12 +178,14 @@ async function yangming(origin, dest, dateWin) {
 //      displayTransitDays:"26", totalTransshipment:0, transshipmentType:"DIRECT",
 //      podArrivalDate, cct/dct 截止 } ] } —— 每条 scheduleLine = 一条船期
 //   ③ porCode/delCode 用 UN LOCODE（CNNGB/TRIST）；rcvTermCode/deTermCode Y=CY
-//   ④ 窗口 = fromDate + nextWeekValue(14) 天，与官网深链 nextWeekValue=14 一致
+//   ④ 窗口 = 42 天（6 周）—— 9-30 实测：14 天只有 2 条（用户报「ONE 怎么才两条」），
+//      42 天 8 条；而 >42 天（8/10 周）接口直接返回 0 条 —— 所以 42 是上限，不要再加。
+//      与官网深链 nextWeekValue=14 的差别就在这里：官网默认只给 2 周，所以官网上也显得少。
 async function one(origin, dest, dateWin) {
   const d = (s) => `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
   const base = dateWin.start;
   const t = new Date(`${base.slice(0, 4)}-${base.slice(4, 6)}-${base.slice(6, 8)}T00:00:00Z`);
-  const from = new Date(t); const to = new Date(t.getTime() + 14 * 864e5);
+  const from = new Date(t); const to = new Date(t.getTime() + 42 * 864e5); // 42 天=上限（>42 返回 0 条）
   const url = 'https://ecomm.one-line.com/api/v1/schedule/point-to-point'
     + `?porCode=${origin}&delCode=${dest}&rcvTermCode=Y&deTermCode=Y&tsFlag=`
     + `&fromDate=${from.toISOString().slice(0, 10)}&toDate=${to.toISOString().slice(0, 10)}`
