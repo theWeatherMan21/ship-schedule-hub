@@ -229,6 +229,21 @@ function setRow(carrierId, patch) {
   }
 }
 
+// 点卡片头 → 折叠 / 展开（事件委托，重建 DOM 后依然有效）
+document.getElementById('statusList').addEventListener('click', (ev) => {
+  const head = ev.target.closest('.chead');
+  if (!head) return;
+  if (ev.target.closest('a')) return;              // 头部里的链接不触发折叠
+  head.closest('.cgroup')?.classList.toggle('collapsed');
+});
+document.getElementById('statusList').addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  const head = ev.target.closest('.chead');
+  if (!head) return;
+  ev.preventDefault();
+  head.closest('.cgroup')?.classList.toggle('collapsed');
+});
+
 const statusRows = {};
 function renderInitialStatus(selected) {
   const wrap = document.getElementById('statusList');
@@ -243,15 +258,18 @@ function renderInitialStatus(selected) {
     g.className = 'cgroup';
     g.style.setProperty('--accent', accent);
     g.innerHTML = `
-      <div class="chead">
+      <div class="chead" role="button" tabindex="0" title="点这里折叠 / 展开这一家">
         <span class="cbar" style="background:${accent}"></span>
+        <span class="chev" aria-hidden="true"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M2 4.2 L6 8.2 L10 4.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <span class="cname">${c.name}</span>
         <span class="ccode">${c.id.toUpperCase().slice(0, 4)}</span>
         <span class="spacer"></span>
         <span class="badge pending">待查询</span>
       </div>
-      <div class="cmsg"></div>
-      <div class="clist"></div>`;
+      <div class="cbody">
+        <div class="cmsg"></div>
+        <div class="clist"></div>
+      </div>`;
     statusRows[id] = g;
     wrap.appendChild(g);
   }

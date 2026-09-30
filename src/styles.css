@@ -54,14 +54,23 @@ body {
 
 /* ---------- 查询表单 ---------- */
 .formbar {
-  display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;
+  /* 对齐坑（爹地 9-30 反馈「输入后一高一低」）：原 align-items:flex-end 让每个 field 的
+     底边对齐，而字段底部是「港口识别提示」（高度各家不同）→ 输入框被顶到不同高度。
+     改成按顶边对齐 + 标签定高，输入框就永远在同一水平线上；提示在输入框下方自由伸缩。 */
+  display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap;
   padding: 14px 18px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
 }
 .field { display: flex; flex-direction: column; gap: 4px; }
-.field label { font-size: 11px; color: var(--ink-2); font-weight: 600; }
+.field label {
+  font-size: 11px; color: var(--ink-2); font-weight: 600;
+  height: 16px; line-height: 16px;                      /* 定高：标签行不因换行/字数不同而高低不齐 */
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px;
+}
+/* 按钮要落在「输入框那一行」：标签 16px + gap 4px = 20px */
+.formbar > .btn-primary, .formbar > .btn-ghost { margin-top: 20px; }
 .field input {
   font: inherit; color: var(--ink);
   background: #fbfbfc;
@@ -140,7 +149,29 @@ body {
 .chead {
   display: flex; align-items: center; gap: 9px;
   padding: 11px 14px; background: #fcfcfd; border-bottom: 1px solid var(--line-soft);
+  cursor: pointer; user-select: none;                     /* 整条头部可点 = 折叠/展开 */
+  transition: background .15s;
 }
+.chead:hover { background: #f5f7fa; }
+.chead:active { background: #eef2f7; }
+.chead:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.chead .chev {
+  /* 折叠指示：SVG 箭头 + 明显的胶囊底（早期 10px 淡灰小字在真机上几乎看不见，
+     换成字体符号又被压扁 → 改内联 SVG，不依赖字体渲染） */
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 7px; flex: 0 0 auto;
+  color: var(--ink-2); background: #e7ecf4; box-shadow: inset 0 0 0 1px #dbe3ee;
+  transition: transform .2s ease, background .15s, color .15s;
+  transform-origin: 50% 55%;
+}
+.chead:hover .chev { background: #d8e1ef; color: var(--ink); }
+.chead:hover { background: #f2f5fa; }
+/* 折叠态：箭头转向 + 收起卡片体 */
+.cgroup.collapsed .chead { border-bottom-color: transparent; }
+.cgroup.collapsed .chead .chev { transform: rotate(-90deg); }
+.cgroup.collapsed .cbody { display: none; }
+.cbody { animation: bodyin .2s ease; }
+@keyframes bodyin { from { opacity: .35; } to { opacity: 1; } }
 .chead .cbar { width: 3px; height: 14px; border-radius: 2px; background: var(--accent); }
 .chead .cname { font-size: 13.5px; font-weight: 640; }
 .chead .ccode { font-size: 10.5px; color: var(--ink-3); letter-spacing: .06em; font-family: var(--mono); }
