@@ -83,9 +83,18 @@ export async function runCarrier(ctx, carrier) {
   let page = null, blocked = false, status = 0, lastErr = null;
   try {
     // 词典驱动：按船司解析输入词（aliases 实测映射 → NAME (LOCODE) 兜底 → 原样）
-    qBase._o = await resolvePort(carrier.id, origin);
-    qBase._d = await resolvePort(carrier.id, destination);
-    res.ports = { origin: { word: origin, text: qBase._o.text, locode: qBase._o.locode || '', source: qBase._o.source }, dest: { word: destination, text: qBase._d.text, locode: qBase._d.locode || '', source: qBase._d.source } };
+    // ⚠️ 必须用【本家私有】对象：runCarrier 是 12 家并发的，写共享 qBase 会互相串词 ——
+    //    9-30 实测事故：HMM 读到 Evergreen 的 "ningbo china cnngb" → 候选点不中、整家失败。
+    const oRes = await resolvePort(carrier.id, origin);
+    const dRes = await resolvePort(carrier.id, destination);
+    const qLocal = new Proxy({ ...qBase, _o: oRes, _d: dRes }, {
+      get(t, k) {
+        if (k === 'originText') return t._o?.text ?? origin;
+        if (k === 'destText') return t._d?.text ?? destination;
+        return t[k];
+      },
+    });
+    res.ports = { origin: { word: origin, text: oRes.text, locode: oRes.locode || '', source: oRes.source }, dest: { word: destination, text: dRes.text, locode: dRes.locode || '', source: dRes.source } };
     // ① 尝试候选入口（深链接：本项目实测均不支持，故退化为「找到能打开的那个入口」）
     for (const cand of carrier.urls) {
       if (page && !reusePage) { await Promise.race([page.close(), sleep(3000)]).catch(() => {}); }
@@ -109,12 +118,12 @@ export async function runCarrier(ctx, carrier) {
 
     // ①.5 MSC/COSCO 专属：页面里直接调它自己的 API（比填表快 10 倍 + 结构化船期）婉宜 9-23
     // maersk 额外要港口名（geography API 按城市名查，不认 LOCODE）——包一层传 name
-    const maerskApi = (pg, o, d, iso) => maerskInPage(pg, o, d, iso, qBase._o?.name, qBase._d?.name);
-    const coscoApi = (pg, o, d, iso) => coscoInPage(pg, o, d, iso, qBase._o?.name, qBase._d?.name); // 9-30：港名兜底（PLGDN 等 CITY 表外的港）
+    const maerskApi = (pg, o, d, iso) => maerskInPage(pg, o, d, iso, oRes?.name, dRes?.name);
+    const coscoApi = (pg, o, d, iso) => coscoInPage(pg, o, d, iso, oRes?.name, dRes?.name); // 9-30：港名兜底（PLGDN 等 CITY 表外的港）
     const inPageApi = carrier.id === 'msc' ? mscInPage : carrier.id === 'cosco' ? coscoApi : carrier.id === 'hapag' ? hapagInPage : carrier.id === 'zim' ? zimInPage : carrier.id === 'maersk' ? maerskApi : null;
     if (!blocked && inPageApi) {
       try {
-        const fp = await withTimeout(inPageApi(page, qBase._o.locode, qBase._d.locode, isoDate), 90000, 'inpage api');
+        const fp = await withTimeout(inPageApi(page, oRes.locode, dRes.locode, isoDate), 90000, 'inpage api');
         if (fp && fp.rows && fp.rows.length) {
           res.status = 'done';
           res.level = 1;
@@ -136,7 +145,7 @@ export async function runCarrier(ctx, carrier) {
       const attempts = 2;
       for (let k = 1; k <= attempts; k++) {
         try {
-          const r = await withTimeout(Promise.resolve(carrier.run(page, q, H)), carrier.timeoutMs || perCarrier, `配方超时(${carrier.timeoutMs || perCarrier}ms)`);
+          const r = await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), carrier.timeoutMs || perCarrier, `配方超时(${carrier.timeoutMs || perCarrier}ms)`);
           res.status = 'prefilled';
           res.level = 2;
           res.msg = (r && r.msg) || '已预填并搜索';
@@ -162,7 +171,7 @@ export async function runCarrier(ctx, carrier) {
         }
       }
     } else if (carrier.kind === 'open') {
-      try { await withTimeout(Promise.resolve(carrier.run(page, q, H)), Math.min(perCarrier, 25000), '兜底超时'); }
+      try { await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), Math.min(perCarrier, 25000), '兜底超时'); }
       catch (e) { domErr = String(e.message || e).split('\n')[0]; }
       blocked = await isBlockPage(page);
     }

@@ -15,3 +15,4 @@ qa/probe-out/
 __pycache__/
 .venv/
 venv/
+engine/node-bin/

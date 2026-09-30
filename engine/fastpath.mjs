@@ -38,18 +38,53 @@ async function getJSON(url, timeoutMs = 12000, headers = {}) {
   } catch (e1) {
     const msg = String(e1 && e1.cause || e1);
     if (/certificate/i.test(msg)) {
-      // Clash TUN（帕克云）MITM：node 不认它注入的 CA → 显式加载系统/Clash 证书再请求
+      // 代理 MITM（Clash TUN 等）或企业 HTTPS 检查：node 不认注入的 CA → 显式加载证书再请求。
+      // 平台差异：macOS/Linux 有系统 PEM 包；Windows 没有 PEM 包（走系统证书存储），
+      //   所以在 Windows 上按需从证书存储导出一次 PEM 缓存到数据目录（企业代理环境必需）。
       try {
         const fsMod = await import('node:fs');
-        const candidates = [
-          process.env.SSL_CERT_FILE,
-          '/etc/ssl/cert.pem',
-          '/opt/homebrew/etc/openssl@3/cert.pem',
-          path.join(process.env.HOME || '', '.hermes', 'clash-ca.pem'),
-        ].filter(Boolean);
+        const winDataDir = path.join(process.env.LOCALAPPDATA || '', 'ShipScheduleHub');
+        const candidates = (process.platform === 'win32'
+          ? [
+              process.env.SSL_CERT_FILE,
+              process.env.NODE_EXTRA_CA_CERTS,
+              path.join(winDataDir, 'win-roots.pem'),
+              path.join(process.env.USERPROFILE || '', '.hermes', 'clash-ca.pem'),
+            ]
+          : [
+              process.env.SSL_CERT_FILE,
+              process.env.NODE_EXTRA_CA_CERTS,
+              '/etc/ssl/cert.pem',
+              '/opt/homebrew/etc/openssl@3/cert.pem',
+              path.join(process.env.HOME || '', '.hermes', 'clash-ca.pem'),
+            ]).filter(Boolean);
         let ca = null;
         for (const f of candidates) {
           try { const c = fsMod.readFileSync(f, 'utf8'); if (c.includes('BEGIN CERTIFICATE')) { ca = c; console.error('[fastpath] 用 CA:', f); break; } } catch {}
+        }
+        // Windows 首次遇到证书错：把系统根证书（机器+用户）导出成 PEM 备用
+        if (!ca && process.platform === 'win32') {
+          try {
+            const { execSync } = await import('node:child_process');
+            const out = path.join(winDataDir, 'win-roots.pem');
+            const ps = [
+              `$out = '${out.replace(/'/g, "''")}'`,
+              `New-Item -ItemType Directory -Force -Path (Split-Path $out) | Out-Null`,
+              `$sb = New-Object System.Text.StringBuilder`,
+              `foreach ($st in @('LocalMachine','CurrentUser')) {`,
+              `  $s = New-Object System.Security.Cryptography.X509Certificates.X509Store('Root', $st)`,
+              `  $s.Open('ReadOnly')`,
+              `  foreach ($c in $s.Certificates) {`,
+              `    [void]$sb.AppendLine('-----BEGIN CERTIFICATE-----')`,
+              `    [void]$sb.AppendLine([Convert]::ToBase64String($c.RawData, 'InsertLineBreaks'))`,
+              `    [void]$sb.AppendLine('-----END CERTIFICATE-----') }`,
+              `  $s.Close() }`,
+              `[IO.File]::WriteAllText($out, $sb.ToString())`,
+            ].join('; ');
+            execSync(`powershell -NoProfile -NonInteractive -Command "${ps}"`, { stdio: 'ignore', timeout: 30000 });
+            const c = fsMod.readFileSync(out, 'utf8');
+            if (c.includes('BEGIN CERTIFICATE')) { ca = c; console.error('[fastpath] 已从 Windows 证书存储导出 CA:', out); }
+          } catch { /* 导出失败就继续报原错 */ }
         }
         if (!ca) throw new Error('no usable CA file');
         const body = await new Promise((resolve, reject) => {

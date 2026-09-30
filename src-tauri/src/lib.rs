@@ -7,6 +7,8 @@ use tauri::{AppHandle, Emitter, Manager, State};
 #[derive(Default)]
 pub struct EngineState {
     pub running: std::sync::Mutex<bool>,
+    /// 引擎子进程 PID —— stop_query 用它精确杀进程树（Windows 必须，避免残留 Chrome）
+    pub child_pid: std::sync::Mutex<Option<u32>>,
 }
 
 #[derive(Deserialize)]
@@ -25,13 +27,21 @@ pub struct QueryArgs {
 
 /// 用系统默认浏览器打开外部链接（维运网兜底查询等）婉宜 9-24
 #[tauri::command]
-fn open_external(app: tauri::AppHandle, url: String) -> Result<(), String> {
+fn open_external(_app: tauri::AppHandle, url: String) -> Result<(), String> {
     // 只允许 https 维运网域名（防任意 URL 注入）
     if !url.starts_with("https://www.weiyun001.com") {
         return Err(format!("拒绝打开非白名单 URL: {}", &url[..url.len().min(60)]));
     }
     tauri::async_runtime::spawn(async move {
+        // 跨平台打开系统默认浏览器：macOS `open` / Windows `cmd /C start` / Linux `xdg-open`
+        #[cfg(target_os = "macos")]
         let _ = std::process::Command::new("open").arg(&url).spawn();
+        #[cfg(target_os = "windows")]
+        let _ = std::process::Command::new("cmd")
+            .args(["/C", "start", "", &url])
+            .spawn();
+        #[cfg(all(unix, not(target_os = "macos")))]
+        let _ = std::process::Command::new("xdg-open").arg(&url).spawn();
     });
     Ok(())
 }
@@ -89,7 +99,7 @@ fn trace_line(msg: &str) {
     if let Ok(mut f) = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .open("/tmp/ssh-app-trace.log")
+        .open(std::env::temp_dir().join("ssh-app-trace.log"))
     {
         let _ = writeln!(f, "[{ts}] {msg}");
     }
@@ -100,26 +110,74 @@ fn selftest_enabled() -> bool {
     std::env::var("SSH_SELFTEST").is_ok()
 }
 
-fn find_node() -> String {
+fn find_node(app: Option<&AppHandle>) -> String {
     // ① 显式指定
     if let Ok(p) = std::env::var("SSH_NODE_PATH") {
         if PathBuf::from(&p).exists() {
             return p;
         }
     }
-    // ② 常见安装位置
-    for c in [
-        "/opt/homebrew/bin/node", // Apple Silicon Homebrew
-        "/usr/local/bin/node",    // Intel Homebrew / 官方 pkg
-        "/opt/local/bin/node",    // MacPorts
-        "/usr/bin/node",
-    ] {
-        if PathBuf::from(c).exists() {
-            return c.to_string();
+    // ② 随包分发的 node（sidecar）—— 同事机器「零依赖安装」的关键：
+    //    安装包里带上 node，就不要求对方装 Node.js。Tauri 把 externalBin 放在可执行文件同级 / resources 下。
+    if let Some(app) = app {
+        let mut bases: Vec<PathBuf> = Vec::new();
+        if let Ok(res) = app.path().resource_dir() {
+            bases.push(res.clone());
+            bases.push(res.join("binaries"));
+            // CI 把 node 打进 engine/node-bin/（engine 整个目录是 resource）
+            bases.push(res.join("engine").join("node-bin"));
+            bases.push(res.join("engine").join("node-bin").join("bin"));
+        }
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(dir) = exe.parent() {
+                bases.push(dir.to_path_buf());
+            }
+        }
+        for base in bases {
+            for name in ["node", "node.exe"] {
+                let p = base.join(name);
+                if p.exists() {
+                    return p.display().to_string();
+                }
+            }
         }
     }
-    // ③ 走 login shell 探测（能覆盖 nvm / fnm / asdf / volta 等）
-    for shell in ["/bin/zsh", "/bin/bash"] {
+    // ③ 各平台常见安装位置
+    #[cfg(target_os = "windows")]
+    let candidates: Vec<String> = {
+        let mut v: Vec<String> = Vec::new();
+        for key in ["ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"] {
+            if let Ok(b) = std::env::var(key) {
+                v.push(format!("{b}\\nodejs\\node.exe"));
+                v.push(format!("{b}\\Programs\\nodejs\\node.exe"));
+            }
+        }
+        if let Ok(a) = std::env::var("APPDATA") {
+            v.push(format!("{a}\\nvm\\node.exe"));      // nvm-windows 的符号链接
+        }
+        if let Ok(l) = std::env::var("LOCALAPPDATA") {
+            v.push(format!("{l}\\Volta\\bin\\node.exe")); // Volta
+        }
+        v
+    };
+    #[cfg(target_os = "macos")]
+    let candidates: Vec<String> = ["/opt/homebrew/bin/node", "/usr/local/bin/node", "/opt/local/bin/node", "/usr/bin/node"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let candidates: Vec<String> = ["/usr/bin/node", "/usr/local/bin/node"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+    for c in &candidates {
+        if PathBuf::from(c).exists() {
+            return c.clone();
+        }
+    }
+    // ④ 平台原生探测：类 Unix 走 login shell（覆盖 nvm/fnm/asdf/volta）；Windows 走 where
+    #[cfg(not(windows))]
+    for shell in ["/bin/zsh", "/bin/bash", "/bin/sh"] {
         if let Ok(out) = Command::new(shell).args(["-lc", "command -v node"]).output() {
             if out.status.success() {
                 let p = String::from_utf8_lossy(&out.stdout).trim().to_string();
@@ -129,7 +187,16 @@ fn find_node() -> String {
             }
         }
     }
-    // ④ nvm 目录扫描（取最新版本）
+    #[cfg(windows)]
+    if let Ok(out) = Command::new("cmd").args(["/C", "where node"]).output() {
+        if out.status.success() {
+            let txt = String::from_utf8_lossy(&out.stdout);
+            if let Some(line) = txt.lines().map(|l| l.trim()).find(|l| !l.is_empty() && PathBuf::from(l).exists()) {
+                return line.to_string();
+            }
+        }
+    }
+    // ⑤ 版本管理器目录扫描（取最新版本）
     if let Ok(home) = std::env::var("HOME") {
         let nvm = PathBuf::from(&home).join(".nvm/versions/node");
         if let Ok(entries) = std::fs::read_dir(&nvm) {
@@ -176,7 +243,7 @@ fn run_query(
     }
 
     let carriers = args.carriers.join(",");
-    let mut cmd = Command::new(find_node());
+    let mut cmd = Command::new(find_node(Some(&app)));
     cmd.current_dir(&engine_dir)
         .arg(&script)
         .arg("--origin")
@@ -191,10 +258,17 @@ fn run_query(
         .arg("12")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    // Windows：GUI 程序 spawn console 子进程会弹黑框 —— 必须加 CREATE_NO_WINDOW(0x0800_0000)
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x0800_0000);
+    }
     let mut child = cmd.spawn().map_err(|e| {
         *state.running.lock().unwrap() = false;
         format!("启动引擎失败: {e}（PATH 里找不到 node？）")
     })?;
+    *state.child_pid.lock().unwrap() = Some(child.id());
 
     let stdout = child.stdout.take().unwrap();
     let stderr = child.stderr.take().unwrap();
@@ -284,17 +358,39 @@ fn run_query(
 
 #[tauri::command]
 fn stop_query(app: AppHandle) -> Result<serde_json::Value, String> {
-    // child 已 move 进 wait 线程；用 pkill 按脚本路径精确杀 node 引擎进程
-    let script = project_root(Some(&app)).join("engine/query.mjs");
-    let pattern = script.display().to_string();
-    // GUI App 的 PATH 里没有 pkill，用绝对路径（同 find_node 的坑）
-    let out = Command::new("/usr/bin/pkill")
-        .args(["-f", &pattern])
-        .output()
-        .map_err(|e| format!("pkill 执行失败: {e}"))?;
-    let killed = out.status.success();
     let state = app.state::<EngineState>();
+    let pid = *state.child_pid.lock().unwrap();
+    let mut killed = false;
+    if let Some(pid) = pid {
+        #[cfg(windows)]
+        {
+            // /T 连带杀进程树：node 起 Chrome 时，只杀 node 会留下 Chrome
+            killed = Command::new("taskkill")
+                .args(["/T", "/F", "/PID", &pid.to_string()])
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false);
+        }
+        #[cfg(not(windows))]
+        {
+            killed = Command::new("/bin/kill")
+                .args(["-TERM", &pid.to_string()])
+                .output()
+                .map(|o| o.status.success())
+                .unwrap_or(false);
+        }
+    }
+    // 兜底：按脚本路径再扫一遍（旧行为，macOS 上很有效；Windows 交给上面的进程树杀）
+    #[cfg(not(windows))]
+    {
+        let script = project_root(Some(&app)).join("engine/query.mjs");
+        let pattern = script.display().to_string();
+        if let Ok(out) = Command::new("/usr/bin/pkill").args(["-f", &pattern]).output() {
+            killed = killed || out.status.success();
+        }
+    }
     *state.running.lock().unwrap() = false;
+    *state.child_pid.lock().unwrap() = None;
     Ok(serde_json::json!({ "ok": true, "killed": killed }))
 }
 

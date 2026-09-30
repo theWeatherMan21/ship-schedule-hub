@@ -478,3 +478,34 @@ OOCL 维持 DOM 填表路径（38-77s）。它慢不影响体验：结果是流�
 - 远端核验：`visibility=PRIVATE`、`defaultBranchRef=main`、远端文件数 **402**、本地 HEAD 与 origin/main 一致（fa1af78）
 - 安全体检：源码内**无密码/私钥/token**；命中的是各家页面**公开常量**（Maersk consumer-key、ZIM subscription-key 等，本就写在对方页面 JS 里），私有仓库无外泄风险
 - 项目管理同步更新：`PROJECT.md` 〇节当前状态 + `PORTFOLIO.md`（在推区 + 芝麻仓）
+
+### 9-30 · 并发串词真凶（重大可靠性修复 · 婉宜）
+
+**症状**：全量查询稳定出现「随机某一家失败」，且每轮掉的那家不一样（HMM 报「起运港候选未出（ningbo china cnngb/CNNGB）」——
+注意这串词根本不是 HMM 的词，是 Evergreen 的）。
+
+**根因**：`query.mjs` 的 `runCarrier` 在 **12 家并发**时把「本家港口解析结果」写进**共享的 `qBase`**（`qBase._o = ...`），
+各家互相覆盖 → A 家读到 B 家的输入词 → 候选点不中 → 整家失败。
+
+**修复**：每家一份**私有 q**（`Proxy` 包 `{...qBase, _o, _d}`），`originText/destText` 从私有对象取；
+fastpath 的 in-page 闭包与配方调用全部改用私有的 `oRes/dRes/qLocal`。**共享可变状态在并发路径上是禁区。**
+
+**验证**（部署态、`--no-cache`、连跑两轮）：
+
+| | done | 条数 |
+|---|---|---|
+| 修复前 | 10/11（随机掉一家）| 72–79（每轮不同）|
+| **修复后 第 1 轮** | **11/11** | **84** |
+| **修复后 第 2 轮** | **11/11** | **84**（与上轮完全一致）|
+
+### 9-30 · Windows 适配（P1+P2 落地 · 婉宜）
+
+- **P1 引擎跨平台**：`DATA_DIR` 平台化（Win → `%LOCALAPPDATA%\ShipScheduleHub`）；清理残留 Chrome 走 PowerShell+taskkill；
+  CA 兜底跨平台（Windows 无 PEM 包 → **自动从系统证书存储导出**一次，企业 HTTPS 检查环境必需）；临时文件路径平台化
+- **P2 壳/配置跨平台**：`find_node` 支持 ①`SSH_NODE_PATH` ②**随包 node（`engine/node-bin/`）** ③Win 常见路径（含 nvm-windows/Volta）④`where node` ⑤版本管理器扫描；
+  `stop_query` 改「记 PID → Windows `taskkill /T`（杀进程树）/ mac `kill`」；spawn 加 **`CREATE_NO_WINDOW`**（否则科研窗闪黑框）；
+  `open_external` 三平台；`bundle.targets=all`；WebView2 `downloadBootstrapper`；字体栈补 `Segoe UI/微软雅黑`；新增 `.gitattributes` 防 CRLF
+- **分发关键件（新增 `engine/chrome.mjs`）**：浏览器解析器 ①`SSH_CHROME_PATH` ②系统 Chrome ③Playwright 自带 Chromium
+  ④**按需自动下载 Chrome for Testing**（~150MB，只下一次，无需管理员权限）→ **同事机器没装 Chrome 也能跑**
+- **CI**：`.github/workflows/build-windows.yml`（`windows-latest` 出 NSIS 安装包，自动下载 node.exe 打进包 → 上传 artifact / 打 tag 发 Release）
+- 方案与待办见 `docs/WINDOWS-PORT-PLAN.md`

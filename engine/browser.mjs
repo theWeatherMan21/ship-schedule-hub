@@ -3,6 +3,7 @@
 //   macOS 会把 --window-position 钳回屏幕内（请求 -2400/-10000 都变成 left=60,top=30）；
 //   CDP Browser.setWindowBounds 最小化才真·不可见（windowState=minimized 生效）。
 import { chromium } from './node_modules/playwright-core/index.mjs';
+import { resolveChrome } from './chrome.mjs';
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -18,8 +19,9 @@ export const PROJECT_ROOT = path.resolve(__dirname, '..');   // 只读资源（d
 // 每次查询写文件都触发 kTCCServiceSystemPolicyAppBundles 弹窗（系统日志实锤：
 // com.apple.tcc.notification.kTCCServiceSystemPolicyAppBundles.com.ross.shipschedulehub）。
 // 现在所有可写数据搬到用户目录（符合 macOS 规范，重装 App 也不丢 profile/缓存）。
-export const DATA_DIR = process.env.SSH_DATA_DIR
-  || path.join(os.homedir(), 'Library', 'Application Support', 'ShipScheduleHub');
+export const DATA_DIR = process.env.SSH_DATA_DIR || (process.platform === 'win32'
+  ? path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'ShipScheduleHub')
+  : path.join(os.homedir(), 'Library', 'Application Support', 'ShipScheduleHub'));
 export const PROFILE_DIR = process.env.SSH_PROFILE_DIR || path.join(DATA_DIR, 'browser-profile');
 export const EVIDENCE_DIR = path.join(DATA_DIR, 'evidence');
 
@@ -50,6 +52,32 @@ export function launchArgs() {
 }
 
 /** 启动持久化 Chrome（项目自带 profile，绝不碰爸爸日常 Chrome）。headless 默认 false 是 MSC 能过的前提。 */
+// ── 浏览器来源解析（同事机器没装 Chrome 也能跑）─────────────────────────
+// 优先用系统 Chrome；没有则用 Playwright 自带 Chromium；再没有就按需下载一份
+// Chrome for Testing 到数据目录（只下一次，无需管理员权限）。
+// 只解析一次，进程内复用；失败也不抛 —— 交回 Playwright 按 channel:'chrome' 自己找。
+let chromePick; // undefined = 未解析；null = 解析不到
+async function pickChrome() {
+  if (chromePick !== undefined) return chromePick;
+  try {
+    chromePick = await resolveChrome({
+      log: (msg) => console.error('[chrome]', msg),
+    });
+    if (chromePick) console.error(`[chrome] 使用 ${chromePick.source}: ${chromePick.path}`);
+    else console.error('[chrome] 未找到可用 Chrome，交由 Playwright 自行解析');
+  } catch (e) {
+    console.error('[chrome] 解析异常，交回 Playwright:', e?.message || e);
+    chromePick = null;
+  }
+  return chromePick;
+}
+
+/** 组装启动参数：有具体可执行文件就用它，否则退回 channel:'chrome' */
+async function chromeOpts(extra = {}) {
+  const pick = await pickChrome();
+  return pick ? { executablePath: pick.path, ...extra } : { channel: 'chrome', ...extra };
+}
+
 export async function launch({ headless = 'auto' } = {}) {
   fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
   // headless 语义（2026-09-21 起）：
@@ -61,7 +89,7 @@ export async function launch({ headless = 'auto' } = {}) {
   const allowHeaded = process.env.SSH_ALLOW_HEADED === '1';
   const useHeadless = !(headless === false && allowHeaded);
   const ctx = await chromium.launchPersistentContext(PROFILE_DIR, {
-    channel: 'chrome',
+    ...(await chromeOpts()),
     headless: useHeadless,
     args: useHeadless
       ? [
@@ -128,8 +156,19 @@ export async function quietWindow(ctx, mode = 'minimized') {
 // 启动前清理：上次异常退出可能留下占用同一 profile 的 Chrome，
 // 它会让 launchPersistentContext 直接失败（爹地 9-23 撞过：点了两次查询 → 第二次崩 + 弹空白页）。
 // 只杀「命令行里带我们自己的 PROFILE_DIR」的进程 —— 绝不碰爹地日常 Chrome。
+// 清理「占用本项目 profile」的残留 Chrome —— 绝不碰用户日常 Chrome。
+// 跨平台：macOS/Linux 用 pgrep 按命令行匹配；Windows 用 PowerShell 查 Win32_Process（含命令行）+ taskkill。
 function killStaleProfileChrome() {
   try {
+    if (process.platform === 'win32') {
+      const ps = `Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | Where-Object { $_.CommandLine -like '*${PROFILE_DIR.replace(/\\/g, '\\\\')}*' } | Select-Object -ExpandProperty ProcessId`;
+      const out = execSync(`powershell -NoProfile -NonInteractive -Command "${ps}"`, { encoding: 'utf8', timeout: 20000 }).trim();
+      if (!out) return 0;
+      const pids = out.split(/\s+/).map((x) => Number(x)).filter((n) => Number.isFinite(n) && n > 0);
+      for (const pid of pids) { try { execSync(`taskkill /F /PID ${pid}`, { stdio: 'ignore', timeout: 10000 }); } catch { /* 已退出 */ } }
+      if (pids.length) console.error(`[engine] 清理残留 profile 进程 ${pids.length} 个（windows）`);
+      return pids.length;
+    }
     const out = execSync(`pgrep -f ${JSON.stringify(PROFILE_DIR)} 2>/dev/null || true`, { encoding: 'utf8' }).trim();
     if (!out) return 0;
     const pids = out.split('\n').map((x) => Number(x.trim())).filter((n) => Number.isFinite(n) && n > 0);
@@ -145,7 +184,7 @@ export async function launchHeadedQuiet() {
   let ctx = null;
   try {
     ctx = await chromium.launchPersistentContext(PROFILE_DIR, {
-      channel: 'chrome',
+      ...(await chromeOpts()),
       headless: false,
       args: launchArgs(),
       ignoreDefaultArgs: ['--enable-automation'],

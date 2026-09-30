@@ -1,0 +1,77 @@
+name: 构建 Windows 安装包
+
+# 目的：在 GitHub 的 Windows 机器上出「同事可直接双击安装」的安装包。
+# 为什么必须在 Windows 上构建：Tauri 的 Windows 产物需要 MSVC 工具链，macOS 无法交叉编译。
+#
+# 产物：ShipScheduleHub_x.y.z_x64-setup.exe（NSIS 安装包）
+# 依赖已打进去：Node 运行时（engine/node-bin/node.exe）+ 引擎 + 端口词典
+# 同事机器无需装 Node / Chrome —— 浏览器没有 Chrome 时，引擎会自动下载一份 Chrome for Testing。
+
+on:
+  workflow_dispatch:            # 手动触发（Actions 页面点一下）
+  push:
+    tags: ['v*']                # 打 tag 自动出包并挂到 Release
+
+permissions:
+  contents: write               # 打 tag 时创建 Release 需要
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: 取代码
+        uses: actions/checkout@v4
+
+      - name: 装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 装 Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust 构建缓存
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: 装依赖（前端 + 引擎）
+        run: |
+          npm ci
+          npm ci --prefix engine
+
+      - name: 下载 Node 运行时（随包分发 → 同事机器零依赖）
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path engine/node-bin | Out-Null
+          Invoke-WebRequest -Uri 'https://nodejs.org/dist/latest-v22.x/win-x64/node.exe' -OutFile engine/node-bin/node.exe
+          $f = Get-Item engine/node-bin/node.exe
+          Write-Host "node.exe: $([math]::Round($f.Length/1MB,1)) MB"
+          & engine/node-bin/node.exe --version
+
+      - name: 构建安装包（NSIS）
+        run: npm run tauri build -- --bundles nsis
+
+      - name: 产物清单
+        shell: pwsh
+        run: Get-ChildItem src-tauri/target/release/bundle/nsis/ | Format-Table Name, Length
+
+      - name: 上传产物（每次构建都可下载）
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShipScheduleHub-windows
+          path: src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+      - name: 打 tag 时发 Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: src-tauri/target/release/bundle/nsis/*.exe
+          body: |
+            船期聚合驾驶舱（Windows 版）
+
+            安装：下载下面的 setup.exe 双击安装即可，**不需要**预先安装 Node 或 Chrome。
+            首次查询若机器上没有 Chrome，程序会自动下载一份浏览器内核（约 150MB，只下一次），
+            下载期间查询会慢一些，属正常现象。

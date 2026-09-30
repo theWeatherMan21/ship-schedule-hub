@@ -25,16 +25,18 @@
   },
   "bundle": {
     "active": true,
-    "targets": [
-      "app",
-      "dmg"
-    ],
+    "targets": "all",
     "resources": {
       "../engine/": "./engine/",
       "../db/": "./db/"
     },
     "icon": [
       "icons/icon.png"
-    ]
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      }
+    }
   }
 }

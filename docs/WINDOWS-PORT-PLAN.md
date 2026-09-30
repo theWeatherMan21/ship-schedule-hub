@@ -1,6 +1,9 @@
 # Windows 适配方案（ShipScheduleHub）
 
 > 2026-09-30 婉宜 · 基于对现有代码的逐行审计（不是推测）
+> **进展（9-30）**：P1 引擎跨平台 ✅、P2 壳/配置跨平台 ✅（均在 Mac 上回归/编译验证通过）；
+> 分发件「无 Chrome 自动下载浏览器」✅ 已实现；CI 出包 ✅ 已就位；**待办：Windows 真机构建 + 验收**。
+>
 > 结论先说：**可做，但不能在 Mac 上交叉编译** —— Windows 产物必须有 MSVC 工具链，
 > 所以「在 Windows 上构建 + 真机验收」是硬要求；代码侧要改的点一共 14 处，全部已定位。
 
@@ -62,8 +65,8 @@
 | 阶段 | 内容 | 在哪做 | 可验证性 |
 |---|---|---|---|
 | **P0 环境** | Windows 机器装：Node ≥22.5、Rust(MSVC toolchain)、Tauri CLI、Chrome；Tailscale 起 + Clash 放行 tailnet（`100.x` 段）| Windows | `node -v` / `cargo -V` / `chrome --version` |
-| **P1 引擎跨平台化** | 上表 #1–#4 | **可在 Mac 上先做**，跑 `--no-cache` 全量回归确认零回归（预计改动 ~60 行）| Mac 上立即可验 |
-| **P2 Rust/配置跨平台化** | 上表 #6–#9、#10–#13 | **可在 Mac 上编译验证**（`cargo check` + 构建 macOS 包不回归）| Mac 上立即可验 |
+| ~~**P1 引擎跨平台化**~~ ✅ | 上表 #1–#4 + 新增 `engine/chrome.mjs` | 已完成 | 部署态两轮 11/11 家 84 条 |
+| ~~**P2 Rust/配置跨平台化**~~ ✅ | 上表 #6–#13 | 已完成 | `cargo check` 通过 + macOS 包重建 |
 | **P3 Windows 构建** | A 路线：Windows 上 `npm ci && npm run tauri build -- --bundles nsis`；B 路线：GitHub Actions 出包 | Windows / CI | 产出 `ShipScheduleHub_x.y.z_x64-setup.exe` |
 | **P4 真机验收（关键）** | 装包 → 查「宁波→伊斯坦布尔」→ **11 家出真船期** 截图留存 | Windows | 属爹地验收（视觉）|
 
@@ -89,3 +92,39 @@
 1. **Windows 上谁用**：只有你自己（→ NSIS 安装包 + 免安装 zip 都行），还是要发给同事（→ 得考虑签名/自动更新）？
 2. **出包方式**：走 GitHub Actions 自动出包（推荐，不占你机器），还是在 Windows 机器本地构建？
 3. **什么时候开工**：P1+P2 我现在就能在 Mac 上做完并验证（今天可交付，零回归）；Windows 侧的构建/验收需要机器可联（当前 Tailscale 停着，SSH 被 Clash TUN 的假 IP `198.18.0.125` 拦，需要放行 `100.x` 网段）。
+
+---
+
+## 六、同事分发设计（「零依赖 + 全自动」）
+
+### 同事机器需要的 / 不需要的
+
+| 需要 | 不需要 |
+|---|---|
+| Windows 10 1803+ / 11（WebView2 通常自带，安装包会兜底下载）| ❌ Node.js（**已打进包**：`engine/node-bin/node.exe`）|
+| 双击安装包 | ❌ Google Chrome（**没有就自动下载一份 Chrome for Testing** 到 `%LOCALAPPDATA%`）|
+| 首次查询时联网（仅当没有 Chrome）| ❌ Rust / 任何开发工具 |
+
+### 浏览器三层兜底（`engine/chrome.mjs`）
+
+1. `SSH_CHROME_PATH` 显式指定
+2. 系统已装的 Google Chrome（各平台标准路径）
+3. Playwright 自带的 Chromium（如存在）
+4. **受管 Chrome for Testing**：首次按需下载解包到数据目录，写 `current.json` 缓存，只下一次
+
+> 全部失败也不崩：交回 Playwright 的 `channel:'chrome'`，报错信息引导用户装 Chrome。
+
+### 安装包形态
+
+- **NSIS 安装包**（`ShipScheduleHub_x.y.z_x64-setup.exe`）：双击即装，装到用户目录，无需管理员权限
+- **静默安装**（机房批量部署）：`setup.exe /S` —— NSIS 原生支持，可写进批处理脚本一次装一片
+- **验证方式**：装完打开 App → 查一次「宁波 → 伊斯坦布尔」→ 应出 11 家船期
+
+### CI 出包（已就位）
+
+`.github/workflows/build-windows.yml`：
+`windows-latest` → 装 Node/Rust → `npm ci`（前端+引擎）→ 下载官方 `node.exe` 放进 `engine/node-bin/` →
+`tauri build --bundles nsis` → 上传 artifact；打 `v*` tag 时自动发 Release（同事从 Release 下载）。
+
+> 私有仓库的 Release 附件需要登录才能下载 —— 同事取包时要么把安装包直接发给他（微信/网盘），
+> 要么按需把仓库或该 Release 制品设为公开。
