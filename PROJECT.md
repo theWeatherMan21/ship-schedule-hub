@@ -554,3 +554,30 @@ fastpath 的 in-page 闭包与配方调用全部改用私有的 `oRes/dRes/qLoca
   提示行数不同（起运港两行/目的港一行）→ 输入框被顶到不同高度；改 `flex-start` + 标签定高 + 按钮 margin-top:20px
 - 实测（Playwright 量像素）：三输入框顶边极差 **0.0px**
 - 新工具 `qa/ui-verify.mjs`：不开真实屏幕验 UI（Tauri 桩 + 事件回调捕获 + 量几何 + 点折叠 + 截图 + 数报错）
+
+### 9-30 · Windows「点查询毫无反应」真因：装在盘符根目录（婉宜）
+
+**现象**（爹地在另一台 Windows：PC-20260212GEZA，App 装在 `D:\` 根目录）：
+装了 Chrome 也一样，点「并发查询」毫无反应，11 家全是「待查询」。
+
+**定位过程**（这版新加的「错误条」直接把它逼出来了，否则还是一片安静）：
+```
+Error: EISDIR: illegal operation on a directory, lstat 'D:'
+    at Object.real...
+```
+→ 出现**驱动器相对路径**（`D:` 光秃秃没反斜杠），Node 模块解析拿它做 `realpath` 直接抛错，
+**引擎在启动阶段就死**，所以前端连一个事件都收不到 —— 表现为「毫无反应」而非「报错」。
+
+**修复（v1.0.2）**：
+- Rust `fix_root()`：路径形如 `D:`（长度 2、以冒号结尾）→ 补反斜杠；`project_root` 的三条返回路径
+  （resource_dir / current_dir / 逐级向上找）与 `find_node` 全部过一遍
+- Rust：给引擎**显式指定 TEMP/TMP/TMPDIR** 到 `<安装目录>/engine/.tmp`（系统 TEMP 指向盘符根时的兜底）
+- Rust：`diagnose` 的引擎自检 cwd 从 root 改为 engine_dir
+- 引擎：启动守卫（cwd 是光秃秃盘符就补分隔符 + 对驱动器相对入口脚本告警）
+- 单测：`cargo test` 2 passed（`D:`→`D:\`；正常路径不受影响）
+
+**教训**：① 报错可见性就是生产力 —— 没有错误条，这个 bug 会一直表现为「玄学没反应」；
+② 不能假设安装目录长什么样，**盘符根是合法但极端的输入**；
+③ 跨平台路径代码必须用平台的绝对路径语义（Windows 的 `D:` ≠ `D:\`）。
+
+**建议**：安装时用默认目录（`%LOCALAPPDATA%\ShipScheduleHub`），别选盘符根目录。
