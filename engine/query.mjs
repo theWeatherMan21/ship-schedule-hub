@@ -24,6 +24,14 @@ import { resolvePort } from './lib/portsolve.mjs';
 if (process.platform === 'win32') {
   try {
     const isBareDrive = (v) => /^[a-zA-Z]:$/.test(String(v || ''));
+    // 环境变量自愈：TEMP/TMP 指向裸盘符时，改到我们自己的数据目录
+    // （Node/浏览器/依赖都会拿 tmpdir 做 realpath，裸盘符会抛 EISDIR 让进程启动即死）
+    for (const k of ['TEMP', 'TMP', 'TMPDIR']) {
+      if (isBareDrive(process.env[k])) {
+        console.error(`[engine] 警告：环境变量 ${k}=${process.env[k]} 是驱动器相对路径，已忽略`);
+        delete process.env[k];
+      }
+    }
     if (isBareDrive(process.cwd())) process.chdir(process.cwd() + '\\');
     const entry = process.argv[1];
     if (entry && /^[a-zA-Z]:/.test(entry) && !/^[a-zA-Z]:[\\/]/.test(entry)) {

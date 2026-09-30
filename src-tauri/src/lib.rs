@@ -360,6 +360,14 @@ fn run_query(
         .arg("12")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    // ── 环境自愈（Windows「点查询毫无反应」的候选真因之一）──
+    // 那台机器 D 盘疑似有「驱动器相对路径」污染（换了 3 个安装位置都报同一个 lstat 'D:'）。
+    // 装在哪都无关 → 嫌疑转向环境变量：TEMP= D: / NODE_PATH=D: / NODE_OPTIONS 里带裸盘符。
+    // Node 的模块解析会在启动时对 NODE_PATH 的每一项做 realpath，裸盘符直接 EISDIR。
+    cmd.env_remove("NODE_PATH");      // 老掉牙的变量，正常运行不需要它；脏值会让 Node 启动即死
+    cmd.env_remove("NODE_OPTIONS");   // 防止未知注入影响引擎
+    cmd.env_remove("PLAYWRIGHT_BROWSERS_PATH"); // 有脏值时 playwright 会对它 realpath，同样会崩
+    cmd.env_remove("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD");
     // 给引擎一个确定可用的临时目录（系统 TEMP 被指到盘符根等异常位置时的兜底）
     {
         let tmp = project_root(Some(&app)).join("engine").join(".tmp");
