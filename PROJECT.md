@@ -509,3 +509,22 @@ fastpath 的 in-page 闭包与配方调用全部改用私有的 `oRes/dRes/qLoca
   ④**按需自动下载 Chrome for Testing**（~150MB，只下一次，无需管理员权限）→ **同事机器没装 Chrome 也能跑**
 - **CI**：`.github/workflows/build-windows.yml`（`windows-latest` 出 NSIS 安装包，自动下载 node.exe 打进包 → 上传 artifact / 打 tag 发 Release）
 - 方案与待办见 `docs/WINDOWS-PORT-PLAN.md`
+
+### 9-30 · 船期条数太少 → 三家窗口全查修（婉宜）
+
+用户报「ONE 还是只有两条船期，至少 5 条以上」。查下来**不是站侧问题，是我们把查询窗口设太窄**：
+
+| 家 | 原窗口 | 实测 | 改为 | 结果 |
+|---|---|---|---|---|
+| **ONE** | 14 天（`toDate=fromDate+14`）| 14 天 2 条 / 28 天 3 条 / **42 天 8 条** / >42 天 **0 条** | **42 天**（上限）| 2 → **8 条** |
+| **OOCL** | 官网默认 `user.weeks=2` | 2 周 3 条 / 6 周 6 条 / **12 周 11 条** | 配方把 `select[ng-model="user.weeks"]` 设成 **12**（回读校验）| 3 → **11 条** |
+| **COSCO** | 35 天 | 35 天 5 条 / 56 天 7 条 / **84 天 11 条** | `dateWindow(iso, 84)` | 5 → **11 条** |
+
+顺手修的：
+- **OOCL 跨年年份错**：页面只给「10 Dec (Thu)」没有年份，原来写死「今年」→ 12 周窗口必然跨年，
+  会把 `2027-01-16` 显示成 `2026-01-16`。改为按参照时间（ETD 参照今天、ETA 参照 ETD）向前滚年份；
+  验证 11/11 条「日期差 == 天数」自洽。
+- `dateWindow` 加 `daysArg` + `SSH_WIN_DAYS` 覆盖（调窗/探针用；MSC 不受该参数影响，仍走自己 6 周逻辑）。
+
+**全量回归（部署态 · 宁波→伊斯坦布尔）**：`11/11 家 · 104 条`（修前 90 条），每家 ≥6 条。
+新增探针：`qa/probe-oocl-window.mjs`（抓页面真实请求体 → 定位 `weeks=2` 这个真凶）、`qa/probe-oocl-form.mjs`。

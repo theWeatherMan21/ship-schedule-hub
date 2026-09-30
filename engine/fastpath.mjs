@@ -113,10 +113,11 @@ async function getJSON(url, timeoutMs = 12000, headers = {}) {
 }
 
 // 日期窗口：现在各家窗口不一（YM 是 DEP 起始日），统一给 [今天, 今天+21天]
-function dateWindow(iso) {
+function dateWindow(iso, daysArg) {
   const base = iso ? new Date(iso + 'T00:00:00Z') : new Date();
   const fmt = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
-  return { start: fmt(base), end: fmt(new Date(base.getTime() + 35 * 864e5)) };
+  const days = Number(process.env.SSH_WIN_DAYS) > 0 ? Number(process.env.SSH_WIN_DAYS) : (daysArg || 35); // SSH_WIN_DAYS 供调窗/探针用
+  return { start: fmt(base), end: fmt(new Date(base.getTime() + days * 864e5)) };
 }
 
 // "Tue 6th Oct 2026" → "10-06"（各家英文日期统一成 MM-DD，年份另注）
@@ -322,7 +323,8 @@ return { rows, note: 'API 直查 ' + rows.length + ' 条' };
 //   ② POST /ebschedule/public/purpoShipmentWs {fromDate,originCityUuid,destinationCityUuid,originCity:"Ningbo,Ningbo,Zhejiang,China,CNNBO",...}
 //   ③ 响应 data.content.data[]: {vessel, voyage, etd, eta, cutOff, pol, pod, outbound/inboundFacilityName}
 export async function coscoInPage(page, originLocode, destLocode, isoDate, oName, dName) {
-  const win = dateWindow(isoDate);
+  // 窗口 84 天（9-30 实测：35 天 5 条 / 56 天 7 条 / 84 天 11 条；MSC 不受此参数影响，仍走自己的 6 周逻辑）
+  const win = dateWindow(isoDate, 84);
   const fromDate = `${win.start.slice(0, 4)}-${win.start.slice(4, 6)}-${win.start.slice(6, 8)}`;
   const toDate = `${win.end.slice(0, 4)}-${win.end.slice(4, 6)}-${win.end.slice(6, 8)}`;
   const r = await page.evaluate(async ({ fromLocode, toLocode, fromDate, toDate, oName0, dName0 }) => {

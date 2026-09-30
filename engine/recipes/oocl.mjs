@@ -49,6 +49,21 @@ export default {
     const dPicked = await pickPort('user.destination', dWord);
     if (!dPicked) throw new Error('目的候选未出');
 
+    // 结果窗口：官网默认 user.weeks=2（2 周）→ 这条线只有 3 条（用户报「条数太少」）。
+    // 页面 select[ng-model="user.weeks"] 可选 2-12 周。实测（宁波→伊斯坦布尔）：
+    //   weeks=2 → 3 条 ｜ weeks=6 → 6 条 ｜ weeks=12 → 11 条   ⇒ 取上限 12。
+    const weeks = String(process.env.SSH_OOCL_WEEKS || '12');
+    try {
+      const sel = page.locator('select[ng-model="user.weeks"]');
+      await sel.selectOption(weeks, { timeout: 10000 });
+      await H.sleep(1800);
+      // 回读校验（Angular 有时不认程序化赋值）
+      const got = await page.evaluate(() => document.querySelector('select[ng-model="user.weeks"]')?.value || '');
+      if (got !== weeks) console.error(`[oocl] weeks 期望 ${weeks} 实际 ${got}`);
+    } catch (e) {
+      console.error('[oocl] weeks 设置失败:', e.message);
+    }
+
     // 点 Search（页面底部主按钮）
     const fired = await page.evaluate(() => {
       const b = [...document.querySelectorAll('button, a')].find((x) => /^search$/i.test((x.textContent || '').trim()) && x.offsetParent !== null);
@@ -95,11 +110,27 @@ export default {
       return { msg: `已填 ${oPicked.split(',')[0]} → ${dPicked.split(',')[0]} 并点搜索；${total}` };
     }
     const MON = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
-    const fmt = (s) => { const m = /^(\d{1,2}) ([A-Z][a-z]{2}) \((...)\)$/.exec(s); return m ? `${new Date().getFullYear()}-${MON[m[2]]}-${String(m[1]).padStart(2, '0')}` : s; };
-    const schedules = rows.rows.map((r) => ({
-      vessel: r.vessel, voyage: r.voyage, etd: fmt(r.etdRaw), eta: fmt(r.etaRaw),
-      transitDays: r.days, via: '', direct: true,
-    }));
+    // 年份推断：页面只给「10 Dec (Thu)」没有年份。原来写死「今年」，一旦窗口跨年
+    // （12 周窗口必然跨年）就会把 2027-01-16 显示成 2026-01-16（用户能一眼看出的错）。
+    // 现在按参照时间往前滚：ETD 参照今天（允许 7 天回溯），ETA 参照 ETD。
+    const YEAR = new Date().getFullYear();
+    const stamp = (s, refMs) => {
+      const m = /^(\d{1,2}) ([A-Z][a-z]{2})/.exec(s || '');
+      const mo = m && MON[m[2]];
+      if (!mo) return '';
+      const dd = String(m[1]).padStart(2, '0');
+      for (let y = YEAR; y <= YEAR + 2; y++) {
+        const ms = Date.parse(`${y}-${mo}-${dd}T00:00:00Z`);
+        if (!Number.isFinite(ms)) break;
+        if (ms >= refMs - 7 * 864e5) return `${y}-${mo}-${dd}`;
+      }
+      return `${YEAR}-${mo}-${dd}`;
+    };
+    const schedules = rows.rows.map((r) => {
+      const etd = stamp(r.etdRaw, Date.now());
+      const eta = stamp(r.etaRaw, etd ? Date.parse(etd + 'T00:00:00Z') : Date.now());
+      return { vessel: r.vessel, voyage: r.voyage, etd, eta, transitDays: r.days, via: '', direct: true };
+    }).sort((a, b) => (a.etd > b.etd ? 1 : -1));
     return { status: 'done', schedules, msg: `已查到 ${schedules.length} 条：` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ${r.etd} → ${r.eta} ${r.transitDays}天`).join(' ｜ ') };
   },
 };
