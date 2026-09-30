@@ -16,6 +16,22 @@ import { dismissCookies, isBlockPage, waitThroughChallenge, pickOption, portPick
 import { withTimeout, setValue, setInputByValueShape, clickByText, fillAutocomplete } from './lib/dom.mjs';
 import { resolvePort } from './lib/portsolve.mjs';
 
+// ---------- 启动守卫（Windows 盘符根路径）----------
+// 爹地 9-30 实测：App 装在 D:\ 根目录时，出现驱动器相对路径（"D:" 没有反斜杠），
+// Node 模块解析拿它做 realpath → `EISDIR: illegal operation on a directory, lstat 'D:'`
+// → 引擎在启动阶段就死，App 表现为「点查询毫无反应」。
+// 主修在 Rust 侧（fix_root 补分隔符）；这里再兜一层：cwd / 入口脚本若是光秃秃盘符就补反斜杠。
+if (process.platform === 'win32') {
+  try {
+    const isBareDrive = (v) => /^[a-zA-Z]:$/.test(String(v || ''));
+    if (isBareDrive(process.cwd())) process.chdir(process.cwd() + '\\');
+    const entry = process.argv[1];
+    if (entry && /^[a-zA-Z]:/.test(entry) && !/^[a-zA-Z]:[\\/]/.test(entry)) {
+      console.error('[engine] 警告：入口脚本是驱动器相对路径:', entry);
+    }
+  } catch { /* 守卫本身不许影响主流程 */ }
+}
+
 // ---------- 自检 / 诊断（--diagnose）：把「引擎为什么起不来」一次问清 ----------
 // App 的「诊断」按钮与远程排障都用它（Windows 无 Chrome / node 找不到这两个场景尤其需要）。
 if (process.argv.includes('--diagnose')) {

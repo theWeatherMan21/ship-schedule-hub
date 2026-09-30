@@ -49,18 +49,33 @@ fn open_external(_app: tauri::AppHandle, url: String) -> Result<(), String> {
 /// 解析引擎根目录（定位 engine/，不假设 cwd）
 /// 优先级：环境变量 → Tauri resource_dir（打包态，.app 拷到任何位置都能用）
 /// → cwd 探测（开发态）→ 可执行文件向上探测（开发态 target/ 下）
+/// 规范化根路径：Windows 上「装在盘符根目录」时，路径可能是不带反斜杠的 `D:`。
+/// 这种「驱动器相对路径」（drive-relative）交给 Node 会被解析成 D 盘当前目录，
+/// 模块解析拿它做 realpath 直接抛 `EISDIR: illegal operation on a directory, lstat 'D:'`
+/// （爹地 9-30 实测：装在 D:\ 根目录，Windows 上点查询毫无反应）。
+/// 这里统一补上分隔符，确保交给 Node 的永远是可用的绝对路径。
+fn fix_root(p: PathBuf) -> PathBuf {
+    let s = p.to_string_lossy().to_string();
+    if s.len() == 2 && s.as_bytes()[1] == b':' {
+        return PathBuf::from(format!("{s}\\"));
+    }
+    p
+}
+
 fn project_root(app: Option<&AppHandle>) -> PathBuf {
     if let Ok(p) = std::env::var("SSH_PROJECT_ROOT") {
         return PathBuf::from(p);
     }
     if let Some(app) = app {
         if let Ok(res) = app.path().resource_dir() {
+            let res = fix_root(res);
             if res.join("engine/query.mjs").exists() {
                 return res;
             }
         }
     }
     if let Ok(dir) = std::env::current_dir() {
+        let dir = fix_root(dir);
         if dir.join("engine/query.mjs").exists() {
             return dir;
         }
@@ -75,7 +90,7 @@ fn project_root(app: Option<&AppHandle>) -> PathBuf {
         let mut p = exe.as_path();
         for _ in 0..12 {
             if p.join("engine/query.mjs").exists() {
-                return p.to_path_buf();
+                return fix_root(p.to_path_buf());
             }
             match p.parent() {
                 Some(par) if !par.as_os_str().is_empty() => p = par,
@@ -122,6 +137,7 @@ fn find_node(app: Option<&AppHandle>) -> String {
     if let Some(app) = app {
         let mut bases: Vec<PathBuf> = Vec::new();
         if let Ok(res) = app.path().resource_dir() {
+            let res = fix_root(res);
             bases.push(res.clone());
             bases.push(res.join("binaries"));
             // CI 把 node 打进 engine/node-bin/（engine 整个目录是 resource）
@@ -240,7 +256,7 @@ fn diagnose(app: AppHandle) -> Result<serde_json::Value, String> {
     });
     if node_exists && script.exists() {
         let mut cmd = Command::new(&node);
-        cmd.arg(&script).arg("--diagnose").current_dir(&root)
+        cmd.arg(&script).arg("--diagnose").current_dir(&engine_dir)
             .stdout(Stdio::piped()).stderr(Stdio::piped());
         #[cfg(windows)]
         {
@@ -344,6 +360,13 @@ fn run_query(
         .arg("12")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    // 给引擎一个确定可用的临时目录（系统 TEMP 被指到盘符根等异常位置时的兜底）
+    {
+        let tmp = project_root(Some(&app)).join("engine").join(".tmp");
+        let _ = std::fs::create_dir_all(&tmp);
+        let ts = tmp.display().to_string();
+        cmd.env("TMPDIR", &ts).env("TMP", &ts).env("TEMP", &ts);
+    }
     // Windows：GUI 程序 spawn console 子进程会弹黑框 —— 必须加 CREATE_NO_WINDOW(0x0800_0000)
     #[cfg(windows)]
     {
