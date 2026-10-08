@@ -17,6 +17,47 @@ const ins = db.prepare("INSERT OR REPLACE INTO aliases (alias, carrier, locode, 
 let n = 0;
 for (const [alias, code] of Object.entries(aka.aka)) { ins.run(alias, code); n++; }
 
+// 1.5) 船司名录抓取结果 → 别名（data/carrier-ports-*.json）
+//   规则（宁缺毋滥）：① 记录自带 LOCODE 且在我们词典里 → 直接用；
+//   ② 否则按归一化港名在词典里找，唯一命中才用；多个命中时用国家码消歧，还不行就跳过。
+//   ③ 与既有别名冲突时保留既有（verified/aka 优先），只记冲突数。
+import { readdirSync } from 'node:fs';
+const norm = (x) => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const dictByNorm = new Map();
+for (const r of db.prepare('SELECT locode, name_ascii, country FROM ports').all()) {
+  const k = norm(r.name_ascii);
+  if (!dictByNorm.has(k)) dictByNorm.set(k, []);
+  dictByNorm.get(k).push(r);
+}
+const known = new Set(db.prepare('SELECT locode FROM ports').all().map((r) => r.locode));
+db.exec("DELETE FROM aliases WHERE source LIKE 'carrier:%'");
+const insCar = db.prepare("INSERT OR IGNORE INTO aliases (alias, carrier, locode, source) VALUES (?, 'un', ?, ?)");
+let carAdd = 0, carSkip = 0, carConflict = 0;
+const files = readdirSync('data').filter((f) => /^carrier-ports-.*\.json$/.test(f));
+for (const f of files) {
+  const carrier = f.replace(/^carrier-ports-/, '').replace(/\.json$/, '');
+  const doc = JSON.parse(readFileSync('data/' + f, 'utf8'));
+  for (const p of doc.ports || []) {
+    const w = norm(p.name);
+    if (!w || w.length < 3) { carSkip++; continue; }
+    let code = p.locode && known.has(p.locode) ? p.locode : null;
+    if (!code) {
+      const cands = dictByNorm.get(w) || [];
+      if (cands.length === 1) code = cands[0].locode;
+      else if (cands.length > 1 && p.country) {
+        const same = cands.filter((c) => c.country === p.country);
+        if (same.length === 1) code = same[0].locode;
+      }
+    }
+    if (!code) { carSkip++; continue; }
+    const before = db.prepare('SELECT locode FROM aliases WHERE alias = ? LIMIT 1').get(w);
+    if (before && before.locode !== code) { carConflict++; continue; }   // 已有别名指向别处 → 不覆盖
+    insCar.run(w, code, 'carrier:' + carrier);
+    carAdd++;
+  }
+}
+console.log(`船司名录别名：+${carAdd} 条（跳过 ${carSkip} 条无法唯一映射，冲突 ${carConflict} 条保留既有）· 来源 ${files.join(', ') || '无'}`);
+
 // 2) 信号表：主干港排名 / MSC 名录 / 船司别名数
 db.exec(`CREATE TABLE IF NOT EXISTS port_signal (
   locode TEXT PRIMARY KEY, major_rank INTEGER, in_msc INTEGER DEFAULT 0, carrier_hits INTEGER DEFAULT 0
