@@ -98,7 +98,7 @@ const app = document.getElementById('app');
 app.innerHTML = `
   <header class="topbar" data-tauri-drag-region>
     <h1 data-tauri-drag-region>⚓ ShipScheduleHub</h1>
-    <span class="sub" data-tauri-drag-region>船期聚合驾驶舱 v0.1</span>
+    <span class="sub" data-tauri-drag-region>船期聚合驾驶舱 v${__APP_VERSION__}</span>
     <span class="spacer" data-tauri-drag-region></span>
     <div class="themes" id="themes" title="配色主题">
       <button class="sw" data-t="sea" title="海运蓝"></button>
