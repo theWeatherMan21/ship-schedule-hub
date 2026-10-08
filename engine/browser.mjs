@@ -8,6 +8,14 @@ import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
+
+// Windows 绝对路径：真机实测 PATH 里连 System32 都没有（fltmc 报「不是内部或外部命令」），
+// 所以这些系统命令一律绝对路径调用，绝不依赖 PATH（婉宜 10-08）。
+const SYS32 = process.env.SystemRoot ? `${process.env.SystemRoot}\\System32` : 'C:\\Windows\\System32';
+const PS_EXE = `${SYS32}\\WindowsPowerShell\\v1.0\\powershell.exe`;
+const TASKKILL_EXE = `${SYS32}\\taskkill.exe`;
+export { SYS32, PS_EXE, TASKKILL_EXE };
+
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -162,10 +170,10 @@ function killStaleProfileChrome() {
   try {
     if (process.platform === 'win32') {
       const ps = `Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | Where-Object { $_.CommandLine -like '*${PROFILE_DIR.replace(/\\/g, '\\\\')}*' } | Select-Object -ExpandProperty ProcessId`;
-      const out = execSync(`powershell -NoProfile -NonInteractive -Command "${ps}"`, { encoding: 'utf8', timeout: 20000 }).trim();
+      const out = execSync(`"${PS_EXE}" -NoProfile -NonInteractive -Command "${ps}"`, { encoding: 'utf8', timeout: 20000 }).trim();
       if (!out) return 0;
       const pids = out.split(/\s+/).map((x) => Number(x)).filter((n) => Number.isFinite(n) && n > 0);
-      for (const pid of pids) { try { execSync(`taskkill /F /PID ${pid}`, { stdio: 'ignore', timeout: 10000 }); } catch { /* 已退出 */ } }
+      for (const pid of pids) { try { execSync(`"${TASKKILL_EXE}" /F /PID ${pid}`, { stdio: 'ignore', timeout: 10000 }); } catch { /* 已退出 */ } }
       if (pids.length) console.error(`[engine] 清理残留 profile 进程 ${pids.length} 个（windows）`);
       return pids.length;
     }

@@ -696,3 +696,30 @@ Transit Time 列反推实锤（OCT-10→NOV-14=35 天但官网写 33；改取 OC
 **测试方法学的坑（自己的问题，记下别重犯）**
 - 第一版测试台没限定 `--carriers`，未知输入全部退到"11 家浏览器抓取"，被自己的 120s 上限判成"超时"——
   **假故障**。重测时一律显式 `--carriers one`，单例 2-25s 出结论，噪音归零。
+
+### 10-08 · Windows 适配：PATH 不全的兜底（婉宜）
+
+真机线索：那台 Windows 的 PATH 里**连 System32 都没有**（脚本用 `fltmc` 时报「不是内部或外部命令」）。
+这解释了 app「点了没反应」的一部分成因（引擎启动/清理浏览器都要走系统命令）。
+
+改动（凡是用系统命令的地方一律绝对路径，不再假设 PATH 可用）：
+| 位置 | 原来 | 现在 |
+|---|---|---|
+| Rust open_url(win) | `cmd /C start` | `%SystemRoot%\System32\cmd.exe` |
+| Rust node 探测(win) | `cmd /C where node` | `%SystemRoot%\System32\cmd.exe` + `where.exe` |
+| Rust 杀引擎(win) | `taskkill` | `%SystemRoot%\System32\taskkill.exe` |
+| 引擎 browser.mjs | `powershell`/`taskkill` | PS_EXE / TASKKILL_EXE 绝对路径常量 |
+| 引擎 fastpath.mjs | `powershell` | 同上（从 browser.mjs 导入） |
+| 调试脚本 .bat | `net`/`reg`/`findstr`/`powershell` | 全部 `%SYS32%\...` |
+
+配套：诊断面板新增「安装目录/可写性、可用浏览器、WebView2、是否管理员、TEMP/NODE_PATH/代理（裸盘符标红）」；
+新增「复制诊断」按钮；NSIS 安装包支持**仅当前用户安装**（同事没管理员权限也能装）+ 简体中文界面；
+WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
+
+踩坑台账（脚本侧）：
+- v1 用 `fltmc` 判管理员 → PATH 不全时误判「无权限」→ **无限提权弹窗**（爹地实测）。
+  改：三重探测（net session / PowerShell WindowsPrincipal / reg 写测试）+ 提权带 `--elevated` 标记，
+  主体见到标记绝不再提权（结构上不可能循环）。
+- v2 生成器用普通字符串写模板，`\WindowsPowerShell\v1.0` 的 `\v` 被 Python 解析成垂直制表符、
+  `\net.exe` 的 `\n` 被解析成换行 → 生成的 bat 里路径损坏、整行消失。改：raw f-string + 生成即自检
+  （控制字符断言 + 关键路径断言，坏 bat 直接中止不外发）。

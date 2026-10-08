@@ -2790,7 +2790,7 @@ dependencies = [
 
 [[package]]
 name = "shipschedulehub"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "serde",
  "serde_json",

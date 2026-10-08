@@ -68,6 +68,7 @@ async function getJSON(url, timeoutMs = 12000, headers = {}) {
         if (!ca && process.platform === 'win32') {
           try {
             const { execSync } = await import('node:child_process');
+            const { PS_EXE } = await import('./browser.mjs');
             const out = path.join(winDataDir, 'win-roots.pem');
             const ps = [
               `$out = '${out.replace(/'/g, "''")}'`,
@@ -83,7 +84,7 @@ async function getJSON(url, timeoutMs = 12000, headers = {}) {
               `  $s.Close() }`,
               `[IO.File]::WriteAllText($out, $sb.ToString())`,
             ].join('; ');
-            execSync(`powershell -NoProfile -NonInteractive -Command "${ps}"`, { stdio: 'ignore', timeout: 30000 });
+            execSync(`"${PS_EXE}" -NoProfile -NonInteractive -Command "${ps}"`, { stdio: 'ignore', timeout: 30000 });
             const c = fsMod.readFileSync(out, 'utf8');
             if (c.includes('BEGIN CERTIFICATE')) { ca = c; console.error('[fastpath] 已从 Windows 证书存储导出 CA:', out); }
           } catch { /* 导出失败就继续报原错 */ }

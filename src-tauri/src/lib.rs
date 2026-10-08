@@ -35,11 +35,14 @@ fn open_external(_app: tauri::AppHandle, url: String) -> Result<(), String> {
     tauri::async_runtime::spawn(async move {
         // 跨平台打开系统默认浏览器：macOS `open` / Windows `cmd /C start` / Linux `xdg-open`
         #[cfg(target_os = "macos")]
-        let _ = std::process::Command::new("open").arg(&url).spawn();
+        let _ = std::process::Command::new("/usr/bin/open").arg(&url).spawn();
         #[cfg(target_os = "windows")]
-        let _ = std::process::Command::new("cmd")
-            .args(["/C", "start", "", &url])
-            .spawn();
+        {
+            let sys32 = std::env::var("SystemRoot").map(|w| format!("{w}\\System32")).unwrap_or_else(|_| "C:\\Windows\\System32".into());
+            let _ = std::process::Command::new(format!("{sys32}\\cmd.exe"))
+                .args(["/C", "start", "", &url])
+                .spawn();
+        }
         #[cfg(all(unix, not(target_os = "macos")))]
         let _ = std::process::Command::new("xdg-open").arg(&url).spawn();
     });
@@ -231,11 +234,15 @@ fn find_node(app: Option<&AppHandle>) -> String {
         }
     }
     #[cfg(windows)]
-    if let Ok(out) = Command::new("cmd").args(["/C", "where node"]).output() {
-        if out.status.success() {
-            let txt = String::from_utf8_lossy(&out.stdout);
-            if let Some(line) = txt.lines().map(|l| l.trim()).find(|l| !l.is_empty() && PathBuf::from(l).exists()) {
-                return line.to_string();
+    {
+        let sys32 = std::env::var("SystemRoot").map(|w| format!("{w}\\System32")).unwrap_or_else(|_| "C:\\Windows\\System32".into());
+        if let Ok(out) = Command::new(format!("{sys32}\\cmd.exe"))
+            .args(["/C", &format!("{sys32}\\where.exe node")]).output() {
+            if out.status.success() {
+                let txt = String::from_utf8_lossy(&out.stdout);
+                if let Some(line) = txt.lines().map(|l| l.trim()).find(|l| !l.is_empty() && PathBuf::from(l).exists()) {
+                    return line.to_string();
+                }
             }
         }
     }
@@ -440,7 +447,8 @@ fn run_query(
             let pid = *state.child_pid.lock().unwrap();
             if let Some(pid) = pid {
                 #[cfg(windows)]
-                { let _ = Command::new("taskkill").args(["/T", "/F", "/PID", &pid.to_string()]).output(); }
+                { let sys32 = std::env::var("SystemRoot").map(|w| format!("{w}\\System32")).unwrap_or_else(|_| "C:\\Windows\\System32".into());
+                  let _ = Command::new(format!("{sys32}\\taskkill.exe")).args(["/T", "/F", "/PID", &pid.to_string()]).output(); }
                 #[cfg(not(windows))]
                 { let _ = Command::new("/bin/kill").args(["-TERM", &pid.to_string()]).output(); }
             } else {
