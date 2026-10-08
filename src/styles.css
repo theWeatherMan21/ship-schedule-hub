@@ -478,14 +478,14 @@ html[data-mode="dark"] .empty, html[data-mode="dark"] .placeholder { color: var(
      ③ 本文件：底不能画实色，面层用半透明 —— 底一实，acrylic 就白装了。
    macOS 不受影响（以下规则都带 html[data-platform="win"] 前缀）。 */
 html[data-platform="win"] {
-  background: transparent !important;            /* 别实底：实底 = acrylic 看不见 */
+  background: var(--bg) !important;              /* 不透明窗口：直接实底，零混合开销 */
   --glass-1: rgba(255, 255, 255, .58);
   --glass-2: rgba(255, 255, 255, .44);
   --glass-3: rgba(255, 255, 255, .68);
   --glass-hi: rgba(255, 255, 255, .42);
 }
 html[data-platform="win"][data-mode="dark"] {
-  background: transparent !important;
+  background: #0f1523 !important;
   --glass-1: rgba(16, 24, 40, .62);
   --glass-2: rgba(16, 24, 40, .52);
   --glass-3: rgba(22, 32, 50, .70);
@@ -519,9 +519,8 @@ html[data-platform="win"].no-glass {
 html[data-platform="win"].no-glass[data-mode="dark"] { background: #0f1523 !important; }
 
 /* 毛玻璃档位开关：只有 Windows 需要（macOS 用系统 vibrancy，不给爹地添乱） */
+/* Windows 已定稿「不要毛玻璃」（10-08 爹地真机拍板）→ 档位按钮只在 macOS 之外的调试场景用，默认隐藏 */
 #btnGlass { display: none; }
-html[data-platform="win"] #btnGlass { display: inline-flex; align-items: center; justify-content: center; }
-html[data-platform="win"] #btnGlass.on { color: var(--accent); }
 
 /* ================= Windows 性能收口（10-08 真机实测：核显上模糊合成要多烧 2.2 倍 DWM CPU）=================
    ① 所有残留 backdrop-filter 一律关掉：每个元素上的 backdrop-filter 都会让合成器

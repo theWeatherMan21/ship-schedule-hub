@@ -729,3 +729,13 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 - **本地交叉编译 Windows exe（打通，替代等 CI）**：`cargo xwin build --release --features tauri/custom-protocol --target x86_64-pc-windows-msvc`，前置：`cargo install cargo-xwin` + llvm-mingw 的 bin 进 PATH（提供 `llvm-rc`）。**`--features tauri/custom-protocol` 不能少**（`tauri-build::is_dev() = !custom_protocol`，漏了会编出 dev 版：webview 去连 `localhost:1420` → 页面 ERR_CONNECTION_REFUSED）。
 - **坑**：cargo 若显示 `Finished in 0.27s` 说明没重编（前端是编译期内嵌，必须 `touch src-tauri/src/lib.rs` 触发）。
 - **静默远端验收法**：用 `schtasks /create ... /it`（无需密码）在用户交互会话里跑 App/截图；脚本一律 `powershell -WindowStyle Hidden`，否则会在爹地桌面弹控制台窗口（踩过）。
+
+## 2026-10-08 · Windows 定稿：不要毛玻璃（爹地真机拍板）
+- 真机 A/B（i5-7500 + Intel HD 630 核显）：同样拖 4 秒窗口，开毛玻璃 DWM CPU 828ms / 关闭 375ms（2.2 倍）；
+  实测 SetWindowPos 本身仅 0.7ms（**之前"每帧 35ms"是测速脚本自身开销，已作废**）。
+- 逐项排除后确认：卡的是**透明窗口**本身（全关 CSS 仍卡 → 换成 transparent:false 就不卡）。爹地拍板：Windows 不要毛玻璃。
+- 落地：`src-tauri/tauri.windows.conf.json`（Tauri v2 平台专属配置）把 `transparent` 设为 false、
+  去掉 windowEffects、shadow 设 true；Rust 端 Windows 默认 `SSH_GLASS=off`；CSS `html[data-platform="win"]` 实底 + 全局禁 backdrop-filter。
+  **macOS 的 vibrancy/毛玻璃一字未改。**
+- 验证手段（可复用）：`GetWindowLongPtr(h, GWL_EXSTYLE)` 看 `WS_EX_NOREDIRECTIONBITMAP`(0x00200000)
+  —— 有=透明窗口，无=不透明；拿记事本做对照。

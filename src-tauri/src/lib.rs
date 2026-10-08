@@ -698,7 +698,10 @@ pub fn run() {
                         }
                         eprintln!("[glass] {m}");
                     };
-                    let mode = std::env::var("SSH_GLASS").unwrap_or_else(|_| "blur".into()).to_lowercase();
+                    // 10-08 真机定稿：爹地这台 i5-7500 + Intel HD 630，开毛玻璃拖动会掉帧（DWM CPU 2.2 倍），
+                // 他拍板「Windows 就不要毛玻璃了」→ 默认 off（窗口也不透明，见 tauri.windows.conf.json）。
+                // 保留 SSH_GLASS=blur|acrylic 供以后强显卡机器试用。
+                let mode = std::env::var("SSH_GLASS").unwrap_or_else(|_| "off".into()).to_lowercase();
                     match mode.as_str() {
                         "off" => {
                             let _ = w.set_effects(EffectsBuilder::new().build());
