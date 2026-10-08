@@ -184,7 +184,16 @@ const detailRow = {
     },
   }],
 };
-await emit(detailRow);
+// 有真实数据就用真实的（/tmp/msc-real.json 由部署态引擎跑出来）
+let useRow = detailRow;
+try {
+  const real = JSON.parse(fs.readFileSync('/tmp/msc-real.json', 'utf8'));
+  if (real && real.schedules && real.schedules.length) {
+    useRow = { ...real, schedules: real.schedules.slice(0, 3) };
+    console.log('（使用真实 MSC 数据渲染）');
+  }
+} catch { /* 没有真实数据就用 mock */ }
+await emit(useRow);
 await page.waitForTimeout(400);
 console.log('\n═══ ⑥ 船期行详情 ═══');
 const before6 = await page.evaluate(() => {
@@ -208,6 +217,14 @@ const after6 = await page.evaluate(() => {
 });
 console.log(`  点一下 → open=${after6.open}  可见=${after6.visible}  航程段=${after6.legs}  截单项=${after6.cuts}`);
 console.log('  内容:', after6.text);
+// 出图前清掉自检残留（错误条/诊断面板是第④⑤节造的，不是真实状态）
+await page.evaluate(() => {
+  const e = document.getElementById('errBox'); if (e) { e.hidden = true; e.textContent = ''; }
+  const d = document.getElementById('diagBox'); if (d) d.hidden = true;
+  document.getElementById('engineState').textContent = 'engine 在线';
+  document.getElementById('engineDot').className = 'engine-dot on';
+});
+await page.waitForTimeout(200);
 await page.screenshot({ path: path.join(OUT, '6-row-detail.png'), fullPage: true });
 
 await page.click('.trow-wrap.expandable .trow');

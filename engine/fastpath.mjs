@@ -163,6 +163,7 @@ async function yangming(origin, dest, dateWin) {
       via: vias.join(' / '),
       direct: vias.length === 0,
       cutoffCY: x.cutoffCY || '',
+      detail: yangmingDetail(x),      // 逐段航程 + CY 截关
     };
   });
   if (!rows.length) return { rows, note: '窗口内无船期' };
@@ -221,6 +222,7 @@ export function oneRowsFromLines(lines) {
       via: js.length > 1 ? (first.podName || first.podYardName || '') : '',
       direct: js.length <= 1 && (Number(ln.totalTransshipment) || 0) === 0,
       cutoffCY: ln.cct || '',
+      detail: oneDetail(ln),          // 逐段航程 + 三类截单（cct/dct/inlandCct）
     });
   }
   rows.sort((a, b) => (a.etd > b.etd ? 1 : -1));
@@ -320,6 +322,79 @@ if (!rows.length) return null;
 return { rows, note: 'API 直查 ' + rows.length + ' 条' };
 }
 
+// ── 详情归一化（婉宜 9-30：ONE / 阳明 / COSCO / ZIM 的原始响应里本来就带这些，之前全丢了）──
+// 口径说明：截单时间一律**按官网返回值原样呈现**，不做时区换算、不做格式改写。
+// 同一船的原始行可能是「不同目的码头」的备选，而不是连续航段 —— 按 起/到/码头 去重，保留首次出现的顺序
+function dedupeLegs(legs) {
+  const seen = new Set(); const out = [];
+  for (const l of legs || []) {
+    // 同一「起运港+开船时间」= 同一班实体（COSCO 同一船会有多个目的码头备选行）；真实中转段的 ETD 必然不同
+    const k = l.etd ? `${l.from}|${l.etd}` : `${l.from}|${l.to}|${l.toTerminal || ''}`;
+    if (seen.has(k)) continue;
+    seen.add(k); out.push({ ...l, seq: out.length + 1 });
+  }
+  return out;
+}
+
+function mkDetail({ service = '', routing = '', co2 = '', legs = [], cutoffs = {} } = {}) {
+  const cleanLegs = (legs || []).filter((l) => l && (l.from || l.to || l.vessel));
+  const cleanCuts = Object.fromEntries(Object.entries(cutoffs || {}).filter(([, v]) => v));
+  if (!cleanLegs.length && !Object.keys(cleanCuts).length) return undefined;
+  return { service, routing, co2, legs: cleanLegs, cutoffs: cleanCuts };
+}
+
+// ONE：journeys[] 是逐段航程（含码头名），cct/dct/inlandCct 是三类截单
+function oneDetail(ln) {
+  const js = Array.isArray(ln.journeys) ? ln.journeys : [];
+  const sail = (Array.isArray(ln.sailInfo) ? ln.sailInfo[0] : null) || {};
+  const legs = js.map((j, i) => ({
+    seq: i + 1,
+    from: j.polName || '',
+    fromCode: j.polCode || '',
+    fromTerminal: j.polYardName || '',
+    etd: String(j.departureDate || '').slice(0, 16),
+    to: j.podName || '',
+    toCode: j.podCode || '',
+    toTerminal: j.podYardName || '',
+    eta: String(j.berthingDate || '').slice(0, 16),
+    vessel: j.vsslName || j.vesselName || '',
+    service: j.serviceLaneName || j.serviceLane || '',
+    co2: '',
+    calls: [],
+  }));
+  return mkDetail({
+    service: (legs[0] && legs[0].service) || sail.serviceLaneName || '',
+    routing: js.length > 1 ? 'Via' : 'Direct',
+    legs,
+    cutoffs: { 'CY 截关': ln.cct || '', '文件截止': ln.dct || '', '内陆截关': ln.inlandCct || '' },
+  });
+}
+
+// 阳明：routeDetails[] 逐段航段（含码头名），顶层带 cutoffCY / cutoffSI / cutoffVGM 三类截单
+function yangmingDetail(x) {
+  const legs = (Array.isArray(x.routeDetails) ? x.routeDetails : []).map((d, i) => ({
+    seq: d.detailSeq || i + 1,
+    from: d.locationNameFrom || '',
+    fromCode: d.locationCodeFrom || '',
+    fromTerminal: d.terminalNameFrom || '',
+    etd: String(d.etd || '').replace(/\//g, '-').slice(0, 16),
+    to: d.locationNameTo || '',
+    toCode: d.locationCodeTo || '',
+    toTerminal: d.terminalNameTo || '',
+    eta: String(d.eta || '').replace(/\//g, '-').slice(0, 16),
+    vessel: d.vesselName || '',
+    service: d.serviceCode || '',
+    co2: '',
+    calls: [],
+  }));
+  return mkDetail({
+    service: (legs[0] && legs[0].service) || '',
+    routing: (Number(x.transshipment) || legs.length > 1) ? 'Via' : 'Direct',
+    legs,
+    cutoffs: { 'CY 截关': x.cutoffCY || '', '提单指示': x.cutoffSI || '', 'VGM 截止': x.cutoffVGM || '' },
+  });
+}
+
 // MSC 单班详情：航程（分段/码头/船信息/挂靠港）+ 截单时间（官网原样）
 function mscDetail(x, leg) {
   const c = leg.CutOffs || {};
@@ -404,12 +479,28 @@ export async function coscoInPage(page, originLocode, destLocode, isoDate, oName
   const trips = new Map();
   for (const x of rowsRaw) {
     const key = `${x.vessel}|${x.voyage}`;
-    if (!trips.has(key)) trips.set(key, { vessel: x.vessel || '', voyage: x.extVoyage || x.voyage || '', etd: '', eta: '', via: '', direct: true, cutoffCY: x.cutOff || '' });
+    if (!trips.has(key)) trips.set(key, { vessel: x.vessel || '', voyage: x.extVoyage || x.voyage || '', etd: '', eta: '', via: '', direct: true, cutoffCY: x.cutOff || '', _legs: [] });
     const t = trips.get(key);
+    // 每一行原始数据就是一段航程（含挂靠港与码头），顺手留下来做详情
+    t._legs.push({
+      seq: t._legs.length + 1,
+      from: x.pol || '', fromCode: '', fromTerminal: x.outboundFacilityName || x.polFacilityName || '',
+      etd: (x.etd || '').slice(0, 16),
+      to: x.pod || '', toCode: '', toTerminal: x.inboundFacilityName || x.podFacilityName || '',
+      eta: (x.eta || '').slice(0, 16),
+      vessel: x.vessel || '', service: x.serviceName || x.service || '', co2: '', calls: [],
+    });
     if (x.pol && !t.etd) t.etd = (x.etd || '').slice(0, 16);
     if (x.pod) { t.eta = (x.eta || '').slice(0, 16); }
   }
-  const rows = [...trips.values()].filter((t) => t.etd && t.eta).map((t) => ({ ...t, transitDays: daysBetween(t.etd, t.eta) }));
+  const rows = [...trips.values()].filter((t) => t.etd && t.eta).map((t) => {
+    const { _legs, ...rest } = t;
+    return {
+      ...rest,
+      transitDays: daysBetween(t.etd, t.eta),
+      detail: mkDetail({ routing: _legs.length > 1 ? 'Via' : 'Direct', legs: dedupeLegs(_legs), cutoffs: { 'CY 截关': t.cutoffCY || '' } }),
+    };
+  });
   if (!rows.length) return null;
   rows.sort((a, b) => (a.etd > b.etd ? 1 : -1));
   return { rows: rows.slice(0, 12), note: 'API 直查 ' + rows.length + ' 条' };
@@ -511,6 +602,26 @@ export async function zimInPage(page, originLocode, destLocode, isoDate) {
       transitDays: f.departureDate && l.arrivalDate ? Math.round((new Date(l.arrivalDate) - new Date(f.departureDate)) / 86400000) : '',
       via: via.slice(0, 2).join('+'),
       direct: legs.filter((x) => !x.isLandTrans).length <= 1,
+      // 逐段航程（ZIM 响应 routes[][]=各段；截单字段官网 API 未直接给出，留空）
+      detail: mkDetail({
+        routing: legs.filter((x) => !x.isLandTrans).length > 1 ? 'Via' : 'Direct',
+        legs: legs.filter((x) => !x.isLandTrans).map((x, i) => ({
+          seq: i + 1,
+          from: x.portDepartureName || '',
+          fromCode: x.portDepartureCode || '',
+          fromTerminal: x.departureTerminalName || '',
+          etd: String(x.departureDate || '').slice(0, 16),
+          to: x.portArrivalName || x.portDestinationName || '',
+          toCode: x.portArrivalCode || '',
+          toTerminal: x.arrivalTerminalName || '',
+          eta: String(x.arrivalDate || '').slice(0, 16),
+          vessel: x.vesselName || '',
+          service: x.serviceName || x.service || '',
+          co2: '',
+          calls: [],
+        })),
+        cutoffs: { 'CY 截关': (main && (main.cutOffDate || main.cutoffDate || main.cutOff || '')) || '' },
+      }),
     };
   }).filter(Boolean).filter((r2) => r2.etd && r2.eta);
   if (!rows.length) return null;
