@@ -18,8 +18,9 @@ PS = ROOT / 'tools/win/setup-remote-access.ps1'
 OUT = ROOT / 'tools/win/一键配置调试环境.bat'
 OUT_ASCII = ROOT / 'tools/win/setup-remote-access.bat'
 
-ps_text = PS.read_text(encoding='utf-8')
+ps_text = PS.read_text(encoding='utf-8-sig')
 b64 = base64.b64encode(ps_text.encode('utf-16-le')).decode('ascii')
+# 解码端用 UTF8Encoding $true 写 BOM：PS 5.1 无 BOM 会按 GBK 读 → 中文把语法读崩（真机踩过）
 sha = hashlib.sha256(ps_text.encode('utf-8')).hexdigest()[:16]
 CH = 3500
 lines = [b64[i:i + CH] for i in range(0, len(b64), CH)]
@@ -113,7 +114,9 @@ if not exist "%PS1%" (
 )
 
 call :log "[i] 开始执行 %PS1%"
-"%PSEXE%" -NoProfile -ExecutionPolicy Bypass -NoLogo -File "%PS1%" -LogPath "%LOG%"
+set "TRANS=%WORK%\transcript.txt"
+rem transcript 抓「所有」输出：解析错误发生在脚本第一行之前，普通日志抓不到（真机踩过）
+"%PSEXE%" -NoProfile -ExecutionPolicy Bypass -NoLogo -Command "Start-Transcript -Path '%TRANS%' -Append -Force | Out-Null; & '%PS1%' -LogPath '%LOG%'; $rc=$LASTEXITCODE; Stop-Transcript | Out-Null; exit $rc"
 set "RC=%ERRORLEVEL%"
 call :log "[i] 退出码 %RC%"
 if not "%RC%"=="0" (

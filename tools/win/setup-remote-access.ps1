@@ -1,4 +1,4 @@
-<#
+﻿<#
   setup-remote-access.ps1 —— Windows 一键调试环境配置（ShipScheduleHub 远程排障用）
   婉宜 10-08 写。目标：不管那台机器是什么状态，跑完这个脚本我就能 SSH 进去。
 
