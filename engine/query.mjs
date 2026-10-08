@@ -123,6 +123,27 @@ for (const [k, v] of [['origin', args.origin], ['destination', args.destination]
     process.exit(2);
   }
 }
+// 9-30 加固：--date 必须是真的日历日期。事故（逆逻辑测试）：传 2026-13-45 时不报错，
+// 一路带着垃圾日期去查各家网站（浏览器抓取每家 40-90 秒才发现查不到）——用户白等十几分钟。
+// 空/缺省仍然合法（= 用网站默认当天）。
+{
+  const raw = args.date;
+  if (raw !== undefined && raw !== null && String(raw).trim() !== '') {
+    const s = String(raw).trim();
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+    let bad = !m;
+    if (m) {
+      const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+      const dt = new Date(Date.UTC(y, mo - 1, d));
+      // 回读校验：2026-13-45 会被 Date 归一化成 2027-02-14，回读就对不上 → 判非法
+      bad = dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d;
+    }
+    if (bad) {
+      console.error(JSON.stringify({ type: 'engine-error', msg: `参数 --date 非法（收到 ${JSON.stringify(s)}）：请用 YYYY-MM-DD 且是真实存在的日期，或留空用网站默认当天` }));
+      process.exit(2);
+    }
+  }
+}
 // 串行时复用同一个标签页：newPage() 会把最小化的窗口唤醒成 normal，
 // 复用单页则全程 minimized（有头真指纹 + 屏幕不可见，婉宜 9-23 实测）
 const reusePage = batchSize === 1;      // 红线：每批 ≤3；默认 1（串行）最稳——并发抖动实测（婉宜 9-22）

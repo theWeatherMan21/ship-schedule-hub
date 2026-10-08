@@ -114,7 +114,7 @@ app.innerHTML = `
       <div id="destinationHint" class="porthint"></div>
     </div>
     <datalist id="portsList"></datalist>
-    <div class="field"><label>日期（YYYY-MM-DD，留空 = 当天）</label><input id="date" placeholder="留空 = 用网站默认（通常当天）" /></div>
+    <div class="field"><label>日期（YYYY-MM-DD，留空 = 当天）</label><input id="date" placeholder="留空 = 用网站默认（通常当天）" /><div id="dateHint" class="porthint"></div></div>
     <button id="btnGo" class="btn-primary">并发查询</button>
     <button id="btnStop" class="btn-ghost" title="停止当前查询（已打开页面保留）">停止</button>
   </section>
@@ -348,6 +348,15 @@ let stopFlag = false;
 // 正在查询时再点：不报错 —— 自动停掉旧的、接着跑新的（爹地 9-30：换港口重查会被「已在运行」拒掉）
 let pendingRestart = null;
 
+// 逆逻辑测试发现：旧版只验格式（正则），2026-02-30 能过 → 引擎拿着垃圾日期去查网站，白等十几分钟。
+function isRealDate(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!m) return false;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d;
+}
+
 function collectQuery() {
   const origin = document.getElementById('origin').value.trim();
   const destination = document.getElementById('destination').value.trim();
@@ -355,12 +364,21 @@ function collectQuery() {
   let bad = null;
   if (!origin) bad = 'origin';
   else if (!destination) bad = 'destination';
-  else if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) bad = 'date'; // 留空合法：用网站默认日期（爹地 9-23）
+  else if (date && !isRealDate(date)) bad = 'date'; // 留空合法：用网站默认日期（爹地 9-23）
   if (bad) {
     document.getElementById(bad).classList.add('invalid');
+    const dh = document.getElementById('dateHint');
+    if (dh) {
+      if (bad === 'date') {
+        dh.innerHTML = '⚠️ 日期要写真实存在的日期（YYYY-MM-DD），例：2026-10-12；留空 = 用网站默认当天';
+        dh.className = 'porthint warn';
+      } else { dh.textContent = ''; dh.className = 'porthint'; }
+    }
     document.getElementById(bad).focus();
     return null;
   }
+  const dh0 = document.getElementById('dateHint');
+  if (dh0) { dh0.textContent = ''; dh0.className = 'porthint'; }
   ['origin', 'destination', 'date'].forEach((id) => document.getElementById(id).classList.remove('invalid'));
   const selected = [...listEl.querySelectorAll('input:checked')].map((b) => b.dataset.id);
   if (!selected.length) { alert('至少勾选一家船司'); return null; }
