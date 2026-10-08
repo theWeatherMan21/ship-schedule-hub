@@ -354,11 +354,30 @@ fn run_query(
         }
     }
 
-    // 已有引擎在跑 → 拒绝（防重复点击）
+    // 已有引擎在跑 → 先停掉旧的再跑新的（不报错）
+    // 爹地 9-30：查询中换港口再点「并发查询」会撞「engine 已在运行」——前端已改为「停止+重查」，
+    // 这里再兜一层：即使前端漏了（事件丢失/连点），也自动把旧引擎收掉，不让用户看到报错。
     {
         let mut running = state.running.lock().unwrap();
         if *running {
-            return Err("engine 已在运行".into());
+            let pid = *state.child_pid.lock().unwrap();
+            if let Some(pid) = pid {
+                #[cfg(windows)]
+                { let _ = Command::new("taskkill").args(["/T", "/F", "/PID", &pid.to_string()]).output(); }
+                #[cfg(not(windows))]
+                { let _ = Command::new("/bin/kill").args(["-TERM", &pid.to_string()]).output(); }
+            } else {
+                // 没有 PID 时按脚本路径兜底（macOS 有效）
+                #[cfg(not(windows))]
+                {
+                    let script = project_root(Some(&app)).join("engine/query.mjs");
+                    let _ = Command::new("/usr/bin/pkill").args(["-f", &script.display().to_string()]).output();
+                }
+            }
+            *state.child_pid.lock().unwrap() = None;
+            drop(running);
+            std::thread::sleep(std::time::Duration::from_millis(1200)); // 给旧进程一点退出时间，避免抢 profile
+            running = state.running.lock().unwrap();
         }
         *running = true;
     }

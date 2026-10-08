@@ -232,6 +232,49 @@ await page.waitForTimeout(300);
 const toggleBack = await page.evaluate(() => document.querySelector('.trow-wrap.expandable').classList.contains('open'));
 console.log(`  再点一下 → open=${toggleBack}`);
 
+// ---------- ⑦ 查询中换条件重查（爹地 9-30 报的错）----------
+// 先把状态复位（前面几节的小测试没发 engine-exit）
+await emit({ type: 'engine-exit', total: 0, prefilled: 0, opened: 0, failed: 0 });
+await page.waitForTimeout(400);
+await page.evaluate(() => { window.__calls.length = 0; });
+await page.fill('#origin', 'Shanghai');
+await page.fill('#destination', 'Rotterdam');
+await page.click('#btnGo');                          // 第一次查询
+await page.waitForTimeout(600);
+const afterFirst = await page.evaluate(() => ({
+  calls: window.__calls.map((c) => c.cmd),
+  btn: document.getElementById('btnGo').textContent,
+  btnDisabled: document.getElementById('btnGo').disabled,
+}));
+console.log('\n═══ ⑦ 查询中重查 ═══');
+console.log(`  第一次点：调用=${afterFirst.calls.join(',')}  按钮="${afterFirst.btn}" disabled=${afterFirst.btnDisabled}`);
+
+// 引擎还在跑（没发 engine-exit）→ 改港口再点
+await page.fill('#origin', 'Qingdao');
+await page.click('#btnGo');
+await page.waitForTimeout(600);
+const duringSecond = await page.evaluate(() => ({
+  calls: window.__calls.map((c) => c.cmd),
+  summary: document.getElementById('summary').textContent.slice(0, 60),
+  errShown: !document.getElementById('errBox').hidden,
+}));
+console.log(`  查询中再点：调用=${duringSecond.calls.join(',')}`);
+console.log(`    summary="${duringSecond.summary}"  错误条显示=${duringSecond.errShown}（应为 false）`);
+
+// 旧引擎退出 → 应自动开始新查询
+await emit({ type: 'engine-exit', total: 0, prefilled: 0, opened: 0, failed: 0 });
+await page.waitForTimeout(800);
+const afterExit = await page.evaluate(() => ({
+  calls: window.__calls.map((c) => c.cmd),
+  lastArgs: (window.__calls.filter((c) => c.cmd === 'run_query').slice(-1)[0] || {}).args,
+}));
+console.log(`  旧引擎退出后：调用序列=${afterExit.calls.join(',')}`);
+console.log(`    最后一次查询条件=${JSON.stringify(afterExit.lastArgs && afterExit.lastArgs.args)}`);
+const ranTwice = afterExit.calls.filter((c) => c === 'run_query').length >= 2;
+const stopped = afterExit.calls.includes('stop_query');
+console.log(`  ${ranTwice && stopped ? '✅ 自动停旧+跑新（无报错）' : '❌ 未按预期重查'}`);
+await page.screenshot({ path: path.join(OUT, '7-restart.png'), fullPage: true });
+
 console.log('\n═══ ③ 报错 ═══');
 console.log('  页面错误数:', errs.length);
 errs.slice(0, 6).forEach((e) => console.log('   ', e));

@@ -643,3 +643,21 @@ Transit Time 列反推实锤（OCT-10→NOV-14=35 天但官网写 33；改取 OC
 
 调试钩子（复用价值高）：`SSH_DUMP_RAW=<carrier>` 落盘原始响应、`SSH_DUMP_DOM=<carrier>` 落盘结果页文本
 与表格结构 —— 探针不必再重写请求，直接跑引擎就能拿到原始数据。
+
+### 9-30 · 修「查询中换港口再点查询会报错」（婉宜）
+
+爹地实测：正在查询时改港口再点「并发查询」→ 报错。
+
+**真因（前端状态机）**：`invoke('run_query')` 只是「启动成功」，引擎还在跑；但旧代码在
+`finally` 里就把 `engineRunning = false`、按钮解禁了（而且 `if (engineRunning) return` 让运行中点击被静默吞）。
+于是查询中点第二次 → Rust 侧 `state.running` 仍为 true → 返回 Err("engine 已在运行") → 全卡片变「启动失败」。
+
+**修法（两层）**：
+1. 前端：`engineRunning` 只在 `engine-exit / engine-error / 启动失败` 时复位；
+   查询中点「并发查询」= **排队重查**：先 `stop_query`，等 `engine-exit` 自动开新查询（8 秒兜底强制解锁）。
+   按钮运行中**不禁用**，文案变「重新查询（先停当前）」——禁用会让人以为卡死。
+2. Rust：`run_query` 遇到「已在运行」不再报错，而是**先杀旧引擎（taskkill /T 或 kill）再继续**，
+   作为前端漏判时的兜底。
+
+验收：harness 第 ⑦ 节 —— 第一次点 → `run_query`；查询中再点 → `stop_query` + 提示语 + **无错误条**；
+旧引擎 `engine-exit` 后 → 自动 `run_query`（新条件 Qingdao→Rotterdam）。0 JS 报错。

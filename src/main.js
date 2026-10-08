@@ -324,8 +324,10 @@ let stopFlag = false;
   if (el) el.addEventListener('input', () => renderPortHint(id, id + 'Hint'));
 });
 
-document.getElementById('btnGo').onclick = async () => {
-  if (engineRunning) return;
+// 正在查询时再点：不报错 —— 自动停掉旧的、接着跑新的（爹地 9-30：换港口重查会被「已在运行」拒掉）
+let pendingRestart = null;
+
+function collectQuery() {
   const origin = document.getElementById('origin').value.trim();
   const destination = document.getElementById('destination').value.trim();
   const date = document.getElementById('date').value.trim();
@@ -336,48 +338,72 @@ document.getElementById('btnGo').onclick = async () => {
   if (bad) {
     document.getElementById(bad).classList.add('invalid');
     document.getElementById(bad).focus();
-    return;
+    return null;
   }
-  ['origin', 'destination', 'date'].forEach(id => document.getElementById(id).classList.remove('invalid'));
-  const selected = [...listEl.querySelectorAll('input:checked')].map(b => b.dataset.id);
-  lastQuery = { origin, destination };  // 修 9-25『点击无反应』：此前误用未定义变量 originInput/destInput（async 里 ReferenceError 被静默吞）
-  if (!selected.length) { alert('至少勾选一家船司'); return; }
+  ['origin', 'destination', 'date'].forEach((id) => document.getElementById(id).classList.remove('invalid'));
+  const selected = [...listEl.querySelectorAll('input:checked')].map((b) => b.dataset.id);
+  if (!selected.length) { alert('至少勾选一家船司'); return null; }
+  return { origin, destination, date, selected };
+}
 
+async function startQuery(q) {
   clearEngineError();
-  renderInitialStatus(selected);
+  lastQuery = { origin: q.origin, destination: q.destination };  // 修 9-25『点击无反应』：此前误用未定义变量
+  renderInitialStatus(q.selected);
   setEngineDot('busy');
   engineRunning = true;
   stopFlag = false;
   updateGoBtn();
-  const startedAt = Date.now();
-
   try {
     const res = await invoke('run_query', {
-      args: {
-        origin, destination, date,
-        carriers: selected,
-        headless: false,
-        visible: true,
-      },
+      args: { origin: q.origin, destination: q.destination, date: q.date, carriers: q.selected, headless: false, visible: true },
     });
     if (!hasTauri) {
       setEngineDot('off');
       document.getElementById('summary').textContent = '浏览器环境（非 Tauri）— 请用 npm run tauri:dev 运行';
     }
     if (res && res.ok === false) console.warn('run_query returned', res);
+    // 注意：这里【不能】把 engineRunning 置回 false —— invoke 只是「启动成功」，
+    // 引擎还在跑（真结束看 engine-exit 事件）。原来在 finally 里解锁，导致查询中按钮就解禁、
+    // 再点必撞「engine 已在运行」（爹地 9-30 实测报错）。
   } catch (e) {
     setEngineDot('off');
-    for (const id of selected) setRow(id, { status: 'failed', msg: '启动失败：' + String(e).slice(0, 120) });
-  } finally {
-    engineRunning = false;
+    engineRunning = false;          // 启动就失败 → 立刻解禁，允许重试
     updateGoBtn();
+    for (const id of q.selected) setRow(id, { status: 'failed', msg: '启动失败：' + String(e).slice(0, 120) });
   }
+}
+
+document.getElementById('btnGo').onclick = async () => {
+  const q = collectQuery();
+  if (!q) return;
+  if (engineRunning) {
+    // 查询中再点 = 换条件重查：先停旧的，等 engine-exit 自动开新的（不会报错）
+    pendingRestart = q;
+    const box = document.getElementById('summary');
+    if (box) box.textContent = '⏹ 正在停止上一次查询，随后自动开始新查询…';
+    await invoke('stop_query', {}).catch(() => {});
+    // 兜底：若 8 秒内没等到 engine-exit（事件丢了/引擎卡住），强制解锁并直接开新查询
+    setTimeout(() => {
+      if (!pendingRestart) return;
+      const p = pendingRestart; pendingRestart = null;
+      engineRunning = false;
+      startQuery(p);
+    }, 8000);
+    return;
+  }
+  startQuery(q);
 };
 
 function updateGoBtn() {
   const btn = document.getElementById('btnGo');
-  btn.disabled = engineRunning;
-  btn.textContent = engineRunning ? '查询中…' : '并发查询';
+  const running = engineRunning || !!pendingRestart;
+  // 运行中【不禁用】：再点一次 = 换条件重查（自动停掉旧的）。禁用会让人以为卡住了。
+  btn.disabled = false;
+  btn.textContent = running ? '重新查询（先停当前）' : '并发查询';
+  btn.classList.toggle('btn-restart', running);
+  const stopBtn = document.getElementById('btnStop');
+  if (stopBtn) stopBtn.disabled = !engineRunning && !pendingRestart;
 }
 function setEngineDot(state) {
   const dot = document.getElementById('engineDot');
@@ -466,6 +492,13 @@ async function listenEngineEvents() {
       engineRunning = false;
       updateGoBtn();
       refreshSummary(true);
+      // 查询中被点了「并发查询」→ 这一轮结束后自动开新的（换港口重查不报错）
+      if (pendingRestart) {
+        const q = pendingRestart;
+        pendingRestart = null;
+        setTimeout(() => startQuery(q), 200);
+        return;
+      }
       // 引擎退出但一条结果都没有 → 必须说清原因，别让人对着空卡片猜
       const produced = Object.values(statusRows).some((g) => (g.querySelectorAll('.trow').length > 0));
       if (!produced) {
@@ -510,6 +543,7 @@ function refreshSummary() {
 
 document.getElementById('btnStop').onclick = async () => {
   stopFlag = true;
+  pendingRestart = null;   // 显式停止 = 取消排队中的重查
   await invoke('stop_query', {}).catch(() => {});
   setEngineDot('off');
   engineRunning = false;   // 关键：不解锁的话「停止」之后再点查询毫无反应（婉宜 9-23）
