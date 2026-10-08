@@ -78,11 +78,20 @@ function matchPort(q) {
   }
   let how = 'exact';
   if (!cands.length) {
-    for (const p of PORTS) if (pNorm(p.n).startsWith(wn)) cands.push(p);
+    // 前缀 + 词边界（"Ningbo" → "Ningbo Pt" ✓；"Aal" ✗ "Aalborg"）
+    for (const p of PORTS) {
+      const pn = pNorm(p.n);
+      if (!pn.startsWith(wn)) continue;
+      const idx = String(p.n).toLowerCase().replace(/[^a-z0-9]/g, '').length - pn.length + wn.length;
+      const rest = String(p.n).slice(idx);
+      if (rest === '' || /^[\s,.\-–—/()'’]/.test(rest)) cands.push(p);
+    }
     how = 'prefix';
   }
   if (!cands.length && s.length >= 5) {
-    for (const p of PORTS) if (pNorm(p.n).includes(wn)) cands.push(p);
+    // 包含匹配要求词边界（"Ningbo" ⊂ "Ningbo Pt" ✓；"Adams" ⊄ "Adamston" ✗）
+    const reWord = new RegExp('(^|[\\s,.\\-–—/()\'’])' + s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[\\s,.\\-–—/()\'’])', 'i');
+    for (const p of PORTS) if (reWord.test(String(p.n))) cands.push(p);
     how = 'contains';
   }
   if (!cands.length) {
@@ -90,7 +99,14 @@ function matchPort(q) {
     const strip = s.replace(/,\s*[a-z]{2,3}$/i, '').replace(/\s+(pt|port|harbour|harbor|terminal)$/i, '').trim();
     if (strip && strip !== s && strip.length >= 3) {
       const sw = pNorm(strip);
-      for (const p of PORTS) { const pn = pNorm(p.n); if (pn === sw || pn.startsWith(sw)) cands.push(p); }
+      for (const p of PORTS) {
+        const pn = pNorm(p.n);
+        if (pn === sw) { cands.push(p); continue; }
+        if (!pn.startsWith(sw)) continue;
+        const idx = String(p.n).toLowerCase().replace(/[^a-z0-9]/g, '').length - pn.length + sw.length;
+        const rest = String(p.n).slice(idx);
+        if (rest === '' || /^[\s,.\-–—/()'’]/.test(rest)) cands.push(p);
+      }
       how = 'prefix';
     }
   }

@@ -1,21 +1,30 @@
-// 全名覆盖率自测：拿船司名录里的「全名」当输入，看识别是否回到同一个港。
-// 数据源：MSC 目录 580 港（本地，带它自己的码）+ 词典 17522 港全名抽样。
+// 全名覆盖率自测（多船司）：拿各家目录里的「全名」当输入，看识别是否回到同一个港。
+//   ① MSC 目录 580   ② Maersk 目录（13,130 个带 LOCODE）
 import { DatabaseSync } from 'node:sqlite';
+import { readFileSync, existsSync } from 'node:fs';
 import { findPort } from '../engine/portdb.mjs';
 const db = new DatabaseSync('db/ports.db');
-const rows = db.prepare("SELECT LocationName, LocationCode, CountryIsoCode FROM msc_ports").all();
 const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-let ok = 0, miss = [], wrong = [];
-for (const r of rows) {
-  const name = String(r.LocationName || '').trim();
-  if (!name) continue;
-  const h = findPort(name, 'msc');
-  if (!h) { miss.push(name); continue; }
-  // 「回到同一个港」判定：按码相等，或归一化名字相等（船司码与 UN/LOCODE 未必一致）
-  if (h.locode === r.LocationCode || norm(h.name) === norm(name)) ok++;
-  else wrong.push(`${name} → 认成了 ${h.name} (${h.locode})`);
+function run(label, rows) {
+  let ok = 0; const miss = [], wrong = [];
+  for (const r of rows) {
+    const name = String(r.name || '').trim();
+    if (!name || name.length < 3) continue;
+    const h = findPort(name, r.carrier);
+    if (!h) { miss.push(name); continue; }
+    // 「回到同一个港」：船司码相等（若给了码）或归一化名字相等
+    if ((r.code && h.locode === r.code) || norm(h.name) === norm(name)) ok++;
+    else wrong.push(`${name} → ${h.name} (${h.locode})`);
+  }
+  const tot = rows.length;
+  console.log(`${label}：${ok}/${tot} = ${(tot ? (ok / tot * 100).toFixed(1) : 0)}%`);
+  if (miss.length) { console.log(`  未认出 ${miss.length} 条，样例：${miss.slice(0, 8).join(' | ')}`); }
+  if (wrong.length) { console.log(`  认成别的港 ${wrong.length} 条，样例：${wrong.slice(0, 6).join(' | ')}`); }
+  return { tot, ok };
 }
-const tot = rows.length;
-console.log(`MSC 名录全名识别：${ok}/${tot} = ${(ok / tot * 100).toFixed(1)}%`);
-if (miss.length) { console.log(`\n完全没认出来（${miss.length} 条，前 25）:`); miss.slice(0, 25).forEach((m) => console.log('  ✗ ' + m)); }
-if (wrong.length) { console.log(`\n认成了别的港（${wrong.length} 条，前 12）:`); wrong.slice(0, 12).forEach((m) => console.log('  ⚠ ' + m)); }
+const msc = db.prepare('SELECT LocationName name, LocationCode code FROM msc_ports').all().map((r) => ({ ...r, carrier: 'msc' }));
+run('MSC 目录全名', msc);
+if (existsSync('data/carrier-ports-maersk.json')) {
+  const mk = JSON.parse(readFileSync('data/carrier-ports-maersk.json', 'utf8')).ports.filter((p) => p.locode).map((p) => ({ name: p.name, code: p.locode, carrier: 'maersk' }));
+  run('Maersk 目录全名（带 LOCODE）', mk);
+}

@@ -57,18 +57,33 @@ export function findPort(word, carrierId) {
     const cands = [];
     for (const r of db.prepare('SELECT * FROM ports WHERE LOWER(name_ascii) = ? OR LOWER(name) = ?').all(w, w)) cands.push(r);
     if (!cands.length) {
+      // 前缀匹配 + **词边界**约束：名字必须在词边界处接着输入（"Ningbo" → "Ningbo Pt" ✓，
+      // 但 "Aal" ✗ "Aalborg"、"Aach" ✗ "Aachen"）—— 防短输入静默认到不相干的地方（10-08 实测）
       const pre = db.prepare("SELECT * FROM ports WHERE LOWER(name_ascii) LIKE ? ESCAPE '\\'").all(`${w.replace(/[%_]/g, '\\$&')}%`);
-      cands.push(...pre);
+      for (const r of pre) {
+        const rest = String(r.name_ascii || '').slice(w.length);
+        if (rest === '' || /^[\s,.\-–—/()'’]/.test(rest)) cands.push(r);
+      }
     }
     if (!cands.length && w.length >= 5) {
+      // 包含匹配同样要求**词边界**：输入必须在港名里作为完整词出现
+      // （"Ningbo" ⊂ "Ningbo Pt" ✓；"Adams" ⊄ "Adamston" ✗、"Acala" ⊄ "Nacala" ✗）
       const inc = db.prepare("SELECT * FROM ports WHERE LOWER(name_ascii) LIKE ? ESCAPE '\\'").all(`%${w.replace(/[%_]/g, '\\$&')}%`);
-      cands.push(...inc);
+      for (const r of inc) {
+        const re = new RegExp(`(^|[\\s,.\\-–—/()'’])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[\\s,.\\-–—/()'’])`, 'i');
+        if (re.test(String(r.name_ascii || ''))) cands.push(r);
+      }
     }
     if (!cands.length) {
       // 后缀容错：船司全名常带地区/类型后缀（PORTLAND, OR / UMM QASR PT / WILMINGTON, NC）
       const stripped = w.replace(/,\s*[a-z]{2,3}$/i, '').replace(/\s+(pt|port|harbour|harbor|terminal)$/i, '').trim();
       if (stripped && stripped !== w && stripped.length >= 3) {
-        for (const r of db.prepare('SELECT * FROM ports WHERE LOWER(name_ascii) = ? OR LOWER(name) = ? OR LOWER(name_ascii) LIKE ?').all(stripped, stripped, `${stripped}%`)) cands.push(r);
+        const sp = db.prepare('SELECT * FROM ports WHERE LOWER(name_ascii) = ? OR LOWER(name) = ?').all(stripped, stripped);
+        cands.push(...sp);
+        for (const r of db.prepare('SELECT * FROM ports WHERE LOWER(name_ascii) LIKE ?').all(`${stripped}%`)) {
+          const rest = String(r.name_ascii || '').slice(stripped.length);
+          if (rest === '' || /^[\s,.\-–—/()'’]/.test(rest)) cands.push(r);
+        }
       }
     }
     if (!cands.length) {
@@ -80,7 +95,10 @@ export function findPort(word, carrierId) {
       }
       if (!cands.length && wn.length >= 5) {
         for (const r of db.prepare('SELECT * FROM ports').all()) {
-          if (norm(r.name_ascii).startsWith(wn)) cands.push(r);
+          const na = norm(r.name_ascii);
+          if (!na.startsWith(wn)) continue;
+          const rawRest = String(r.name_ascii || '').slice(String(r.name_ascii || '').toLowerCase().replace(/[^a-z0-9]/g, '').length - na.length + wn.length);
+          if (rawRest === '' || /^[\s,.\-–—/()'’]/.test(rawRest)) cands.push(r);
         }
       }
     }
