@@ -111,7 +111,33 @@ const origin = args.origin || 'Shanghai';
 const destination = args.destination || 'Rotterdam';
 // 日期改为可选：不传 --date 时跳过填日期，用网站默认（通常=当天）——少一个脆弱步骤（爹地 9-22 建议）
 const isoDate = typeof args.date === 'string' ? args.date : '';   // 非字符串（flag 形态）一律视为未提供
-const ids = String(args.carriers || CARRIERS.map((c) => c.id).join(',')).split(',').map((s) => s.trim()).filter(Boolean);
+// 船司列表。逆逻辑测试出的三个坑（9-30）：
+// ① `--carriers ''`（显式空串）旧写法 `args.carriers || 全部` 会**静默变成查全部** → 11 家浏览器抓取，白等十几分钟；
+// ② `one,one` 会**把同一家跑两遍**（2 条同家状态、条数翻倍）；
+// ③ 写错船司名（`foo`）不报错，只回一句「没有选中任何船司」，用户不知道是名字写错了。
+// 现在：省略参数 = 查全部；显式空串 = fail fast；重复去重；名字写错列出可用 id。
+let ids;
+if (args.carriers === undefined || args.carriers === null) {
+  ids = CARRIERS.map((c) => c.id);                     // 省略 = 全部（CLI 裸跑）
+} else {
+  ids = String(args.carriers).split(',').map((s) => s.trim()).filter(Boolean);
+  if (!ids.length) {
+    console.error(JSON.stringify({ type: 'engine-error', msg: '参数 --carriers 为空：至少要选一家船司（省略该参数才表示查全部）' }));
+    process.exit(2);
+  }
+  const seenIds = new Set();
+  const dups = [];
+  ids = ids.filter((id) => {
+    if (seenIds.has(id)) { dups.push(id); return false; }
+    seenIds.add(id); return true;
+  });
+  if (dups.length) console.error(`[query] 忽略重复的船司：${[...new Set(dups)].join(',')}`);
+  const unknown = ids.filter((id) => !CARRIERS.some((c) => c.id === id));
+  if (unknown.length) {
+    console.error(JSON.stringify({ type: 'engine-error', msg: `未知船司：${unknown.join(', ')}。可用：${CARRIERS.map((c) => c.id).join(', ')}` }));
+    process.exit(2);
+  }
+}
 const windowMode = args.window || 'minimized'; // minimized(默认静默) | offscreen | onscreen
 const perCarrier = Number(args['per-carrier-timeout'] || 60000);
 const batchSize = Number(args.batch || 1);
