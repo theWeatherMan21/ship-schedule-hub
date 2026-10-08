@@ -19,8 +19,12 @@ const CARRIERS = [
 // 数据由 tools/export_ports.py 从 db/ports.db 生成（UN/LOCODE 17522 港 + 坐标近邻「港口圈」）
 let PORTS = [];
 let PORTS_LOADED = false;
-fetch('ports.json')
-  .then((r) => r.json())
+// 构建期内嵌（动态 import，Vite 单独切一个 chunk），不用运行时 fetch ——
+// 运行期 fetch('ports.json') 在 Tauri 生产包里能否命中，取决于资源是否被内嵌，
+// 而 release 的前端资源是压缩内嵌的、strings 也验不出来（婉宜 9-30 差点又靠 strings 下结论）。
+// 直接 import：词典跟其它 UI 代码走同一条打包路径，UI 能显示它就一定在。
+import('./ports.json')
+  .then((m) => m.default || m)
   .then((d) => {
     PORTS = d;
     PORTS_LOADED = true;
@@ -418,9 +422,13 @@ document.getElementById('btnGo').onclick = async () => {
   if (!q) return;
   if (engineRunning) {
     // 查询中再点 = 换条件重查：先停旧的，等 engine-exit 自动开新的（不会报错）
+    // 连点时只更新条件、不重复发 stop / 不叠计时器（逆逻辑测试：连点 3 次曾发 2 次 stop）
+    const alreadyStopping = !!pendingRestart;
     pendingRestart = q;
     const box = document.getElementById('summary');
     if (box) box.textContent = '⏹ 正在停止上一次查询，随后自动开始新查询…';
+    updateGoBtn();
+    if (alreadyStopping) return;
     await invoke('stop_query', {}).catch(() => {});
     // 兜底：若 8 秒内没等到 engine-exit（事件丢了/引擎卡住），强制解锁并直接开新查询
     setTimeout(() => {
