@@ -126,6 +126,71 @@ export default {
       }
     } catch { /* 抽取失败 → 保持 prefilled */ }
 
+    // 逐段航程：官网每班下面还有一张「航程明细表」（No.|From|To|Departure|Arrival|Service|Vessel Voyage|天数），
+    // 按 DOM 顺序与上面的班次一一对应（有中转的班次会出现多段，如 宁波→比雷埃夫斯→伊斯坦布尔）——婉宜 9-30
+    if (schedules.length) {
+      try {
+        const groups = await page.evaluate(() => {
+          const out = [];
+          for (const t of document.querySelectorAll('table')) {
+            const rows = [...t.querySelectorAll('tr')].map((tr) => [...tr.querySelectorAll('td,th')]
+              .map((c) => (c.innerText || '').replace(/\s+/g, ' ').trim()));
+            const head = rows.slice(0, 3).map((r) => r.join(' ')).join(' ');
+            if (!/Vessel Voyage/.test(head) || !/Location/.test(head)) continue;   // 只认「航程明细表」
+            // 主结果表也是 8+ 列且含 From/To —— 必须再区分：航程明细表的数据行**恰好 8 格**
+            // （序号|From|To|Departure|Arrival|Service|Vessel Voyage|天数）；主表每行 10+ 格。
+            // 不加这条会把主表也收进来，导致与班次的配对整体错位一格（实测踩过）。
+            const dataRows = rows.filter((r) => /^\d+$/.test(r[0] || ''));
+            if (!dataRows.length || !dataRows.every((r) => r.length === 8)) continue;
+            const legs = [];
+            for (const r of dataRows) {
+              // 数据行：[序号, From, To, Departure, Arrival, Service, Vessel Voyage, 天数]
+              if (r.length < 8 || !/^\d+$/.test(r[0])) continue;
+              const dep = /([A-Z]{3})-(\d{2})-(\d{4})/.exec(r[3] || '');
+              const arr = /([A-Z]{3})-(\d{2})-(\d{4})/.exec(r[4] || '');
+              const MON2 = { JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', JUN: '06', JUL: '07', AUG: '08', SEP: '09', OCT: '10', NOV: '11', DEC: '12' };
+              const f = (m) => (m ? `${m[3]}-${MON2[m[1]]}-${m[2]}` : '');
+              const vesselRaw = (r[6] || '').trim();
+              const vm = /^(.+?)\s+((?:\d{3,4}-)?\d{2,4}[W E])\s*$/.exec(vesselRaw);
+              legs.push({
+                seq: Number(r[0]) || legs.length + 1,
+                from: r[1] || '', fromCode: '', fromTerminal: '',
+                etd: f(dep),
+                to: r[2] || '', toCode: '', toTerminal: '',
+                eta: f(arr),
+                vessel: vm ? vm[1].trim() : vesselRaw,
+                service: r[5] || '',
+                co2: '', calls: [],
+              });
+            }
+            if (legs.length) out.push(legs);
+          }
+          return out;
+        }).catch(() => []);
+        // 官网每张航程明细表在 DOM 里存在**两份**（隐藏 + 可见副本，实测 table 14/15、16/17 完全相同）
+        // → 先去重；再用「数量必须一一对应」做最后一道保险：对不上就整批不显示，
+        // 宁可不给航程，也不给错位的航程（配错一位用户根本看不出来）。
+        const uniq = [];
+        for (const g of groups) {
+          const key = JSON.stringify(g);
+          if (!uniq.length || JSON.stringify(uniq[uniq.length - 1]) !== key) uniq.push(g);
+        }
+        if (uniq.length === schedules.length) {
+          uniq.forEach((legs, i) => {
+            const s = schedules[i];
+            if (!s || !legs.length) return;
+            s.detail = s.detail || { service: '', routing: '', co2: '', legs: [], cutoffs: {} };
+            s.detail.legs = legs;
+            s.detail.routing = legs.length > 1 ? 'Via' : 'Direct';
+            if (!s.detail.service) s.detail.service = legs[0].service || '';
+            s.direct = legs.length <= 1;
+          });
+        } else {
+          console.error(`[evergreen] 航程明细表数量(${uniq.length})与班次数(${schedules.length})不一致 → 不挂航程（避免错位）`);
+        }
+      } catch { /* 航程明细拿不到不影响主流程 */ }
+    }
+
     const msg = `已填 ${q.originText} → ${q.destText} 并搜索` +
       (schedules.length ? `，${schedules.length} 条船期：` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays}天`).join(' ｜ ') : '');
     if (schedules.length) return { msg, schedules };
