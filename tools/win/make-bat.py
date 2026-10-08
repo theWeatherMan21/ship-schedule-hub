@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""把 tools/win/setup-remote-access.ps1 打包成单文件 .bat（自提权 + base64 内嵌 PowerShell）
+r"""把 tools/win/setup-remote-access.ps1 打包成单文件 .bat（v3）
 
-为什么用 base64：.bat 里嵌长 PS 代码要转义一堆 ( ) % > | & ^ <，极易踩坑。
-base64 只含 [A-Za-z0-9+/=]，对 cmd 的 echo 完全安全，零转义、零编码问题。
-关键：不能把十几 KB 的 base64 拼成一条命令（cmd 单条命令行上限 8191 字符），
-      必须逐行 `echo` 追加到临时文件。
+历史坑（都真实踩过，别再犯）：
+  ① v1 用 `fltmc` 判管理员 —— 真机 PATH 不全时报「不是内部或外部命令」→ 误判没权限 → 无限提权弹窗。
+  ② v2 生成器用**普通字符串**写模板，`\WindowsPowerShell\v1.0` 里的 `\v` 被 Python 当成垂直制表符(\x0b)，
+     `\net.exe` 里的 `\n` 被当成换行 → 生成的 bat 里路径全坏、命令整行消失（真机报「不是内部或外部命令」的另一个来源）。
+     ⇒ 本文件改用 **raw f-string**（rf'''）：反斜杠单写即字面量，不做任何转义。
+  ③ 真机 PATH 连 System32 都不全 ⇒ 所有外部命令走绝对路径（%SYS32%、%PSEXE%）。
+
+base64 说明：只含 [A-Za-z0-9+/=]，对 cmd 的 echo 完全安全；十几 KB 不能拼成一条命令
+（cmd 单行上限 8191），必须逐行 echo 追加。
 """
 import base64, hashlib, pathlib
 
@@ -18,60 +23,126 @@ b64 = base64.b64encode(ps_text.encode('utf-16-le')).decode('ascii')
 sha = hashlib.sha256(ps_text.encode('utf-8')).hexdigest()[:16]
 CH = 3500
 lines = [b64[i:i + CH] for i in range(0, len(b64), CH)]
-
 echo_block = '\r\n'.join(
-    ('> "%B64FILE%" echo ' if i == 0 else '>> "%B64FILE%" echo ') + chunk
-    for i, chunk in enumerate(lines)
+    ('>> "%B64FILE%" echo ' if i else '> "%B64FILE%" echo ') + c for i, c in enumerate(lines)
 )
 
-bat = f'''@echo off
+# ★ raw f-string：反斜杠单写即为字面量（这是 v2 出事故的地方）
+bat = rf'''@echo off
 rem ============================================================================
-rem  ShipScheduleHub ・ Windows 远程调试环境一键配置（婉宜 10-08）
-rem  双击运行；会自动申请管理员权限。做四件事：
-rem    1) 环境体检  2) Tailscale（装/登录/报 IP）  3) OpenSSH Server（装/自启/防火墙/公钥）
-rem    4) 自检 + 桌面报告 + 关键信息复制到剪贴板
-rem  源码与校验：tools/win/setup-remote-access.ps1（sha256 前16位 {sha}）
+rem  ShipScheduleHub ・ Windows 远程调试环境配置（婉宜 10-08 ・ v3）
+rem  双击即可；会申请一次管理员权限（UAC 点是），随后自动完成：
+rem    Tailscale 检查/登录 - 装 OpenSSH Server - 装调试公钥 - 防火墙(仅 Tailscale 网段) - 体检报告
+rem  源码校验：setup-remote-access.ps1  sha256 前16位 {sha}
+rem  v3 修复：① 管理员判定不再依赖 fltmc（PATH 不全时误判会导致死循环弹窗）
+rem            ② 所有外部命令走绝对路径 ③ 全量日志落盘，窗口一闪也有证据
 rem ============================================================================
 chcp 65001 >nul
-setlocal EnableDelayedExpansion
+setlocal EnableExtensions
 title ShipScheduleHub 远程调试环境配置
 
-fltmc >nul 2>&1
-if errorlevel 1 (
-  echo 需要管理员权限，正在申请（会弹一个 UAC 确认框）...
-  powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-  exit /b
+set "SYS32=%SystemRoot%\System32"
+set "PSEXE=%SYS32%\WindowsPowerShell\v1.0\powershell.exe"
+if not exist "%PSEXE%" set "PSEXE=powershell.exe"
+set "WORK=%TEMP%\ssh-setup"
+if not exist "%WORK%" mkdir "%WORK%" >nul 2>&1
+set "LOG=%WORK%\setup-log.txt"
+call :log "==== 启动 %DATE% %TIME% 参数=[%*] ===="
+call :log "SYS32=%SYS32% PSEXE=%PSEXE% TEMP=%TEMP% USER=%USERNAME%"
+
+set "PS1="
+if exist "%~dp0setup-remote-access.ps1" set "PS1=%~dp0setup-remote-access.ps1"
+
+if /i "%~1"=="--elevated" (
+  call :log "[i] 进入主体（已带 --elevated，不再提权）"
+  goto :body
 )
 
-set "B64FILE=%TEMP%\\ssh-setup-b64.txt"
-set "PS1=%TEMP%\\setup-remote-access.ps1"
-del "%B64FILE%" >nul 2>&1
-{echo_block}
+call :log "[i] 探测管理员权限..."
+set "ISADMIN="
+"%SYS32%\net.exe" session >nul 2>&1 && set "ISADMIN=1" && call :log "[i] net session 判定=管理员"
+if not defined ISADMIN (
+  "%PSEXE%" -NoProfile -Command "if((New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){{exit 0}}else{{exit 1}}" >nul 2>&1 && set "ISADMIN=1" && call :log "[i] PowerShell 角色判定=管理员"
+)
+if not defined ISADMIN (
+  "%SYS32%\reg.exe" add "HKU\Software\Microsoft\Windows\CurrentVersion\SSHSetupProbe" /f >nul 2>&1 && set "ISADMIN=1" && "%SYS32%\reg.exe" delete "HKU\Software\Microsoft\Windows\CurrentVersion\SSHSetupProbe" /f >nul 2>&1 && call :log "[i] reg 写测试判定=管理员"
+)
+if defined ISADMIN goto :body
 
-if not exist "%B64FILE%" (
-  echo [NG] 写临时文件失败：%B64FILE%
+call :log "[i] 当前非管理员，准备提权一次"
+echo 需要管理员权限 - 稍后会弹 UAC 确认框，请点「是」。
+echo 脚本只申请这一次；若点「否」，它会停下并告诉你怎么手动跑，不会再反复弹窗。
+set "SELFBAT=%~f0"
+echo %SELFBAT% | "%SYS32%\findstr.exe" /b "\\\\" >nul
+if not errorlevel 1 (
+  call :log "[i] 从网络路径启动，先拷到本地再提权"
+  copy /y "%~f0" "%WORK%\run.bat" >nul 2>&1
+  if defined PS1 copy /y "%PS1%" "%WORK%\setup-remote-access.ps1" >nul 2>&1
+  set "PS1=%WORK%\setup-remote-access.ps1"
+  set "SELFBAT=%WORK%\run.bat"
+)
+"%PSEXE%" -NoProfile -Command "Start-Process -FilePath '%SELFBAT%' -ArgumentList '--elevated' -Verb RunAs" 1>>"%LOG%" 2>&1
+if errorlevel 1 (
+  echo.
+  echo [NG] 提权失败（UAC 被拒绝，或 PowerShell 不可用）。两个办法任选：
+  echo      1) 右键这个 .bat，选「以管理员身份运行」
+  echo      2) 手动开「Windows PowerShell (管理员)」，粘贴执行：
+  echo         "%PSEXE%" -ExecutionPolicy Bypass -File "%PS1%"
+  echo.
+  echo      日志：%LOG%
+  pause
+)
+exit /b 0
+
+:body
+if not defined PS1 (
+  set "PS1=%TEMP%\setup-remote-access.ps1"
+  set "B64FILE=%WORK%\b64.txt"
+  del "%B64FILE%" >nul 2>&1
+  call :log "[i] 解出内嵌脚本到 %PS1%"
+{echo_block}
+  "%PSEXE%" -NoProfile -ExecutionPolicy Bypass -Command "$b=[IO.File]::ReadAllText('%B64FILE%'); $s=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($b.Trim())); [IO.File]::WriteAllText('%PS1%', $s, (New-Object Text.UTF8Encoding $false))" 1>>"%LOG%" 2>&1
+  del "%B64FILE%" >nul 2>&1
+)
+if not exist "%PS1%" (
+  echo [NG] 找不到脚本：%PS1%
+  echo      请把 setup-remote-access.ps1 和本 .bat 放在同一文件夹再试。
+  echo      日志：%LOG%
   pause
   exit /b 1
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$b=[IO.File]::ReadAllText('%B64FILE%'); $s=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($b.Trim())); [IO.File]::WriteAllText('%PS1%', $s, (New-Object Text.UTF8Encoding $false)); Write-Host '[OK] 脚本已解出，开始执行' -ForegroundColor Green"
-
-powershell -NoProfile -ExecutionPolicy Bypass -File "%PS1%"
+call :log "[i] 开始执行 %PS1%"
+"%PSEXE%" -NoProfile -ExecutionPolicy Bypass -NoLogo -File "%PS1%" -LogPath "%LOG%"
 set "RC=%ERRORLEVEL%"
-del "%B64FILE%" >nul 2>&1
-
+call :log "[i] 退出码 %RC%"
 if not "%RC%"=="0" (
   echo.
-  echo [NG] 脚本退出码 %RC% —— 请把上面的输出或桌面报告发给我
+  echo [NG] 脚本退出码 %RC% - 完整日志：%LOG%
+  echo      把这个日志（或桌面上的报告 txt）发给婉宜即可。
   pause
 )
 exit /b %RC%
+
+:log
+>>"%LOG%" echo %~1
+exit /b 0
 '''
 
+bat = bat.replace('\r\n', '\n').replace('\n', '\r\n')   # 统一 CRLF
 for target in (OUT, OUT_ASCII):
-    target.write_text(bat, encoding='utf-8')
+    with open(target, 'w', encoding='utf-8', newline='') as fh:
+        fh.write(bat)
+
+# ---- 生成即自检（v2 的事故就是没自检）----
+bad_ctrl = {hex(ord(c)): bat.count(c) for c in set(bat) if ord(c) < 32 and c not in '\r\n'}
+must = ['%SYS32%\\net.exe', '%SYS32%\\reg.exe', '%SYS32%\\findstr.exe',
+        '%SYS32%\\WindowsPowerShell\\v1.0\\powershell.exe', 'if /i "%~1"=="--elevated"']
+missing = [m for m in must if m not in bat]
 print(f"PS 源码 {len(ps_text)} 字节  sha256:{sha}")
-print(f"base64 {len(b64)} 字符，分 {len(lines)} 行 echo 写入（每行 ≤{CH}）")
-print(f"生成: {OUT}")
-print(f"生成: {OUT_ASCII}")
-print(f"bat 体积: {len(bat.encode('utf-8'))} 字节")
+print(f"base64 {len(b64)} 字符 / {len(lines)} 行（每行 ≤{CH}）")
+print(f"生成: {OUT.name} · {OUT_ASCII.name} · {len(bat.encode('utf-8'))} 字节 · 最长行 {max(len(l) for l in bat.splitlines())}")
+print("控制字符自检:", bad_ctrl if bad_ctrl else "干净 ✅（只有 CR/LF）")
+print("关键路径自检:", "全部就位 ✅" if not missing else f"缺失 ❌ {missing}")
+if bad_ctrl or missing:
+    raise SystemExit("生成结果不可用，已中止（请修生成器，别把坏 bat 发出去）")

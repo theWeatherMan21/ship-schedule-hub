@@ -335,7 +335,9 @@ fn diagnose(app: AppHandle) -> Result<serde_json::Value, String> {
     // Windows：WebView2 运行时（Tauri 必需，缺失会白屏/打不开）
     #[cfg(windows)]
     {
-        let outv = Command::new("reg")
+        // 绝对路径：真机 PATH 可能不全（fltmc/reg 报「不是内部或外部命令」）
+        let sys32 = std::env::var("SystemRoot").map(|w| format!("{w}\\System32")).unwrap_or_else(|_| "C:\\Windows\\System32".into());
+        let outv = Command::new(format!("{sys32}\\reg.exe"))
             .args(["query", "HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}", "/v", "pv"])
             .output();
         let wv2 = match outv {
@@ -347,7 +349,12 @@ fn diagnose(app: AppHandle) -> Result<serde_json::Value, String> {
         };
         out["webview2"] = serde_json::json!(wv2);
         // 是否以管理员运行（部分机器上写 C:\ProgramData / 防火墙需要）
-        let elevated = Command::new("fltmc").output().map(|o| o.status.success()).unwrap_or(false);
+        // 用 net.exe session 判管理员：比 fltmc 稳（fltmc 在 PATH 不全的机器上直接找不到）
+        let elevated = Command::new(format!("{sys32}\\net.exe"))
+            .args(["session"])
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false);
         out["elevated"] = serde_json::json!(elevated);
     }
 

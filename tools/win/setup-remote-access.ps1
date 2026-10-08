@@ -15,18 +15,26 @@
 [CmdletBinding()]
 param(
   [string]$PubKey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKNCwrbU8S+KTQwY57iQl4uRQKAmlx6YLFK/dDleZUsD hermes-debug@mac',
-  [string]$DebugIp = '100.93.4.124'   # 我的 Tailscale 地址（用来限制防火墙来源）
+  [string]$DebugIp = '100.93.4.124',  # 我的 Tailscale 地址（用来限制防火墙来源）
+  [string]$LogPath = ''               # 可选：把全部输出同时追加到这个文件（窗口一闪也有证据）
 )
 
 $ErrorActionPreference = 'Continue'
+# 真机教训（10-08）：那台机器 PATH 里连 System32 都不全（fltmc 报「不是内部或外部命令」）。
+# 所以本脚本一律用绝对路径调用外部命令，绝不依赖 PATH。
 $ProgressPreference = 'SilentlyContinue'
 
 # ---------- 报告与输出 ----------
 $script:Report = New-Object System.Collections.ArrayList
+$script:LogPath = $LogPath
+if ($script:LogPath) { W ("日志文件: " + $script:LogPath) 'DarkGray' }
 function W([string]$m, [string]$c = 'Gray') {
   $m = [string]$m
   Write-Host $m -ForegroundColor $c
   [void]$script:Report.Add($m)
+  if ($script:LogPath) {
+    try { Add-Content -Path $script:LogPath -Value ("[{0:HH:mm:ss}] {1}" -f (Get-Date), $m) -Encoding UTF8 -ErrorAction SilentlyContinue } catch {}
+  }
 }
 function Ok([string]$m)   { W ("[OK]   " + $m) 'Green' }
 function Bad([string]$m)  { W ("[NG]   " + $m) 'Red' }
@@ -58,6 +66,7 @@ try {
 if (-not $isAdmin) {
   Bad '当前不是管理员权限 —— 装 OpenSSH / 改防火墙会失败'
   W '     请关掉窗口，右键这个 .bat →「以管理员身份运行」再试一次。' 'Yellow'
+  W '请关掉窗口，改用「右键 → 以管理员身份运行」重试。' 'Yellow'
   Read-Host '按回车退出'
   exit 1
 }
@@ -81,7 +90,7 @@ foreach ($t in @(@('login.tailscale.com', 443), @('github.com', 443), @('pkgs.ta
   if ($ok) { Ok ("可达 {0}:{1}" -f $t[0], $t[1]) } else { Bad ("不可达 {0}:{1}（装 Tailscale 需要它）" -f $t[0], $t[1]) }
 }
 try {
-  $wp = (netsh winhttp show proxy) -join ' '
+  $wp = (& "$env:SystemRoot\System32\netsh.exe" winhttp show proxy) -join ' '
   W ('      WinHTTP 代理：' + ($wp -replace '\s+', ' ')).Trim() 'DarkGray'
 } catch {}
 try {
@@ -241,7 +250,7 @@ if ($svc -and (Test-Path $sshdExe)) {
       if (-not (Test-Path $sshdDir)) { New-Item -Path $sshdDir -ItemType Directory -Force | Out-Null }
       Copy-Item -Path (Join-Path $inner.FullName '*') -Destination $sshdDir -Recurse -Force
       if (Test-Path (Join-Path $sshdDir 'install-sshd.ps1')) {
-        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $sshdDir 'install-sshd.ps1') | Out-Null
+        & "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File (Join-Path $sshdDir 'install-sshd.ps1') | Out-Null
       }
       Ok 'Win32-OpenSSH 已就位'
     } catch { Bad ('Win32-OpenSSH 安装失败：' + $_.Exception.Message) }
@@ -288,7 +297,7 @@ try {
     Ok '已写入调试公钥'
   }
   # ACL：只留 Administrators + SYSTEM（写错权限密钥会被 sshd 忽略）
-  & icacls.exe $keyFile /inheritance:r /grant 'Administrators:F' /grant 'SYSTEM:F' | Out-Null
+  & "$env:SystemRoot\System32\icacls.exe" $keyFile /inheritance:r /grant 'Administrators:F' /grant 'SYSTEM:F' | Out-Null
   Ok '公钥文件权限已收紧（Administrators + SYSTEM）'
 } catch { Bad ('写公钥失败：' + $_.Exception.Message) }
 
@@ -410,10 +419,11 @@ try {
   $all = $head + $script:Report + @('', '# ===== 摘要 =====', $text)
   $all | Out-File -FilePath $reportPath -Encoding UTF8
   Ok ('完整报告已保存: ' + $reportPath)
-  try { Start-Process notepad.exe $reportPath } catch {}
+  try { Start-Process "$env:SystemRoot\System32\notepad.exe" $reportPath } catch {}
 } catch { Warn2 ('写报告文件失败：' + $_.Exception.Message) }
 
 Write-Host ''
 W '下一步：我这边会试连 —— 你也可以现在把上面那段（或报告文件）发我。' 'Cyan'
+if ($script:LogPath) { W ('本次日志: ' + $script:LogPath) 'DarkGray' }
 Write-Host ''
 Read-Host '按回车结束'
