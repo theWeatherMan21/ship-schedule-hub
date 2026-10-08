@@ -395,6 +395,44 @@ function yangmingDetail(x) {
   });
 }
 
+// 赫伯罗特截单码 → 中文备注（代码本身照原样显示，备注只是帮助理解，不改变口径）
+const HAPAG_CUT_NAMES = {
+  FCO: '满箱截关', LCO: '晚到截关', VCO: 'VGM/重量', DOC: '单证', SHI: '提单指示',
+  DGD: '危险品申报', OOG: '超限箱', REF: '冷藏箱',
+};
+
+// 赫伯罗特单班详情：legs（含码头名/IMO/呼号/服务名）+ gateInCutOffDateTimes
+function hapagDetail(x) {
+  const legs = (Array.isArray(x.legs) ? x.legs : []).map((lg, i) => {
+    const dep = lg.departureLocation || {}; const arr = lg.arrivalLocation || {};
+    const vd = lg.vesselDetails || {};
+    return {
+      seq: i + 1,
+      from: dep.locationName || '', fromCode: dep.unLocationCode || '', fromTerminal: dep.name || '',
+      etd: String(lg.departureDateTime || '').slice(0, 16).replace('T', ' '),
+      to: arr.locationName || '', toCode: arr.unLocationCode || '', toTerminal: arr.name || '',
+      eta: String(lg.arrivalDateTime || '').slice(0, 16).replace('T', ' '),
+      vessel: vd.name || '', imo: vd.imoNumber || '', built: '', flag: vd.callSign ? `呼号 ${vd.callSign}` : '',
+      service: lg.serviceName ? `${lg.serviceName}${lg.serviceCode ? ' (' + lg.serviceCode + ')' : ''}` : (lg.serviceCode || ''),
+      co2: '', calls: [],
+    };
+  });
+  const cutoffs = {};
+  for (const g of (Array.isArray(x.gateInCutOffDateTimes) ? x.gateInCutOffDateTimes : [])) {
+    const code = g.cutOffDateTimeCode || '';
+    const when = String(g.cutOffDateTime || '').replace('T', ' ');
+    if (!code || !when) continue;
+    const zh = HAPAG_CUT_NAMES[code];
+    cutoffs[zh ? `${code}（${zh}）` : code] = when;
+  }
+  return mkDetail({
+    service: (legs.find((l) => l.service) || {}).service || '',
+    routing: (Number(x.transitTimeInDays) ? (legs.filter((l) => l.service).length > 1 ? 'Via' : 'Direct') : ''),
+    legs,
+    cutoffs,
+  });
+}
+
 // MSC 单班详情：航程（分段/码头/船信息/挂靠港）+ 截单时间（官网原样）
 function mscDetail(x, leg) {
   const c = leg.CutOffs || {};
@@ -551,6 +589,8 @@ export async function hapagInPage(page, originLocode, destLocode, isoDate) {
       transitDays: x.transitTimeInDays ?? '',
       via,
       direct: legs.filter((lg) => (lg.modeOfTransport || '').toUpperCase() === 'VESSEL').length <= 1,
+      // 逐段航程 + 截单（gateInCutOffDateTimes：官网给的是一组代码，原样呈现 + 中文备注）
+      detail: hapagDetail(x),
     };
   }).filter((r2) => r2.etd);
   if (!rows.length) return null;
