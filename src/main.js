@@ -37,25 +37,46 @@ fetch('ports.json')
 function matchPort(q) {
   const s = (q || '').trim().toLowerCase();
   if (s.length < 3) return null;
-  return (
-    PORTS.find((p) => p.n.toLowerCase() === s) ||
-    PORTS.find((p) => p.n.toLowerCase().startsWith(s)) ||
-    PORTS.find((p) => p.n.toLowerCase().includes(s)) ||
-    null
-  );
+  // 区分「精确 / 前缀 / 包含」——逆着逻辑测出来的隐患：输入 shan 会被前缀匹配到
+  // 爱尔兰 Shannon (CANON)，旧版界面照样显示「✅ 识别为 Shannon」，用户会以为查的是上海。
+  const exact = PORTS.find((p) => p.n.toLowerCase() === s);
+  if (exact) return { p: exact, how: 'exact' };
+  const pre = PORTS.find((p) => p.n.toLowerCase().startsWith(s));
+  if (pre) return { p: pre, how: 'prefix' };
+  const inc = PORTS.find((p) => p.n.toLowerCase().includes(s));
+  if (inc) return { p: inc, how: 'contains' };
+  return null;
 }
 
 function renderPortHint(inputId, hintId) {
   const el = document.getElementById(hintId);
   if (!el) return;
   if (!PORTS_LOADED) { el.textContent = ''; return; }
-  const p = matchPort(document.getElementById(inputId).value);
-  if (!p) { el.textContent = ''; el.className = 'porthint'; return; }
-  const near = (p.near || []).map((x) => x.n).slice(0, 6);
-  el.innerHTML =
-    `✅ 识别为 <b>${p.n}</b> (${p.l}${p.c ? ' · ' + p.c : ''})` +
-    (near.length ? `<br><span class="near">同港区：${near.join(' / ')}</span>` : '');
-  el.className = 'porthint ok';
+  const raw = document.getElementById(inputId).value.trim();
+  const m = matchPort(raw);
+  if (!m) {
+    if (raw.length >= 3) {
+      // 明确告诉用户词典里没有：避免他以为识别成功了
+      el.innerHTML = `⚠️ 词典里没有「${raw}」—— 会按原词交给各船司网站（可能查不到，建议用英文港名）`;
+      el.className = 'porthint warn';
+    } else {
+      el.textContent = ''; el.className = 'porthint';
+    }
+    return;
+  }
+  const near = (m.p.near || []).map((x) => x.n).slice(0, 6);
+  if (m.how === 'exact') {
+    el.innerHTML =
+      `✅ 识别为 <b>${m.p.n}</b> (${m.p.l}${m.p.c ? ' · ' + m.p.c : ''})` +
+      (near.length ? `<br><span class="near">同港区：${near.join(' / ')}</span>` : '');
+    el.className = 'porthint ok';
+  } else {
+    // 前缀/包含匹配：可能不是用户想要的那个港 —— 必须让人看见并要求确认
+    el.innerHTML =
+      `⚠️ 近似匹配 <b>${m.p.n}</b> (${m.p.l}${m.p.c ? ' · ' + m.p.c : ''})　` +
+      `<span class="near">不是精确名称，请确认是不是这个港（输入越完整越准）</span>`;
+    el.className = 'porthint warn';
+  }
 }
 
 // ---------- 状态文案 ----------

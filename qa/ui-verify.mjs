@@ -275,6 +275,70 @@ const stopped = afterExit.calls.includes('stop_query');
 console.log(`  ${ranTwice && stopped ? '✅ 自动停旧+跑新（无报错）' : '❌ 未按预期重查'}`);
 await page.screenshot({ path: path.join(OUT, '7-restart.png'), fullPage: true });
 
+// ---------- ⑧ 前端刁钻操作（逆着前端逻辑）----------
+console.log('\n═══ ⑧ 前端刁钻操作 ═══');
+// 8.1 空港口直接点查询 → 应高亮 invalid、不发请求
+await emit({ type: 'engine-exit', total: 0, prefilled: 0, opened: 0, failed: 0 });
+await page.waitForTimeout(300);
+await page.evaluate(() => { window.__calls.length = 0; });
+await page.fill('#origin', '');
+await page.fill('#destination', '');
+await page.click('#btnGo');
+await page.waitForTimeout(400);
+const r81 = await page.evaluate(() => ({
+  calls: window.__calls.map((c) => c.cmd),
+  invalid: [...document.querySelectorAll('input.invalid')].map((e) => e.id),
+  focused: document.activeElement && document.activeElement.id,
+}));
+console.log(`  8.1 空港口点查询：请求=${r81.calls.length} 高亮=${r81.invalid.join(',')} 焦点=${r81.focused}  ${r81.calls.length === 0 && r81.invalid.length ? '✅' : '❌'}`);
+
+// 8.2 近似匹配/未识别的港口提示（shan → Shannon 隐患）
+await page.fill('#origin', 'shan');
+await page.waitForTimeout(200);
+const r82 = await page.evaluate(() => {
+  const h = document.getElementById('originHint');
+  return { cls: h.className, text: h.textContent.slice(0, 70) };
+});
+console.log(`  8.2 "shan" 提示：class="${r82.cls}" 文案="${r82.text}"  ${/warn/.test(r82.cls) ? '✅ 有警告（不是假装精确）' : '❌ 仍显示为精确识别'}`);
+
+await page.fill('#origin', 'asdfghjkl');
+await page.waitForTimeout(200);
+const r83 = await page.evaluate(() => {
+  const h = document.getElementById('originHint');
+  return { cls: h.className, text: h.textContent.slice(0, 80) };
+});
+console.log(`  8.3 未识别港口提示：class="${r83.cls}" 文案="${r83.text}"  ${/warn/.test(r83.cls) ? '✅' : '❌ 静默无提示'}`);
+
+// 8.4 全不选船司 → 应 alert 拦截（alert 会被 playwright 自动 dismiss）
+await page.fill('#origin', 'Ningbo');
+await page.fill('#destination', 'Istanbul');
+await page.evaluate(() => { window.__calls.length = 0; document.querySelectorAll('#carrierList input').forEach((b) => { b.checked = false; }); });
+let alerted = false;
+page.on('dialog', async (d) => { alerted = true; await d.dismiss(); });
+await page.click('#btnGo');
+await page.waitForTimeout(500);
+const r84 = await page.evaluate(() => window.__calls.map((c) => c.cmd));
+console.log(`  8.4 全不选船司：alert=${alerted} 请求=${r84.length}  ${alerted && !r84.includes('run_query') ? '✅ 拦住了' : '❌'}`);
+
+// 8.5 连点 3 次 → 不应因此报错（应只跑一轮 + 排队一次）
+await page.evaluate(() => { window.__calls.length = 0; document.querySelectorAll('#carrierList input').forEach((b) => { b.checked = true; }); });
+await page.click('#btnGo');
+await page.waitForTimeout(250);
+await page.click('#btnGo');
+await page.click('#btnGo');
+await page.waitForTimeout(500);
+const r85 = await page.evaluate(() => ({
+  calls: window.__calls.map((c) => c.cmd),
+  errShown: !document.getElementById('errBox').hidden,
+  btn: document.getElementById('btnGo').textContent,
+}));
+console.log(`  8.5 连点 3 次：调用=${r85.calls.join(',')} 错误条=${r85.errShown} 按钮="${r85.btn}"  ${!r85.errShown && r85.calls.filter((c) => c === 'run_query').length === 1 ? '✅ 只有一轮 + 排队' : '⚠️ 看调用序列'}`);
+await emit({ type: 'engine-exit', total: 0, prefilled: 0, opened: 0, failed: 0 });
+await page.waitForTimeout(600);
+const r85b = await page.evaluate(() => window.__calls.map((c) => c.cmd));
+console.log(`      退出后：${r85b.join(',')}  ${r85b.filter((c) => c === 'run_query').length >= 2 ? '✅ 自动重查' : '⚠️'}`);
+await page.screenshot({ path: path.join(OUT, '8-adversarial-ui.png'), fullPage: true });
+
 console.log('\n═══ ③ 报错 ═══');
 console.log('  页面错误数:', errs.length);
 errs.slice(0, 6).forEach((e) => console.log('   ', e));

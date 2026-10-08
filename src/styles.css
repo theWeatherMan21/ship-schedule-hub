@@ -291,4 +291,5 @@ body {
 /* 港口识别提示 */
 .porthint { font-size: 11px; line-height: 1.35; color: var(--ink-3); min-height: 15px; margin-top: 3px; }
 .porthint.ok { color: #17794a; }
+.porthint.warn { color: #a35b00; }        /* 近似匹配/未识别：必须显眼，别让用户以为识别成功了 */
 .porthint .near { color: var(--ink-2); font-size: 10px; }
