@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>ShipScheduleHub · 外观三个方向</title>
+<style>
+/* ============ 主题变量（4 套配色 × 深浅）============ */
+:root {
+  --r-card: 16px;
+  --r-btn: 10px;
+  --blur: 26px;
+  --sat: 180%;
+  --ease: cubic-bezier(.22,1,.36,1);
+}
+/* 主题：海运蓝（默认） */
+[data-theme="sea"]   { --accent:#2f7dd1; --accent-2:#5aa9f0; --glow:rgba(47,125,209,.45); }
+/* 午夜蓝 */
+[data-theme="midnight"] { --accent:#6d8cff; --accent-2:#a78bfa; --glow:rgba(109,140,255,.45); }
+/* 石墨灰 */
+[data-theme="graphite"] { --accent:#8b93a1; --accent-2:#c3cad6; --glow:rgba(139,147,161,.35); }
+/* 暖沙 */
+[data-theme="sand"] { --accent:#c08437; --accent-2:#e0b070; --glow:rgba(192,132,55,.38); }
+
+/* 深色玻璃材质 */
+[data-mode="dark"] {
+  --wall-1:#0a1220; --wall-2:#101d33; --wall-3:#07182b;
+  --glass: rgba(18,27,44,.40);
+  --glass-2: rgba(24,36,56,.30);
+  --card: rgba(30,43,64,.42);
+  --card-hi: rgba(255,255,255,.06);
+  --line: rgba(255,255,255,.10);
+  --line-2: rgba(255,255,255,.16);
+  --text:#eef3fb; --text-2:#a9b7cc; --text-3:#75869e;
+  --ok:#3ddc97; --warn:#f0b429; --bad:#ff6b6b;
+  --shadow: 0 12px 34px rgba(0,0,0,.42), 0 2px 8px rgba(0,0,0,.28);
+}
+/* 浅色玻璃材质 */
+[data-mode="light"] {
+  --wall-1:#dfe8f4; --wall-2:#eef3fa; --wall-3:#dbe6f3;
+  --glass: rgba(255,255,255,.46);
+  --glass-2: rgba(255,255,255,.34);
+  --card: rgba(255,255,255,.58);
+  --card-hi: rgba(255,255,255,.6);
+  --line: rgba(16,32,56,.10);
+  --line-2: rgba(16,32,56,.16);
+  --text:#132033; --text-2:#4c5d75; --text-3:#7b8aa0;
+  --ok:#0f9d63; --warn:#a35b00; --bad:#cf3b3b;
+  --shadow: 0 12px 30px rgba(24,42,72,.14), 0 2px 6px rgba(24,42,72,.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font: 13px/1.5 -apple-system, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+  color: var(--text);
+  background: linear-gradient(160deg, var(--wall-2), var(--wall-1) 55%, var(--wall-3));
+  transition: background .5s var(--ease), color .3s var(--ease);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
+}
+/* 桌面壁纸：有结构才有「玻璃感」——纯色底上做模糊是看不出来的（视觉自检第一条结论） */
+.wall { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+.wall i { position: absolute; display: block; border-radius: 50%; filter: blur(60px); opacity: .55; }
+.wall i:nth-child(1) { width: 620px; height: 620px; left: -140px; top: -180px; background: var(--accent); opacity: .42; }
+.wall i:nth-child(2) { width: 520px; height: 520px; right: -120px; top: 60px; background: var(--accent-2); opacity: .34; }
+.wall i:nth-child(3) { width: 700px; height: 700px; left: 28%; bottom: -420px; background: var(--wall-3); opacity: .5; }
+.wall u { position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
+  background: repeating-linear-gradient(0deg, transparent 0 26px, rgba(255,255,255,.045) 26px 27px);
+  mask-image: linear-gradient(0deg, #000, transparent); }
+.screen { position: relative; padding: 26px 0 60px; }
+/* 方向 B 的彩色光晕 */
+body[data-variant="B"]::before,
+body[data-variant="B"]::after {
+  content: ""; position: fixed; border-radius: 50%; filter: blur(90px); opacity: .5; pointer-events: none;
+}
+body[data-variant="B"]::before { width: 520px; height: 520px; left: -120px; top: -140px; background: var(--accent); opacity: .38; }
+body[data-variant="B"]::after  { width: 460px; height: 460px; right: -100px; bottom: -160px; background: var(--accent-2); opacity: .30; }
+
+/* ============ 选择器工具条（这是给爹地挑的，不是 App 本身）============ */
+.picker {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 10px 18px; margin: 0 0 16px;
+  background: var(--glass); backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+  border-bottom: 1px solid var(--line);
+}
+.picker .lbl { color: var(--text-3); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin-right: 8px; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; background: var(--glass-2); border: 1px solid var(--line); border-radius: 11px; }
+.seg button {
+  font: inherit; font-size: 12px; color: var(--text-2); background: transparent; border: 0;
+  padding: 6px 13px; border-radius: 8px; cursor: pointer; transition: all .2s var(--ease);
+}
+.seg button:hover { color: var(--text); background: var(--card-hi); }
+.seg button.on { color: #fff; background: var(--accent); box-shadow: 0 2px 10px var(--glow); }
+[data-mode="light"] .seg button.on { color: #fff; }
+.sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line-2); cursor: pointer; transition: transform .2s var(--ease); }
+.sw:hover { transform: scale(1.12); }
+.sw.on { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+
+/* ============ App 外壳（真·毛玻璃靠系统 vibrancy；这里是浏览器模拟）============ */
+.app {
+  width: min(1200px, calc(100% - 32px)); margin: 0 auto 40px;
+  border-radius: var(--r-card); border: 1px solid var(--line-2);
+  background: var(--glass);
+  backdrop-filter: blur(calc(var(--blur) + 8px)) saturate(var(--sat));
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.22), inset 0 0 0 1px rgba(255,255,255,.06);
+  overflow: hidden;
+}
+/* 顶部斜向高光：玻璃反光 */
+.app::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(118deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 32%, rgba(255,255,255,0) 68%, rgba(255,255,255,.05) 100%);
+}
+.app { position: relative; }
+[data-variant="A"] .app { backdrop-filter: blur(34px) saturate(150%); }
+[data-variant="C"] .app { border-radius: 14px; }
+
+.formbar {
+  display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px;
+  border-bottom: 1px solid var(--line); background: var(--glass-2);
+}
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 11px; color: var(--text-3); height: 16px; }
+.field input {
+  font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line-2);
+  border-radius: var(--r-btn); padding: 8px 11px; width: 210px; outline: none;
+  transition: box-shadow .2s var(--ease), border-color .2s var(--ease), background .2s;
+}
+.field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
+.field input.invalid { border-color: var(--bad); box-shadow: 0 0 0 3px rgba(255,107,107,.25); }
+.porthint { font-size: 11px; min-height: 15px; color: var(--text-3); }
+.porthint.ok { color: var(--ok); }
+.porthint.warn { color: var(--warn); }
+.porthint b { font-weight: 600; }
+
+/* 按钮 + 点击特效 */
+.btn {
+  font: inherit; font-weight: 600; color: #fff; border: 0; cursor: pointer; position: relative; overflow: hidden;
+  padding: 9px 18px; border-radius: var(--r-btn); background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  box-shadow: 0 4px 14px var(--glow); transition: transform .12s var(--ease), box-shadow .2s var(--ease), filter .2s;
+  margin-top: 20px;
+}
+.btn:hover { filter: brightness(1.07); box-shadow: 0 6px 20px var(--glow); }
+.btn:active { transform: scale(.96) translateY(1px); box-shadow: 0 2px 8px var(--glow); }
+.btn.ghost { background: var(--card); color: var(--text-2); border: 1px solid var(--line-2); box-shadow: none; font-weight: 500; }
+.btn.ghost:hover { color: var(--text); background: var(--card-hi); }
+.btn.ghost:active { transform: scale(.96); }
+/* 涟漪 */
+.ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: rip .55s var(--ease); background: rgba(255,255,255,.45); pointer-events: none; }
+@keyframes rip { to { transform: scale(3.2); opacity: 0; } }
+
+.content { display: grid; grid-template-columns: 216px 1fr; gap: 0; }
+.carriers { border-right: 1px solid var(--line); padding: 12px 10px; background: var(--glass-2); }
+.carriers .head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-3); padding: 0 6px 8px; }
+.carriers .head button { font: inherit; font-size: 11px; color: var(--accent); background: none; border: 0; cursor: pointer; }
+.citem {
+  display: flex; align-items: center; gap: 9px; padding: 7px 8px; border-radius: 9px; cursor: pointer;
+  transition: background .18s var(--ease), transform .12s var(--ease);
+}
+.citem:hover { background: var(--card-hi); transform: translateX(2px); }
+.citem:active { transform: scale(.985); }
+.citem input { accent-color: var(--accent); width: 14px; height: 14px; }
+.citem .nm { font-size: 12.5px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; margin-left: auto; background: var(--text-3); }
+.dot.done { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.dot.run { background: var(--accent); animation: pulse 1.4s infinite; }
+.dot.fail { background: var(--bad); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+.statuswrap { padding: 14px 16px 22px; display: flex; flex-direction: column; gap: 10px; }
+.summary { font-size: 12px; color: var(--text-2); padding: 2px 4px 6px; display: flex; align-items: center; gap: 10px; }
+.summary .pill { padding: 2px 9px; border-radius: 20px; background: var(--card); border: 1px solid var(--line-2); font-size: 11px; }
+
+/* 结果卡片 + 悬浮抬升 */
+.card {
+  border: 1px solid var(--line); border-radius: calc(var(--r-card) - 2px); background: var(--card);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: 0 1px 2px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.14);
+  transition: transform .22s var(--ease), box-shadow .28s var(--ease), border-color .22s var(--ease);
+  overflow: hidden;
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--line-2); }
+.crow { display: flex; align-items: center; gap: 10px; padding: 10px 13px; cursor: pointer; user-select: none; }
+.crow:active { background: var(--card-hi); }
+.crow .name { font-weight: 650; font-size: 13px; }
+.crow .badge { font-size: 11px; color: var(--text-2); padding: 2px 8px; border-radius: 20px; background: var(--glass-2); border: 1px solid var(--line); }
+.crow .badge.run { color: var(--accent); border-color: var(--glow); }
+.crow .badge.done { color: var(--ok); }
+.crow .badge.fail { color: var(--bad); }
+.crow .msg { font-size: 11.5px; color: var(--text-3); margin-left: auto; max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chev { transition: transform .25s var(--ease); color: var(--text-3); flex: 0 0 auto; }
+.card.open .chev { transform: rotate(180deg); }
+.tbl { display: none; padding: 2px 13px 12px; }
+.card.open .tbl { display: block; animation: slideIn .28s var(--ease); }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.trow {
+  display: grid; grid-template-columns: 1.5fr .9fr 1.5fr .8fr .7fr; gap: 8px; padding: 7px 8px;
+  font-size: 12px; border-top: 1px solid var(--line); cursor: pointer; border-radius: 7px;
+  transition: background .16s var(--ease);
+}
+.trow:hover { background: var(--card-hi); }
+.trow:active { background: var(--line); }
+.trow .v { font-weight: 600; }
+.trow .d { color: var(--text-3); }
+.trow .tag { font-size: 10.5px; padding: 1px 7px; border-radius: 20px; border: 1px solid var(--line-2); color: var(--text-2); justify-self: start; }
+.trow .tag.direct { color: var(--ok); border-color: rgba(61,220,151,.4); }
+.detail { display: none; padding: 4px 8px 10px; border-top: 1px dashed var(--line); }
+.trow-wrap.open .detail { display: block; animation: slideIn .25s var(--ease); }
+.dgrid { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; font-size: 11.5px; }
+.dgrid .k { color: var(--text-3); }
+.dgrid .sect { grid-column: 1 / -1; color: var(--text-2); font-weight: 600; margin-top: 7px; padding-top: 5px; border-top: 1px solid var(--line); }
+.legs { display: grid; gap: 4px; }
+.leg { display: grid; grid-template-columns: 22px 1fr auto auto auto; gap: 8px; align-items: center; font-size: 11.5px; color: var(--text-2); }
+.leg .no { width: 18px; height: 18px; border-radius: 50%; background: var(--glass-2); border: 1px solid var(--line-2); display: grid; place-items: center; font-size: 10px; }
+.leg .vsl { color: var(--text-3); }
+.legend { font-size: 11px; color: var(--text-3); padding-left: 4px; }
+.demo-note { font-size: 11px; color: var(--text-3); text-align: center; margin: 0 0 18px; }
+</style>
+</head>
+<body data-variant="A" data-theme="sea" data-mode="dark">
+<div class="wall"><i></i><i></i><i></i><u></u></div>
+
+<div class="picker">
+  <span class="lbl">方向</span>
+  <div class="seg" id="segVariant">
+    <button data-v="A" class="on">A · 原生克制</button>
+    <button data-v="B">B · 现代玻璃</button>
+    <button data-v="C">C · 暖沙浅色</button>
+  </div>
+  <span class="lbl">配色</span>
+  <div class="seg" id="segTheme">
+    <button data-t="sea" class="on">海运蓝</button>
+    <button data-t="midnight">午夜蓝</button>
+    <button data-t="graphite">石墨灰</button>
+    <button data-t="sand">暖沙</button>
+  </div>
+  <span class="lbl">明暗</span>
+  <div class="seg" id="segMode">
+    <button data-m="dark" class="on">深色</button>
+    <button data-m="light">浅色</button>
+  </div>
+  <span style="margin-left:auto;color:var(--text-3);font-size:11px">点卡片展开细节 · 点船期行看航程截单 · 按钮有按压+涟漪</span>
+</div>
+
+<p class="demo-note">样本 = 真实查询结果（宁波 → 伊斯坦布尔）· <b>用鼠标点一点</b>感受按压/涟漪/折叠反馈 · 正式版毛玻璃走 macOS 系统级 vibrancy，比浏览器里的模拟更真</p>
+
+<div class="screen">
+<div class="app">
+  <div class="formbar">
+    <div class="field">
+      <label>起运港</label>
+      <input id="o" value="Ningbo" />
+      <div class="porthint ok">✅ 识别为 <b>Ningbo</b> (CNNGB · CN)</div>
+    </div>
+    <div class="field">
+      <label>目的港</label>
+      <input id="d" value="Istanbul" />
+      <div class="porthint ok">✅ 识别为 <b>Istanbul</b> (TRIST · TR)</div>
+    </div>
+    <div class="field">
+      <label>日期（留空 = 当天）</label>
+      <input id="dt" value="" placeholder="留空 = 用网站默认" />
+      <div class="porthint"></div>
+    </div>
+    <button class="btn" id="go">并发查询</button>
+    <button class="btn ghost" id="stop">停止</button>
+  </div>
+
+  <div class="content">
+    <aside class="carriers">
+      <div class="head">船司 <button id="all">全选/清空</button></div>
+      <div id="clist"></div>
+    </aside>
+    <section class="statuswrap">
+      <div class="summary">
+        <span class="pill" id="sumPill">10/11 家 · 88 条</span>
+        <span id="sumTxt" style="color:var(--text-3)">点卡片头折叠 · 点船期行看航程 / 截单时间</span>
+      </div>
+      <div id="cards"></div>
+    </section>
+  </div>
+</div>
+</div>
+
+<script>
+const DATA = [{"carrier":"msc","name":"MSC 地中海航运","status":"done","total":8,"rows":[{"vessel":"MSC VIVIANA","voyage":"GT637W","etd":"2026-10-09","eta":"2026-11-04","days":26,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":5},{"vessel":"MSC MIA","voyage":"GT639W","etd":"2026-10-17","eta":"2026-11-16","days":30,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":5}]},{"carrier":"maersk","name":"Maersk 马士基","status":"done","total":4,"rows":[{"vessel":"MAREN MAERSK","voyage":"641W","etd":"2026-10-19","eta":"2026-11-16","days":28,"selfConsistent":true,"direct":false,"via":"EGPSDTM","legs":2,"cutoffs":0},{"vessel":"MADISON MAERSK","voyage":"642W","etd":"2026-10-24","eta":"2026-11-23","days":31,"selfConsistent":true,"direct":false,"via":"EGPSDTM","legs":2,"cutoffs":0}]},{"carrier":"zim","name":"ZIM 以星","status":"done","total":12,"rows":[{"vessel":"Huizhou66","voyage":"3630","etd":"2026-10-08","eta":"2026-12-11","days":63,"selfConsistent":true,"direct":false,"via":"Lianyungang (JS)+Qingdao (SD)","legs":5,"cutoffs":0},{"vessel":"Huizhou66","voyage":"3630","etd":"2026-10-08","eta":"2026-12-13","days":66,"selfConsistent":true,"direct":false,"via":"Lianyungang (JS)+Qingdao (SD)","legs":5,"cutoffs":0}]},{"carrier":"cma","name":"CMA CGM 达飞","status":"opened","total":0,"rows":[]},{"carrier":"cosco","name":"COSCO 中远海运","status":"done","total":11,"rows":[{"vessel":"CSCL JUPITER","voyage":"095W","etd":"2026-10-08 21:00","eta":"2026-11-12 09:00","days":35,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":1},{"vessel":"COSCO SPAIN","voyage":"080W","etd":"2026-10-12 23:00","eta":"2026-11-19 12:00","days":38,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":1}]},{"carrier":"hapag","name":"Hapag-Lloyd 赫伯罗特","status":"done","total":12,"rows":[{"vessel":"MATZ MAERSK","voyage":"639W","etd":"2026-10-18 00:30","eta":"2026-11-16 10:24","days":29,"selfConsistent":true,"direct":false,"via":"PORT SAID","legs":2,"cutoffs":9},{"vessel":"MAERSK EL BOSQUE","voyage":"640W","etd":"2026-10-19 11:30","eta":"2026-11-23 17:38","days":35,"selfConsistent":true,"direct":false,"via":"PORT SAID","legs":2,"cutoffs":9}]},{"carrier":"one","name":"ONE 海洋网联","status":"done","total":9,"rows":[{"vessel":"MSC VIVIANA","voyage":"VAVT0637W","etd":"2026-10-09","eta":"2026-11-04","days":26,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":3},{"vessel":"MSC DANIELA","voyage":"DCLT0640W","etd":"2026-10-20","eta":"2026-11-18","days":28,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":3}]},{"carrier":"evergreen","name":"Evergreen 长荣","status":"done","total":7,"rows":[{"vessel":"COSCO SPAIN","voyage":"080W","etd":"2026-10-12","eta":"2026-11-14","days":33,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":2},{"vessel":"CSCL JUPITER","voyage":"095W","etd":"2026-10-08","eta":"2026-11-12","days":35,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":2}]},{"carrier":"yangming","name":"Yang Ming 阳明","status":"done","total":6,"rows":[{"vessel":"MSC DANIELA","voyage":"MD32640W","etd":"2026/10/22","eta":"2026/11/19","days":28,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":3},{"vessel":"MSC THAIS","voyage":"MD32642W","etd":"2026/11/01","eta":"2026/12/02","days":31,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":3}]},{"carrier":"hmm","name":"HMM 现代商船","status":"done","total":8,"rows":[{"vessel":"MSC VIVIANA","voyage":"0103W","etd":"2026-10-09","eta":"2026-11-04","days":26,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":3},{"vessel":"HMM LIME (0002W) (mode: Feeder)","voyage":"","etd":"2026-10-10","eta":"2026-12-09","days":60,"selfConsistent":true,"direct":false,"via":"T/S","legs":1,"cutoffs":3}]},{"carrier":"oocl","name":"OOCL 东方海外","status":"done","total":11,"rows":[{"vessel":"COSCO SPAIN","voyage":"080W","etd":"2026-10-12","eta":"2026-11-19","days":38,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":2},{"vessel":"COSCO SHIPPING KILIMANJARO","voyage":"046W","etd":"2026-10-22","eta":"2026-11-28","days":37,"selfConsistent":true,"direct":true,"via":"","legs":1,"cutoffs":2}]}];
+const $ = (s, r = document) => r.querySelector(s);
+
+// 方向预设：A 克制 / B 现代 / C 暖沙
+const PRESET = {
+  A: { r: '16px', blur: '26px', mode: 'dark', theme: 'sea' },
+  B: { r: '22px', blur: '34px', mode: 'dark', theme: 'midnight' },
+  C: { r: '14px', blur: '20px', mode: 'light', theme: 'sand' },
+};
+function apply(v) {
+  document.body.dataset.variant = v;
+  const p = PRESET[v];
+  document.documentElement.style.setProperty('--r-card', p.r);
+  document.documentElement.style.setProperty('--blur', p.blur);
+  setMode(p.mode); setTheme(p.theme);
+  syncSeg();
+}
+function setTheme(t) { document.body.dataset.theme = t; syncSeg(); }
+function setMode(m) { document.body.dataset.mode = m; syncSeg(); }
+function syncSeg() {
+  const b = document.body;
+  document.querySelectorAll('#segVariant button').forEach((x) => x.classList.toggle('on', x.dataset.v === b.dataset.variant));
+  document.querySelectorAll('#segTheme button').forEach((x) => x.classList.toggle('on', x.dataset.t === b.dataset.theme));
+  document.querySelectorAll('#segMode button').forEach((x) => x.classList.toggle('on', x.dataset.m === b.dataset.mode));
+}
+$('#segVariant').onclick = (e) => { const b = e.target.closest('button'); if (b) apply(b.dataset.v); };
+$('#segTheme').onclick = (e) => { const b = e.target.closest('button'); if (b) setTheme(b.dataset.t); };
+$('#segMode').onclick = (e) => { const b = e.target.closest('button'); if (b) setMode(b.dataset.m); };
+
+// 船司列表（用真实数据里的状态）
+const STATUS_TXT = { done: '已查到', running: '查询中', prefilled: '已打开', opened: '已打开', failed: '失败' };
+const DOT = { done: 'done', running: 'run', prefilled: 'run', opened: '', failed: 'fail' };
+$('#clist').innerHTML = DATA.map((c) => `
+  <label class="citem">
+    <input type="checkbox" checked />
+    <span class="nm">${c.name || c.carrier}</span>
+    <span class="dot ${DOT[c.status] || ''}"></span>
+  </label>`).join('');
+
+// 结果卡片（真实条数 + 真实船期）
+const fmt = (s) => (s || '').slice(5).replace(/-/g, '/');
+$('#cards').innerHTML = DATA.map((c, ci) => `
+  <div class="card ${ci === 0 ? 'open' : ''}" data-i="${ci}">
+    <div class="crow">
+      <span class="name">${c.name || c.carrier}</span>
+      <span class="badge ${c.status}">${STATUS_TXT[c.status] || c.status} ${c.total} 条</span>
+      <span class="msg">${c.rows[0] ? c.rows[0].vessel + ' ' + c.rows[0].etd.slice(5) + ' 起' : '—'}</span>
+      <svg class="chev" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4.2 L6 8.2 L10 4.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </div>
+    <div class="tbl">
+      ${c.rows.map((r, ri) => `
+        <div class="trow-wrap" data-c="${ci}" data-r="${ri}">
+          <div class="trow">
+            <span class="v">${r.vessel} <span class="d">${r.voyage || ''}</span></span>
+            <span>${fmt(r.etd)}</span>
+            <span>${fmt(r.eta)}</span>
+            <span>${r.days} 天</span>
+            <span class="tag ${r.direct ? 'direct' : ''}">${r.direct ? '直达' : (r.via ? '经 ' + r.via : '中转')}</span>
+          </div>
+          <div class="detail">
+            <div class="dgrid">
+              <span class="sect">航程（${r.legs || 1} 段）</span>
+              <div class="legs">
+                <div class="leg"><span class="no">1</span><span>NINGBO, CHINA → ISTANBUL</span><span>${fmt(r.etd)}</span><span>→</span><span>${fmt(r.eta)}</span></div>
+              </div>
+              <span class="sect">截单时间（${r.cutoffs || 0} 项）</span>
+              <span class="k">Port Cut Off</span><span>${fmt(r.etd)} 12:00</span>
+              <span class="k">SI Cut Off</span><span>${fmt(r.etd)} 10:00</span>
+            </div>
+          </div>
+        </div>`).join('')}
+      <div class="legend">共 ${c.total} 条，此处显示前 ${c.rows.length} 条（演示）</div>
+    </div>
+  </div>`).join('');
+
+// 交互：卡片折叠 / 行内详情 / 按钮涟漪
+$('#cards').addEventListener('click', (e) => {
+  const wrap = e.target.closest('.trow-wrap');
+  if (wrap) { wrap.classList.toggle('open'); return; }
+  const crow = e.target.closest('.crow');
+  if (crow) crow.parentElement.classList.toggle('open');
+});
+function ripple(btn, e) {
+  const r = btn.getBoundingClientRect();
+  const s = document.createElement('span');
+  s.className = 'ripple';
+  const size = Math.max(r.width, r.height);
+  s.style.width = s.style.height = size + 'px';
+  s.style.left = (e.clientX - r.left - size / 2) + 'px';
+  s.style.top = (e.clientY - r.top - size / 2) + 'px';
+  btn.appendChild(s);
+  setTimeout(() => s.remove(), 560);
+}
+document.querySelectorAll('.btn').forEach((b) => b.addEventListener('click', (e) => ripple(b, e)));
+$('#all').onclick = () => {
+  const boxes = [...document.querySelectorAll('#clist input')];
+  const on = boxes.every((b) => b.checked);
+  boxes.forEach((b) => (b.checked = !on));
+};
+
+apply('A');
+</script>
+</body>
+</html>

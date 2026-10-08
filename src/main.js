@@ -100,6 +100,13 @@ app.innerHTML = `
     <h1>⚓ ShipScheduleHub</h1>
     <span class="sub">船期聚合驾驶舱 v0.1</span>
     <span class="spacer"></span>
+    <div class="themes" id="themes" title="配色主题">
+      <button class="sw" data-t="sea" title="海运蓝"></button>
+      <button class="sw" data-t="midnight" title="午夜蓝"></button>
+      <button class="sw" data-t="graphite" title="石墨灰"></button>
+      <button class="sw" data-t="sand" title="暖沙"></button>
+      <button class="sw mode" id="modeToggle" title="深色 / 浅色">◐</button>
+    </div>
     <span><span id="engineDot" class="engine-dot"></span><span id="engineState">engine 未启动</span></span>
     <button id="btnDiag" class="btn-ghost" title="查看引擎/node 路径与最近输出（排查「点了没反应」）">诊断</button>
   </header>
@@ -623,3 +630,61 @@ window.addEventListener('unhandledrejection', (e) => {
 })();
 
 listenEngineEvents();
+
+// ---------- 外观：配色主题 / 深色浅色 / 点击涟漪（婉宜 10-08，爹地要求）----------
+// 毛玻璃本体来自窗口的 windowEffects（系统层，见 tauri.conf.json），这里只管主题与反馈。
+(function initAppearance() {
+  const root = document.documentElement;
+  const THEMES = ['sea', 'midnight', 'graphite', 'sand'];
+  const KEY = 'ssh.appearance';
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) return JSON.parse(raw);
+    } catch { /* 读不到就用默认 */ }
+    // 默认跟随系统明暗，配色用海运蓝
+    const dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return { theme: 'sea', mode: dark ? 'dark' : 'light' };
+  }
+  const state = load();
+
+  function apply() {
+    root.dataset.theme = state.theme;
+    root.dataset.mode = state.mode;
+    const box = document.getElementById('themes');
+    if (box) {
+      box.querySelectorAll('.sw[data-t]').forEach((b) => b.classList.toggle('on', b.dataset.t === state.theme));
+      const mt = document.getElementById('modeToggle');
+      if (mt) mt.textContent = state.mode === 'dark' ? '☾' : '☀';
+    }
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* 无痕模式忽略 */ }
+  }
+  apply();
+
+  const box = document.getElementById('themes');
+  if (box) {
+    box.addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      if (b.id === 'modeToggle') state.mode = state.mode === 'dark' ? 'light' : 'dark';
+      else if (THEMES.includes(b.dataset.t)) state.theme = b.dataset.t;
+      apply();
+    });
+  }
+
+  // 按钮涟漪：任意 .btn-primary / .btn-ghost 点下去都有反馈（配合 CSS 的按压缩放）
+  document.addEventListener('pointerdown', (e) => {
+    const btn = e.target.closest('.btn-primary, .btn-ghost');
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const size = Math.max(r.width, r.height);
+    const s = document.createElement('span');
+    s.className = 'ripple';
+    s.style.width = s.style.height = size + 'px';
+    s.style.left = (e.clientX - r.left - size / 2) + 'px';
+    s.style.top = (e.clientY - r.top - size / 2) + 'px';
+    btn.appendChild(s);
+    setTimeout(() => s.remove(), 600);
+  });
+})();

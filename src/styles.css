@@ -18,6 +18,8 @@
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Segoe UI", "Microsoft YaHei", "Helvetica Neue", sans-serif;
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
 }
+/* 玻璃上的文字对比度：原浅色灰 #a6adb7 在毛玻璃背景上读不清（视觉自检结论），整体加深一档 */
+html[data-mode="light"], :root { --ink-2: #39424f; --ink-3: #4f5b6b; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
@@ -65,7 +67,7 @@ body {
 }
 .field { display: flex; flex-direction: column; gap: 4px; }
 .field label {
-  font-size: 11px; color: var(--ink-2); font-weight: 600;
+  font-size: 11px; color: var(--ink-2); font-weight: 650;
   height: 16px; line-height: 16px;                      /* 定高：标签行不因换行/字数不同而高低不齐 */
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px;
 }
@@ -83,7 +85,7 @@ body {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
-.field input::placeholder { color: var(--ink-3); }
+.field input::placeholder { color: var(--ink-3); opacity: 1; font-weight: 500; }
 .field input.invalid { border-color: var(--err); box-shadow: 0 0 0 3px var(--err-bg); }
 
 /* 错误条：引擎起不来时必须显眼（Windows「点了没反应」根治） */
@@ -293,3 +295,154 @@ body {
 .porthint.ok { color: #17794a; }
 .porthint.warn { color: #a35b00; }        /* 近似匹配/未识别：必须显眼，别让用户以为识别成功了 */
 .porthint .near { color: var(--ink-2); font-size: 10px; }
+
+/* ====================================================================================
+   毛玻璃 · 多主题 · 点击特效（婉宜 10-08，爹地要求「app 的毛玻璃」）
+   实现三层：
+   ① 系统层：窗口 transparent + windowEffects[liquidGlassRegular] → macOS 自己给的毛玻璃底
+      （macOS 26+ 是 Liquid Glass；更旧的系统自动落到 underWindowBackground 材质）
+   ② 面层：页面所有面板改半透明，让系统玻璃透上来（不再用不透明 #fff 盖住）
+   ③ 卡片层：结果卡再叠 backdrop-filter，形成「玻璃上还有玻璃」的层次
+   主题全部走 CSS 变量：<html data-theme="sea|midnight|graphite|sand" data-mode="dark|light">
+   ==================================================================================== */
+
+:root {
+  --glass-1: rgba(255, 255, 255, .28);   /* 主面层：顶栏/表单栏 */
+  --glass-2: rgba(255, 255, 255, .22);   /* 次级：侧栏 */
+  --glass-3: rgba(255, 255, 255, .34);   /* 卡片 */
+  --glass-hi: rgba(255, 255, 255, .34);  /* 悬浮/高光 */
+  --hair: rgba(16, 32, 56, .10);
+  --hair-hi: rgba(255, 255, 255, .60);
+  --blur: 22px;
+  --press: .96;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  /* 主题色（默认海运蓝）*/
+  --accent: #2f6df6; --accent-2: #5aa9f0; --glow: rgba(47, 109, 246, .34);
+}
+html[data-theme="midnight"] { --accent:#6d8cff; --accent-2:#a78bfa; --glow: rgba(109,140,255,.34); }
+html[data-theme="graphite"] { --accent:#4d5765; --accent-2:#8b93a1; --glow: rgba(77,87,101,.30); }
+html[data-theme="sand"]     { --accent:#b8791f; --accent-2:#e0b070; --glow: rgba(184,121,31,.30); }
+
+html[data-mode="dark"] {
+  --ink: #eef3fb; --ink-2: #a9b7cc; --ink-3: #7b8ca3;
+  --line: rgba(255, 255, 255, .13); --line-soft: rgba(255, 255, 255, .07);
+  --glass-1: rgba(16, 24, 40, .52);
+  --glass-2: rgba(16, 24, 40, .46);
+  --glass-3: rgba(22, 32, 50, .44);
+  --glass-hi: rgba(255, 255, 255, .09);
+  --hair: rgba(255, 255, 255, .14);
+  --hair-hi: rgba(255, 255, 255, .20);
+  --ok: #3ddc97; --ok-bg: rgba(61, 220, 151, .14);
+  --warn: #f0b429; --warn-bg: rgba(240, 180, 41, .15);
+  --err: #ff7b7b; --err-bg: rgba(255, 107, 107, .15);
+}
+
+/* 窗口本身透明，让系统毛玻璃透出来 —— 这是「app 的毛玻璃」的关键一步 */
+html, body, #app { background: transparent !important; }
+html { /* 兜底底色只留很淡一层：太厚会把系统玻璃挡住（婉宜 10-08 实测） */
+  background: color-mix(in srgb, var(--bg, #f6f7f9) 10%, transparent) !important;
+}
+
+/* 给玻璃一点可折射的颜色（否则纯透明底上看不出玻璃） */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(900px 620px at 6% -14%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 62%),
+    radial-gradient(780px 560px at 104% 6%, color-mix(in srgb, var(--accent-2) 12%, transparent), transparent 64%),
+    linear-gradient(168deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 46%);
+}
+#app { position: relative; z-index: 1; }
+
+/* ---------- 面层玻璃 ---------- */
+.topbar, .formbar, .statushead, .carriers .head {
+  background: var(--glass-1) !important;
+  backdrop-filter: blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+  border-bottom: 1px solid var(--hair) !important;
+  box-shadow: inset 0 1px 0 var(--hair-hi);
+}
+.carriers {
+  background: var(--glass-2) !important;
+  backdrop-filter: blur(var(--blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(160%);
+  border-right: 1px solid var(--hair) !important;
+}
+.statuswrap, .statuslist {
+  /* 内容区不再全透明：加一层磨砂底 —— 背景只留「颜色」，不留细节，文字才读得清 */
+  background: var(--glass-2) !important;
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+.errbox { background: var(--err-bg) !important; backdrop-filter: blur(14px); border-bottom-color: var(--hair) !important; color: var(--err) !important; }
+.diagbox { background: var(--glass-2) !important; backdrop-filter: blur(14px); border-bottom-color: var(--hair) !important; }
+
+/* 结果卡：玻璃上再叠一层玻璃（真实类名是 .cgroup/.chead/.cbody —— 婉宜一开始写成 .card 没命中，
+   导致内容区还是实白、整窗不透；用 alpha 通道量出来才定位到）*/
+.cgroup {
+  background: var(--glass-3) !important;
+  backdrop-filter: blur(16px) saturate(170%);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  border: 1px solid var(--hair) !important;
+  box-shadow: inset 0 1px 0 var(--hair-hi), 0 3px 14px rgba(8, 16, 30, .06);
+}
+.chead { background: transparent !important; border-bottom: 1px solid var(--hair) !important; }
+.chead:hover { background: var(--glass-hi) !important; }
+.chead:active { background: var(--glass-2) !important; }
+.cbody, .tdetail { background: transparent !important; }
+.chead .chev { background: var(--glass-2) !important; box-shadow: inset 0 0 0 1px var(--hair) !important; }
+.cgroup.collapsed .chead { border-bottom-color: transparent !important; }
+.trow-wrap + .trow-wrap .trow { border-top-color: var(--hair) !important; }
+.statushead, .statuswrap, .statuslist, .main { background: transparent !important; }
+/* 玻璃上的玻璃：卡片里再叠的小块也别用实色 */
+.badge, .chip, .tag { backdrop-filter: blur(8px); }
+.trow-wrap.open > .trow { background: color-mix(in srgb, var(--accent) 12%, transparent) !important; }
+.trow:hover { background: var(--glass-hi) !important; }
+.field input {
+  background: var(--glass-2) !important;
+  backdrop-filter: blur(10px);
+  border-color: var(--hair) !important;
+}
+.field input:focus { background: var(--glass-1) !important; border-color: var(--accent) !important; }
+.btn-ghost { background: var(--glass-2) !important; border: 1px solid var(--hair) !important; border-radius: 9px; padding: 5px 11px; }
+
+/* ---------- 点击特效（按压缩放 + 涟漪 + 悬浮抬升）---------- */
+.btn-primary, .btn-ghost, .topbar button, .carriers .head button, .citem, .trow, .card {
+  transition: transform .13s var(--ease), box-shadow .22s var(--ease), background .18s var(--ease),
+              border-color .18s var(--ease), filter .18s var(--ease);
+}
+.btn-primary { position: relative; overflow: hidden; box-shadow: 0 3px 12px var(--glow); }
+.btn-primary:hover { filter: brightness(1.06); box-shadow: 0 6px 18px var(--glow); }
+.btn-primary:active { transform: scale(var(--press)) translateY(1px); box-shadow: 0 2px 8px var(--glow); }
+.btn-ghost:active, .topbar button:active { transform: scale(.95); }
+.card:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 var(--hair-hi), 0 12px 30px rgba(8, 16, 30, .18); }
+.trow:active { transform: scale(.996); background: var(--line-soft) !important; }
+.citem:hover { background: var(--glass-hi) !important; border-radius: 8px; }
+.ripple {
+  position: absolute; border-radius: 50%; transform: scale(0); pointer-events: none;
+  background: rgba(255, 255, 255, .5); animation: sshRip .58s var(--ease);
+}
+@keyframes sshRip { to { transform: scale(3.4); opacity: 0; } }
+
+/* ---------- 顶栏主题切换器 ---------- */
+.themes { display: inline-flex; align-items: center; gap: 7px; margin-right: 4px; }
+.themes .sw {
+  width: 15px; height: 15px; border-radius: 50%; cursor: pointer; padding: 0;
+  border: 1.5px solid var(--hair); transition: transform .16s var(--ease), box-shadow .18s var(--ease);
+}
+.themes .sw:hover { transform: scale(1.18); }
+.themes .sw.on { box-shadow: 0 0 0 2.5px var(--glow); border-color: transparent; }
+.themes .sw[data-t="sea"] { background: linear-gradient(140deg, #5aa9f0, #2f6df6); }
+.themes .sw[data-t="midnight"] { background: linear-gradient(140deg, #a78bfa, #6d8cff); }
+.themes .sw[data-t="graphite"] { background: linear-gradient(140deg, #8b93a1, #4d5765); }
+.themes .sw[data-t="sand"] { background: linear-gradient(140deg, #e0b070, #b8791f); }
+.themes .sw.mode { border-radius: 5px; background: var(--glass-2); color: var(--ink-2); font-size: 10px;
+  display: grid; place-items: center; width: 19px; height: 15px; }
+
+/* ---------- 收尾打磨（视觉验收反馈：文字在彩色玻璃上要更稳）---------- */
+html[data-mode="light"] .statuslist,
+html[data-mode="light"] .statuswrap {
+  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.07)) !important;
+}
+.empty, .placeholder, .status-empty { color: var(--ink-2) !important; font-weight: 520; }
+.citem .nm { font-weight: 600; }
+.porthint { font-weight: 550; }
