@@ -83,6 +83,7 @@ export default {
     for (let i = 0; i < 16; i++) {
       await H.sleep(2500);
       text = await page.evaluate(() => document.body?.innerText || '').catch(() => '');
+      if (process.env.SSH_DUMP_DOM === 'hmm') { try { (await import('node:fs')).writeFileSync('/tmp/dom-hmm.txt', text); console.error('[hmm] DOM 已写'); } catch {} }
       if (/search results \(\d+\)/i.test(text)) break;
     }
     const m = text.match(/search results \((\d+)\)/i);

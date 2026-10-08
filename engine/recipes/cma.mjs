@@ -78,19 +78,23 @@ export default {
     // 卡结构： <ETD> POL <港>\n[Port Cut-off\n<...>\n]Main vessel\n<vessel>\nService\n<svc>\nVoyage Ref.\n<voyage>\n<ETA> POD <港>\n<N> Days\n<Direct|via X>
     const schedules = [];
     try {
-      const cardRe = /(\d{2}-[A-Z]{3}-\d{4}) POL [^\n]+\n(?:Port Cut-off\n[^\n]+\n)?Main vessel\n([^\n]+)\nService\n[^\n]+\nVoyage Ref\.\n([^\n]+)\n(?:\w+, )?(\d{2}-[A-Z]{3}-\d{4}) POD [^\n]+\n(\d+) Days\n(Direct|via ([^\n]+))/gi;
+      // 截单时间就在卡里（Port Cut-off 行）——之前用非捕获组丢掉了，现在留下来（婉宜 9-30）
+      const cardRe = /(\d{2}-[A-Z]{3}-\d{4}) POL [^\n]+\n(?:Port Cut-off\n([^\n]+)\n)?Main vessel\n([^\n]+)\nService\n[^\n]+\nVoyage Ref\.\n([^\n]+)\n(?:\w+, )?(\d{2}-[A-Z]{3}-\d{4}) POD [^\n]+\n(\d+) Days\n(Direct|via ([^\n]+))/gi;
       let cm;
       const fmt = (s) => { const m = /^(\d{2})-([A-Z]{3})-(\d{4})$/.exec(s); return m ? `${m[3]}-${{ JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', JUN: '06', JUL: '07', AUG: '08', SEP: '09', OCT: '10', NOV: '11', DEC: '12' }[m[2]]}-${m[1]}` : s; };
       while ((cm = cardRe.exec(sched)) !== null && schedules.length < 12) {
-        const direct = /^direct/i.test(cm[6]);
+        const direct = /^direct/i.test(cm[7]);
+        const cutoff = (cm[2] || '').trim();
         schedules.push({
-          vessel: cm[2].trim(),
-          voyage: cm[3].trim(),
+          vessel: cm[3].trim(),
+          voyage: cm[4].trim(),
           etd: fmt(cm[1]),
-          eta: fmt(cm[4]),
-          transitDays: Number(cm[5]) || cm[5],
-          via: direct ? '' : (cm[7] || '').trim(),
+          eta: fmt(cm[5]),
+          transitDays: Number(cm[6]) || cm[6],
+          via: direct ? '' : (cm[8] || '').trim(),
           direct,
+          // 详情：达飞这里只有截单时间（官网卡里的 Port Cut-off 原文）
+          detail: cutoff ? { service: '', routing: direct ? 'Direct' : 'Via', co2: '', legs: [], cutoffs: { '港口截关': cutoff } } : undefined,
         });
       }
     } catch { /* 抽取失败 → 保持 prefilled */ }

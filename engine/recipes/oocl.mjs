@@ -73,6 +73,13 @@ export default {
     if (!fired) throw new Error('没找到 Search 按钮');
     await H.sleep(12000);
 
+    if (process.env.SSH_DUMP_DOM === 'oocl') {
+      try {
+        const full = await page.evaluate(() => document.body.innerText).catch(() => '');
+        (await import('node:fs')).writeFileSync('/tmp/dom-oocl.txt', full);
+        console.error('[oocl] DOM 已写');
+      } catch { /* 忽略 */ }
+    }
     // 抓 ag-grid 结果（9-24 实测行结构，行级解析比长正则稳）：
     // Ningbo / 29 Sep (Tue) / CY / Schedule Details / CY / Istanbul / 12 Nov (Thu) / 44 day(s) / Cutoff... / Dry/Reefer / EM1 / (空行) / TEXAS TRIUMPH 039W
     const rows = await page.evaluate(() => {

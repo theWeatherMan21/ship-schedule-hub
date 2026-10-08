@@ -602,3 +602,19 @@ Error: EISDIR: illegal operation on a directory, lstat 'D:'
 - 验收：harness 第 ⑥ 节（可展开行 → 点开 → 航程段 1 / 截单项 5 / 再点收起）+ 截图目视
 
 **待办**：其他 10 家逐家探测同类字段（ONE/ZIM/COSCO 已知有 `cutoffCY` 但前端未显示 → 下一步接进同一视图）。
+
+### 9-30 · 船期详情扩面：马士基 / 赫伯罗特 / 达飞（婉宜）
+
+| 船司 | 航程分段 | 截单时间 | 来源 |
+|---|---|---|---|
+| **赫伯罗特** | ✅ 2 段真实中转（宁波→塞得港→伊斯坦布尔，换船换服务）| **9 类**（FCO/LCO/VCO/DOC/SHI/DGD/OOG/REF/DBC）| `routes[].legs[]` + `gateInCutOffDateTimes[]` |
+| **马士基** | ✅ 2 段（含设施码 CNNPOMT/EGPSDTM/TRAMBKP + 服务名）| 未取（截单在另一个接口）| `routings[].routingLegs[].carriage` |
+| **达飞** | 未取 | 1 类（官网卡里的 Port Cut-off 原文）| 正则原本就匹配了这一行，之前用非捕获组丢掉了 |
+
+实现要点：
+- 新增通用 `mkDetail()` 归一化（service/routing/co2/legs[]/cutoffs{}）+ `dedupeLegs()`（同一「起运港+开船时间」= 一班实体）
+- 马士基只给设施码 → 首尾港口名用查询上下文补齐，中间的查端口词典
+- 赫伯罗特截单是**官网自己的编码** → 代码原样显示，括号里只加中文备注；未收录的码（DBC）不猜
+- 调试钩子：`SSH_DUMP_RAW=maersk`（落盘原始响应）、`SSH_DUMP_DOM=<carrier>`（落盘结果页文本），后面探针都能复用
+
+覆盖进度：**7 家**已有详情（MSC/ONE/阳明/COSCO/ZIM/赫伯罗特/马士基/达飞），剩 3 家 DOM（长荣/OOCL/HMM）正在挖。

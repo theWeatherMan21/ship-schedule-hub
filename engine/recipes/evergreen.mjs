@@ -79,6 +79,7 @@ export default {
     const schedules = [];
     try {
       const norm = String(text).replace(/[ \t\xa0]+/g, ' ');
+      if (process.env.SSH_DUMP_DOM === 'evergreen') { try { (await import('node:fs')).writeFileSync('/tmp/dom-evergreen.txt', norm); console.error('[evergreen] DOM 已写'); } catch {} }
       // 9-30 修：正则原来写死 NINGBO, CHINA / ISTANBUL —— 换起运/目的港就抽不到行（只能停在「已预填」）。
       // 改为按本次查询的港口名动态构造：取解析出的港名首词（大写），缺失则退化为通配。
       const cityPat = (name) => {

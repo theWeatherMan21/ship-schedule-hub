@@ -6,8 +6,10 @@ import fs from 'node:fs';
 import * as httpsMod from 'node:https';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);   // ESM 里拿 CJS 的 node:sqlite（同步查词典）
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
 
 // 词典别名 → 各家 API 需要的 LOCODE（fastpath 只认 LOCODE，比文本稳）
@@ -433,6 +435,22 @@ function hapagDetail(x) {
   });
 }
 
+// 由设施码前缀取港口名（马士基只给 facilityCode，如 CNNPOMT → CNNPO → Ningbo）
+let _portNameMap = null;
+function portNameByFacility(code) {
+  const loc = String(code || '').toUpperCase().slice(0, 5);
+  if (loc.length < 5) return '';
+  try {
+    if (!_portNameMap) {
+      const { DatabaseSync } = require('node:sqlite');
+      const db = new DatabaseSync(path.join(__dirname, '..', 'db', 'ports.db'), { readOnly: true });
+      _portNameMap = new Map(db.prepare('SELECT locode, name_ascii FROM ports').all().map((r) => [String(r.locode).toUpperCase(), r.name_ascii]));
+      db.close();
+    }
+    return _portNameMap.get(loc) || '';
+  } catch { return ''; }
+}
+
 // MSC 单班详情：航程（分段/码头/船信息/挂靠港）+ 截单时间（官网原样）
 function mscDetail(x, leg) {
   const c = leg.CutOffs || {};
@@ -774,7 +792,7 @@ export async function maerskQuery(page, oGeo, dGeo, earliest, latest) {
       });
       const t = await resp.text();
       let j = null; try { j = JSON.parse(t); } catch { /* no-op */ }
-      return { status: resp.status, routings: (j && j.routings) || [], raw: t.slice(0, 120) };
+      return { status: resp.status, routings: (j && j.routings) || [], raw: t.slice(0, 120), full: t };
     } catch (e2) { return { status: 0, routings: [], raw: String(e2).slice(0, 120) }; }
   }, { oG: oGeo, dG: dGeo, e: earliest, l: latest, key: MAERSK_KEY }).catch(() => null);
   return r;
@@ -804,6 +822,34 @@ export function maerskRowsFromRoutings(routings) {
       transitDays: h ? Math.round(h / 24) : daysBetween(etd, eta),
       via: vias.join(' → '),
       direct: legs.length <= 1,
+      // 逐段航程（马士基 routing 里每段带码头代码/设施、服务名、船名；截单时间在另一个接口，未取）
+      detail: mkDetail({
+        service: ((f.vesselPortCallStart || {}).departureService || {}).serviceName
+          || ((f.carriage || {}).vesselPortCallStart || {}).departureService && ((f.carriage || {}).vesselPortCallStart || {}).departureService.serviceName
+          || (rt.routeCode || ''),
+        routing: legs.length > 1 ? 'Via' : 'Direct',
+        legs: legs.map((lg0, i) => {
+          const c = lg0.carriage || {};
+          const st = c.vesselPortCallStart || {};
+          const en = c.vesselPortCallEnd || {};
+          const loc = (o) => (o.location || {});
+          return {
+            seq: i + 1,
+            from: ((loc(st).city || {}).cityName) || loc(st).facilityName || portNameByFacility((loc(st).facility || {}).facilityCode) || '',
+            fromCode: (loc(st).facility || {}).facilityCode || '',
+            fromTerminal: loc(st).facilityName || '',
+            etd: String(st.estimatedTimeOfDeparture || '').replace('T', ' ').slice(0, 16),
+            to: ((loc(en).city || {}).cityName) || loc(en).facilityName || portNameByFacility((loc(en).facility || {}).facilityCode) || '',
+            toCode: (loc(en).facility || {}).facilityCode || '',
+            toTerminal: loc(en).facilityName || '',
+            eta: String(en.estimatedTimeOfArrival || '').replace('T', ' ').slice(0, 16),
+            vessel: (c.vessel || {}).vesselName || '',
+            service: (st.departureService || {}).serviceName || '',
+            co2: '', calls: [],
+          };
+        }),
+        cutoffs: {},
+      }),
     });
   }
   return rows.filter((x) => x.etd && x.eta);
@@ -822,8 +868,24 @@ export async function maerskInPage(page, originLocode, destLocode, isoDate, oNam
     const qr = await maerskQuery(page, res.o.geo, d.geo, earliest, latest);
     if (!qr) { tried.push(d.rkst + ':exception'); continue; }
     tried.push(`${d.rkst}:HTTP${qr.status}/${(qr.routings || []).length}`);
+    // 探针用：SSH_DUMP_RAW=maersk 时把原始响应落盘，便于挖字段（不影响正常运行）
+    if (process.env.SSH_DUMP_RAW === 'maersk' && qr.full) {
+      try {
+        const fs = await import('node:fs');
+        fs.writeFileSync('/tmp/maersk-raw.json', qr.full);
+        console.error('[fastpath] 原始响应已写 /tmp/maersk-raw.json');
+      } catch { /* 忽略 */ }
+    }
     if (qr.status !== 200 || !qr.routings.length) continue;
     const rows = maerskRowsFromRoutings(qr.routings);
+    // 马士基只给设施码（CNNPOMT 这种），首尾港口名用查询上下文补齐（用户输入的就是这两个城市）
+    for (const r2 of rows) {
+      const lg2 = (r2.detail && r2.detail.legs) || [];
+      if (lg2.length) {
+        if (!lg2[0].from) lg2[0].from = res.o.cityName || '';
+        if (!lg2[lg2.length - 1].to) lg2[lg2.length - 1].to = d.cityName || '';
+      }
+    }
     if (!rows.length) continue;
     return { rows, note: `API 直查 ${rows.length} 条（${res.o.cityName}(${res.o.rkst}) → ${d.cityName}(${d.rkst})，试过 ${tried.join(',')}）` };
   }
