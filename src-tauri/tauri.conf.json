@@ -25,7 +25,13 @@
           "state": "active",
           "radius": 16
         },
-        "shadow": false
+        "shadow": false,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": {
+          "x": 16,
+          "y": 26
+        }
       }
     ],
     "security": {

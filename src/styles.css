@@ -36,12 +36,17 @@ body {
 
 /* ---------- 顶栏 ---------- */
 .topbar {
+  /* macOS 标题栏 Overlay 模式：系统标题栏已隐藏，这条顶栏就是标题栏本身。
+     左边距 84px 给红绿灯（trafficLightPosition x=16）让位，右上拖动区由 data-tauri-drag-region 提供。 */
   display: flex; align-items: center; gap: 10px;
-  padding: 12px 18px;
+  padding: 0 18px 0 86px;
+  height: 46px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
+  -webkit-app-region: drag;
 }
+.topbar button, .topbar .themes, .topbar .themes .sw { -webkit-app-region: no-drag; }
 .topbar h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
 .topbar .sub { color: var(--ink-2); font-size: 12px; }
 .topbar .spacer { flex: 1; }
@@ -446,3 +451,19 @@ html[data-mode="light"] .statuswrap {
 .empty, .placeholder, .status-empty { color: var(--ink-2) !important; font-weight: 520; }
 .citem .nm { font-weight: 600; }
 .porthint { font-weight: 550; }
+
+
+/* ---------- 深色模式内容区兜底（10-08 修：材质跟系统外观走，深色主题下右侧会发白）---------- */
+html[data-mode="dark"] .main,
+html[data-mode="dark"] .statuswrap,
+html[data-mode="dark"] .statuslist {
+  background: linear-gradient(180deg, rgba(16, 24, 40, .55), rgba(16, 24, 40, .46)) !important;
+  backdrop-filter: blur(26px) saturate(150%);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+}
+html[data-mode="dark"] .statushead,
+html[data-mode="dark"] .topbar,
+html[data-mode="dark"] .formbar,
+html[data-mode="dark"] .carriers { background: var(--glass-1) !important; }
+html[data-mode="dark"] .cgroup { background: var(--glass-3) !important; }
+html[data-mode="dark"] .empty, html[data-mode="dark"] .placeholder { color: var(--ink-2) !important; }

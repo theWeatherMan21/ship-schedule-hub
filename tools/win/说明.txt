@@ -1,0 +1,42 @@
+Windows 远程调试环境 · 一键配置说明（婉宜 10-08）
+====================================================
+
+【怎么用】
+1. 把本文件夹里的「一键配置调试环境.bat」拷到那台 Windows 电脑上（放桌面就行）。
+2. 双击它。会弹 UAC（管理员确认）→ 点是。
+3. 中途如果需要 Tailscale 登录，屏幕会打印一条 https://login.tailscale.com/... 链接
+   （也会自动复制到剪贴板），在那台电脑的浏览器里打开并确认登录即可。
+4. 跑完最后会显示一段「请把下面这段发给我」的信息，并保存完整报告到桌面：
+   ssh-setup-report-*.txt —— 把这段文字（或报告文件）发我。
+
+【它做什么】（全程幂等，重复跑没事，不删任何东西）
+1) 环境体检：系统版本/架构/管理员、能否出网、代理、环境变量（TEMP/NODE_PATH/NODE_OPTIONS）、
+   已装的 ShipScheduleHub（注册表 + 常见安装位置）、Chrome/Edge、Node、WebView2 运行时、
+   长路径开关、各安装目录是否可写。
+2) Tailscale：没装就装（winget → 官方安装包兜底）；没登录就给出登录链接并等你完成；最后报出 Tailscale IP。
+3) OpenSSH Server：装（Windows 功能 → 官方 Win32-OpenSSH 压缩包兜底）、开机自启、默认 shell 设为 PowerShell、
+   防火墙只放 Tailscale 网段（100.64.0.0/10）、把婉宜的调试公钥写进 administrators_authorized_keys 并收紧权限。
+4) 自检 + 报告：本机 22 端口是否监听、关键信息复制到剪贴板、完整报告存桌面。
+
+【为什么有 base64】
+「一键配置调试环境.bat」里那串 base64 就是同目录这份 setup-remote-access.ps1 本体
+（sha256 前16位 e09eb4590fb784dd）。用 base64 是为了躲开 .bat 里嵌长脚本的转义/中文乱码坑，
+不是加密 —— 想核对内容可以跑：
+    powershell -NoProfile -Command "$b=[IO.File]::ReadAllText('$env:TEMP\ssh-setup-b64.txt'); ..."
+或直接用记事本看 setup-remote-access.ps1（可读版）。
+
+【如果被安全软件拦】（脚本会下载安装包 + 写 authorized_keys，某些杀软会敏感）
+- 更透明的替代跑法：右键 setup-remote-access.ps1 →「使用 PowerShell 运行」；
+  或在管理员 PowerShell 里执行：
+     Set-ExecutionPolicy -Scope Process Bypass -Force
+     & "$env:USERPROFILE\Desktop\setup-remote-access.ps1"
+- 若文件属性带「来自 Internet」的锁定：右键 → 属性 → 勾选「解除锁定」。
+
+【安全说明】
+- SSH 端口只对 Tailscale 网段开放（不是对公网/局域网全开）。
+- 只加了一把公钥（hermes-debug@mac），也可以自己删：
+  C:\ProgramData\ssh\administrators_authorized_keys
+
+【我拿到报告之后会做什么】
+先按报告定位（WebView2 缺失 / 路径含中文或盘符根 / 环境变量污染 / 引擎静默死亡 / 浏览器缺失 等），
+然后自己 SSH 进去复现、修、再验证 —— 不用你在中间传话。

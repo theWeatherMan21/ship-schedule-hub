@@ -96,10 +96,10 @@ const BADGE = {
 // ---------- DOM 构建 ----------
 const app = document.getElementById('app');
 app.innerHTML = `
-  <header class="topbar">
-    <h1>⚓ ShipScheduleHub</h1>
-    <span class="sub">船期聚合驾驶舱 v0.1</span>
-    <span class="spacer"></span>
+  <header class="topbar" data-tauri-drag-region>
+    <h1 data-tauri-drag-region>⚓ ShipScheduleHub</h1>
+    <span class="sub" data-tauri-drag-region>船期聚合驾驶舱 v0.1</span>
+    <span class="spacer" data-tauri-drag-region></span>
     <div class="themes" id="themes" title="配色主题">
       <button class="sw" data-t="sea" title="海运蓝"></button>
       <button class="sw" data-t="midnight" title="午夜蓝"></button>
@@ -659,6 +659,14 @@ listenEngineEvents();
       if (mt) mt.textContent = state.mode === 'dark' ? '☾' : '☀';
     }
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* 无痕模式忽略 */ }
+    // ⚠️ 关键：窗口的毛玻璃材质（NSVisualEffectView）跟「窗口外观」走，不跟 CSS 走。
+    // 不同步的话，深色主题下右侧透明区会露出浅色材质 → 白底浅字（爹地 10-08 反馈）。
+    const inv = window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke;
+    if (inv) {
+      inv('plugin:window|set_theme', { label: 'main', theme: state.mode }).catch(() => {
+        // 权限缺失/非 Tauri 环境：忽略（CSS 侧已给内容区兜底底色）
+      });
+    }
   }
   apply();
 
