@@ -44,7 +44,10 @@ if (process.platform === 'win32') {
 // App 的「诊断」按钮与远程排障都用它（Windows 无 Chrome / node 找不到这两个场景尤其需要）。
 if (process.argv.includes('--diagnose')) {
   const os = await import('node:os');
-  const ROOT = path.dirname(new URL(import.meta.url).pathname);
+  // ⚠️ 不能用 new URL(import.meta.url).pathname：Windows 上会得到 /D:/Program%20Files/... 
+  // （前导斜杠 + 空格被百分号编码）→ 所有派生路径全废（ports.db 判成缺失、装在带空格的
+  // Program Files 下必现）。真机实测（婉宜 10-08）。其它模块一直用的是 fileURLToPath，就这里漏了。
+  const ROOT = path.dirname(fileURLToPath(import.meta.url));
   const info = {
     platform: process.platform,
     arch: process.arch,

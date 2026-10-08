@@ -24,7 +24,7 @@ export default {
     await H.fillAutocomplete(page, to, q.destText, { pick: t => H.portPick(t, q, 'dest') });
 
     const date = page.locator('input[placeholder="dd/MM/yyyy"]').first();
-    if (!q.skipDate && await date.count()) { await date.click({ timeout: 4000 }).catch(() => {}); await H.setValue(date, q.date.dd_mm_yyyy); await page.keyboard.press('Enter').catch(() => {}); }
+    if (await date.count()) { await date.click({ timeout: 4000 }).catch(() => {}); await H.setValue(date, q.date.dd_mm_yyyy); await page.keyboard.press('Enter').catch(() => {}); }  // 留空=今天（同网站默认）
 
     const search = page.getByRole('button', { name: /^\s*search\s*$/i });
     const n = await search.count().catch(() => 0);

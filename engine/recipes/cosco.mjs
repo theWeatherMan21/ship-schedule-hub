@@ -70,8 +70,8 @@ export default {
 
     // 日期（Earliest Departure，ISO yyyy-mm-dd 直接 fill，diag6 实测有效）；skipDate 时用网站默认
     const date = page.getByRole('textbox', { name: /earliest departure/i }).first();
-    if (!q.skipDate && await date.isVisible({ timeout: 3000 }).catch(() => false)) {
-      const iso = q.raw.date || new Date().toISOString().slice(0, 10);
+    if (await date.isVisible({ timeout: 3000 }).catch(() => false)) {
+      const iso = q.raw.date || q.date.yyyy_mm_dd;   // 留空=今天：留空会被部分站内校验拦下
       await date.fill('').catch(() => {});
       await date.fill(String(iso), { timeout: 3000 }).catch(() => {});
       await page.keyboard.press('Escape').catch(() => {});

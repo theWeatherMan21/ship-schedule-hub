@@ -41,7 +41,7 @@ export default {
     if (!okO || !okD) throw new Error(`候选点选未完成（o=${!!okO} d=${!!okD}），仅开页`);
 
     // 起运日（Period Start Date，YYYY/MM/DD 形状）—— 尽力填，失败不致命（表单有默认日期）
-    if (!q.skipDate) await H.setInputByValueShape(page, /^\d{4}\/\d{2}\/\d{2}$/, q.date.slashes).catch(() => false);
+    await H.setInputByValueShape(page, /^\d{4}\/\d{2}\/\d{2}$/, q.date.slashes).catch(() => false);   // 留空=今天
     await page.locator('body').click({ position: { x: 5, y: 5 } }).catch(() => {});
     await H.clickByText(page, /^\s*search\s*$/i);
     await H.sleep(4000);

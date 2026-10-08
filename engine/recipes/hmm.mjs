@@ -69,11 +69,14 @@ export default {
     const codes = await page.evaluate(() => ({ f: document.getElementById('srchPointFrom_code')?.value || '', t: document.getElementById('srchPointTo_code')?.value || '' })).catch(() => ({ f: '', t: '' }));
     if (!codes.f || !codes.t) throw new Error(`候选点选未生效（f=${codes.f || '空'} t=${codes.t || '空'}），仅开页`);
 
-    // 日期：srchSailDate 是 <input type=date>；skipDate 用网站默认
-    if (!q.skipDate) {
+    // 日期：srchSailDate 是 <input type=date>。
+    // ⚠️ 真机实测（Windows/中文区域，婉宜 10-08）：日期留空时 HMM 站内校验直接报
+    //    "It is invalid date format."，表单不提交 → 0 条。所以留空时显式填「今天」
+    //    （语义等同网站默认当天），别再留空。
+    {
       const date = page.locator('#srchSailDate');
       if (await date.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await date.fill(String(q.raw.date || ''), { timeout: 3000 }).catch(() => {});
+        await date.fill(q.date.yyyy_mm_dd, { timeout: 3000 }).catch(() => {});
       }
     }
 

@@ -52,11 +52,12 @@ export default {
     });
     if (!okO || !okD) throw new Error(`候选点选未完成（o=${!!okO} d=${!!okD}），仅开页`);
 
-    // ⑤ 日期（Start Date）——默认跳过，用网站默认
-    if (!q.skipDate) {
+    // ⑤ 日期（Start Date）——留空时显式填「今天」：有些站（真机实测 HMM）留空会被
+    //    站内校验拦下、表单根本不提交（Windows/中文区域尤其明显），故一律给有效日期。
+    {
       const date = page.getByRole('textbox', { name: /start date/i }).first();
       if (await date.isVisible({ timeout: 3000 }).catch(() => false)) {
-        await date.fill(String(q.raw.date || '')).catch(() => {});
+        await date.fill(String(q.raw.date || q.date.yyyy_mm_dd)).catch(() => {});
         await page.keyboard.press('Enter').catch(() => {});
         await H.sleep(600);
       }

@@ -145,7 +145,7 @@ export default {
 
     const date = page.locator('input[placeholder="DD/MM/YYYY"], input[placeholder="dd/mm/yyyy"]').first();
     if (await date.count().catch(() => 0)) {
-      if (!q.skipDate) await H.setValue(date, q.date.dd_mm_yyyy);
+      await H.setValue(date, q.date.dd_mm_yyyy);   // 留空=今天：别留空，部分站会校验失败
       await page.keyboard.press('Escape').catch(() => {});
     }
     const search = page.getByRole('button', { name: /^\s*search\s*$/i }).first();
