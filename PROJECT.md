@@ -723,3 +723,9 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 - v2 生成器用普通字符串写模板，`\WindowsPowerShell\v1.0` 的 `\v` 被 Python 解析成垂直制表符、
   `\net.exe` 的 `\n` 被解析成换行 → 生成的 bat 里路径损坏、整行消失。改：raw f-string + 生成即自检
   （控制字符断言 + 关键路径断言，坏 bat 直接中止不外发）。
+
+## 2026-10-08 · Windows 观感定稿 + 本地交叉编译打通
+- **Windows 不做整窗透明（结论）**：运行时 `set_effects(Acrylic)` 已生效（留痕 `%LOCALAPPDATA%\ShipScheduleHub\glass.log` 显示 `acrylic OK`），但 Win10 的 DWM acrylic 绘制在 webview 之后，而 WebView2 自身是不透明白底 → 看不见透出。要真透出必须 `decorations:false` 自绘窗口按钮，代价大且违背爹地「别太透」的诉求。故 Windows = 实底 `--bg` + 面层少量半透明做纵深（CSS 全在 `html[data-platform="win"]` 前缀内，macOS 零改动）。
+- **本地交叉编译 Windows exe（打通，替代等 CI）**：`cargo xwin build --release --features tauri/custom-protocol --target x86_64-pc-windows-msvc`，前置：`cargo install cargo-xwin` + llvm-mingw 的 bin 进 PATH（提供 `llvm-rc`）。**`--features tauri/custom-protocol` 不能少**（`tauri-build::is_dev() = !custom_protocol`，漏了会编出 dev 版：webview 去连 `localhost:1420` → 页面 ERR_CONNECTION_REFUSED）。
+- **坑**：cargo 若显示 `Finished in 0.27s` 说明没重编（前端是编译期内嵌，必须 `touch src-tauri/src/lib.rs` 触发）。
+- **静默远端验收法**：用 `schtasks /create ... /it`（无需密码）在用户交互会话里跑 App/截图；脚本一律 `powershell -WindowStyle Hidden`，否则会在爹地桌面弹控制台窗口（踩过）。

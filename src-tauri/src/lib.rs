@@ -656,10 +656,26 @@ pub fn run() {
             {
                 use tauri::window::{Effect, EffectsBuilder};
                 if let Some(w) = app.get_webview_window("main") {
-                    if let Err(e) = w.set_effects(EffectsBuilder::new().effect(Effect::Acrylic).build()) {
-                        eprintln!("[glass] acrylic 设置失败({e})，退回 blur");
-                        if let Err(e2) = w.set_effects(EffectsBuilder::new().effect(Effect::Blur).build()) {
-                            eprintln!("[glass] blur 也失败: {e2}（窗口会保持纯透明）");
+                    // 结果写盘：GUI 的 stderr 远程看不到，毛玻璃失败必须留痕（婉宜 10-08）
+                    let log = |m: &str| {
+                        let dir = std::env::var("LOCALAPPDATA")
+                            .map(|l| std::path::PathBuf::from(l).join("ShipScheduleHub"))
+                            .unwrap_or_else(|_| std::path::PathBuf::from("."));
+                        let _ = std::fs::create_dir_all(&dir);
+                        use std::io::Write;
+                        if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(dir.join("glass.log")) {
+                            let _ = writeln!(f, "{m}");
+                        }
+                        eprintln!("[glass] {m}");
+                    };
+                    match w.set_effects(EffectsBuilder::new().effect(Effect::Acrylic).build()) {
+                        Ok(_) => log("acrylic OK"),
+                        Err(e) => {
+                            log(&format!("acrylic 失败: {e}；试 blur"));
+                            match w.set_effects(EffectsBuilder::new().effect(Effect::Blur).build()) {
+                                Ok(_) => log("blur OK"),
+                                Err(e2) => log(&format!("blur 也失败: {e2}")),
+                            }
                         }
                     }
                 }

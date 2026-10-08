@@ -469,21 +469,30 @@ html[data-mode="dark"] .cgroup { background: var(--glass-3) !important; }
 html[data-mode="dark"] .empty, html[data-mode="dark"] .placeholder { color: var(--ink-2) !important; }
 
 
-/* ================= Windows 平台适配（10-08 真机反馈「透明度太高」）=================
-   原因：Windows 的 acrylic 模糊比 macOS 的 vibrancy 弱很多，同样的面层 alpha 会显得
-   「透明到没有底」。所以 Windows 下面层一律加实一档；同时 Windows 用系统标题栏
-   （不是 macOS 的 Overlay），顶栏不需要给红绿灯让位的 86px 左边距。 */
+/* ================= Windows 平台适配（10-08 真机实测后定稿）=================
+   结论先行：Windows 上**不做整窗透明**。原因（真机 + 日志实证）：
+     · tauri 的 windowEffects 在 Windows 上只认 acrylic/blur，我们已按平台在运行时套了
+       （%LOCALAPPDATA%\ShipScheduleHub\glass.log 里能看到 "acrylic OK"）；
+     · 但 Win10 的 DWM acrylic 绘制在 webview **之后**，而 WebView2 自身是不透明白底 →
+       除非去掉系统标题栏（decorations:false，要自绘窗口按钮），否则看不出透出效果；
+     · 爹地的诉求是「别太透」，所以 Windows 走实底 + 内部层次：底是实色，面层保留少量
+       半透明做纵深，观感干净、文字好读，且不跟系统/WebView2 打架。
+   macOS 不受影响（下面规则都带 html[data-platform="win"] 前缀）。 */
 html[data-platform="win"] {
-  --glass-1: rgba(255, 255, 255, .74);
-  --glass-2: rgba(255, 255, 255, .66);
-  --glass-3: rgba(255, 255, 255, .80);
-  --glass-hi: rgba(255, 255, 255, .55);
+  background: var(--bg) !important;          /* 实底：整窗不再透出桌面 */
+  --glass-1: rgba(255, 255, 255, .72);
+  --glass-2: rgba(255, 255, 255, .58);
+  --glass-3: rgba(255, 255, 255, .84);
+  --glass-hi: rgba(255, 255, 255, .50);
 }
 html[data-platform="win"][data-mode="dark"] {
-  --glass-1: rgba(16, 24, 40, .76);
-  --glass-2: rgba(16, 24, 40, .68);
-  --glass-3: rgba(22, 32, 50, .82);
-  --glass-hi: rgba(255, 255, 255, .10);
+  background: #0f1523 !important;
+  --glass-1: rgba(24, 33, 51, .92);
+  --glass-2: rgba(24, 33, 51, .82);
+  --glass-3: rgba(30, 41, 62, .95);
+  --glass-hi: rgba(255, 255, 255, .08);
 }
+/* Windows 用系统标题栏 → 顶栏不需要 macOS Overlay 的 86px 左边距 */
 html[data-platform="win"] .topbar { padding-left: 18px; height: 52px; }
 html[data-platform="win"] .app { border-radius: 8px; }
+html[data-platform="win"] body::before { opacity: .5; }   /* 装饰渐变在实底上要收敛 */
