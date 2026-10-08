@@ -281,6 +281,76 @@ fn diagnose(app: AppHandle) -> Result<serde_json::Value, String> {
             .map(|l| format!("{l}\\ShipScheduleHub"))
             .unwrap_or_else(|| "（见引擎输出）".to_string()),
     });
+
+    // ---- 不同安装环境的兜底信息（Windows 远程排障一次带出来，婉宜 10-08）----
+    // 意图：不管机器上是什么状况（装 Program Files / 盘符根 / 中文路径 / 没有浏览器 / 缺 WebView2 /
+    // 环境变量被污染），诊断面板都要能直接看出来，不用来回问。
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(|d| d.to_path_buf()))
+        .map(|d| d.display().to_string())
+        .unwrap_or_default();
+    out["exeDir"] = serde_json::json!(exe_dir);
+    // 安装目录可写性（Program Files 下通常不可写 → 我们要求运行期数据写 LOCALAPPDATA）
+    let probe = |dir: &std::path::Path| -> bool {
+        let f = dir.join(".ssh-write-probe");
+        match std::fs::write(&f, b"x") {
+            Ok(_) => { let _ = std::fs::remove_file(&f); true }
+            Err(_) => false,
+        }
+    };
+    out["exeDirWritable"] = serde_json::json!(PathBuf::from(&out["exeDir"].as_str().unwrap_or("")).exists()
+        && probe(std::path::Path::new(out["exeDir"].as_str().unwrap_or("."))));
+    for k in ["TEMP", "TMP", "TMPDIR", "NODE_PATH", "NODE_OPTIONS", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"] {
+        let v = std::env::var(k).unwrap_or_default();
+        let short: String = v.chars().take(180).collect();
+        // 裸盘符（如 "D:"）会让 Node 报 EISDIR: lstat 'D:' —— 之前的真机事故，标记出来
+        let bad = {
+            let t = v.trim();
+            t.len() == 2 && t.ends_with(':')
+        };
+        out[k] = serde_json::json!(if bad { format!("{short}   ← 裸盘符！会导致引擎启动失败") } else { short });
+    }
+    // 本机可用浏览器（引擎解析链：SSH_CHROME_PATH → 系统 Chrome → 系统 Edge → playwright → 自动下载）
+    let mut browsers: Vec<String> = Vec::new();
+    let cands: Vec<std::path::PathBuf> = if cfg!(windows) {
+        let pf = std::env::var("ProgramFiles").unwrap_or_else(|_| "C:\\Program Files".into());
+        let pf86 = std::env::var("ProgramFiles(x86)").unwrap_or_else(|_| "C:\\Program Files (x86)".into());
+        vec![
+            PathBuf::from(&pf).join("Google\\Chrome\\Application\\chrome.exe"),
+            PathBuf::from(&pf86).join("Google\\Chrome\\Application\\chrome.exe"),
+            PathBuf::from(&pf86).join("Microsoft\\Edge\\Application\\msedge.exe"),
+            PathBuf::from(&pf).join("Microsoft\\Edge\\Application\\msedge.exe"),
+        ]
+    } else {
+        vec![
+            PathBuf::from("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
+            PathBuf::from("/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"),
+        ]
+    };
+    for c in cands {
+        if c.exists() { browsers.push(c.display().to_string()); }
+    }
+    out["browsers"] = serde_json::json!(browsers);
+    // Windows：WebView2 运行时（Tauri 必需，缺失会白屏/打不开）
+    #[cfg(windows)]
+    {
+        let outv = Command::new("reg")
+            .args(["query", "HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}", "/v", "pv"])
+            .output();
+        let wv2 = match outv {
+            Ok(o) => {
+                let s = String::from_utf8_lossy(&o.stdout).to_string();
+                s.split_whitespace().last().unwrap_or("unknown").to_string()
+            }
+            Err(_) => "未检测到（可能缺失）".to_string(),
+        };
+        out["webview2"] = serde_json::json!(wv2);
+        // 是否以管理员运行（部分机器上写 C:\ProgramData / 防火墙需要）
+        let elevated = Command::new("fltmc").output().map(|o| o.status.success()).unwrap_or(false);
+        out["elevated"] = serde_json::json!(elevated);
+    }
+
     if node_exists && script.exists() {
         let mut cmd = Command::new(&node);
         cmd.arg(&script).arg("--diagnose").current_dir(&engine_dir)

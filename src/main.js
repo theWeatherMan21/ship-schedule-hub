@@ -109,6 +109,7 @@ app.innerHTML = `
     </div>
     <span><span id="engineDot" class="engine-dot"></span><span id="engineState">engine 未启动</span></span>
     <button id="btnDiag" class="btn-ghost" title="查看引擎/node 路径与最近输出（排查「点了没反应」）">诊断</button>
+    <button id="btnDiagCopy" class="btn-ghost" title="把诊断信息复制到剪贴板（发给婉宜排障用）">复制诊断</button>
   </header>
   <div id="diagBox" class="diagbox" hidden></div>
   <div id="errBox" class="errbox" hidden></div>
@@ -500,14 +501,44 @@ function renderDiagnostics() {
     line('引擎状态', document.getElementById('engineState').textContent),
     line('node 可执行', d.node || '（未解析）', d.nodeExists),
     line('引擎脚本', d.script || '—', d.scriptExists),
+    line('安装目录', (d.exeDir || '—') + (d.exeDirWritable === false ? '　（不可写 → 运行期数据走数据目录，正常）' : '')),
     line('数据目录', d.dataDir || '—'),
-    line('浏览器', d.chrome || '（未探测）'),
+    line('浏览器', (Array.isArray(d.browsers) && d.browsers.length ? d.browsers.join('　|　') : (d.chrome || '（未探测：引擎会自动下载 Chrome for Testing）'))),
+    (d.webview2 !== undefined ? line('WebView2', d.webview2, !/未检测|unknown/i.test(String(d.webview2))) : ''),
+    (d.elevated !== undefined ? line('管理员权限', d.elevated ? '是' : '否（一般不需要）') : ''),
+    ...['TEMP', 'TMP', 'NODE_PATH', 'NODE_OPTIONS', 'HTTPS_PROXY', 'HTTP_PROXY']
+      .filter((k) => d[k])
+      .map((k) => line(k, d[k], !/裸盘符/.test(String(d[k])))),
     (diagInfo && diagInfo.net ? Object.entries(diagInfo.net).map(([h, v]) => `<div class="drow"><span class="dk">连通 ${h.split('.')[0]}</span><span class="dv${String(v).startsWith('ok') ? '' : ' bad'}">${String(v).replace(/[<>&]/g, '')}</span></div>`).join('') : ''),
     (diagInfo && diagInfo.engineStderr ? `<div class="drow"><span class="dk">引擎自检错误</span><span class="dv bad">${String(diagInfo.engineStderr).replace(/[<>&]/g, '').slice(0, 300)}</span></div>` : ''),
     (diagInfo && diagInfo.engineErr ? `<div class="drow"><span class="dk">启动失败</span><span class="dv bad">${String(diagInfo.engineErr).replace(/[<>&]/g, '').slice(0, 300)}</span></div>` : ''),
     stderrTail.length ? `<div class="drow"><span class="dk">引擎输出</span><span class="dv bad">${stderrTail.slice(-4).map((x) => String(x).replace(/[<>&]/g, '')).join('<br>')}</span></div>` : '',
   ].filter(Boolean).join('');
 }
+
+// 「复制诊断」：一键把环境信息抄给我（远程排障闭环用；爹地 10-08 Windows 适配）
+document.getElementById('btnDiagCopy')?.addEventListener('click', async () => {
+  const payload = {
+    时间: new Date().toISOString(),
+    平台: navigator.platform,
+    引擎状态: document.getElementById('engineState')?.textContent,
+    最近查询: lastQuery,
+    诊断: diagInfo || null,
+    引擎stderr尾部: stderrTail.slice(-6),
+  };
+  const text = JSON.stringify(payload, null, 1);
+  let done = false;
+  try { await navigator.clipboard.writeText(text); done = true; } catch { /* 某些 webview 不给权限 */ }
+  if (!done) {
+    // 兜底：弹一个可全选的文本框，让用户手抄
+    const w = window.open('', '_blank', 'width=760,height=560');
+    if (w) { w.document.write('<pre style="white-space:pre-wrap;font:12px monospace">' + text.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c])) + '</pre>'); }
+  }
+  const box = document.getElementById('summary');
+  if (box) box.textContent = done
+    ? '📋 诊断信息已复制到剪贴板 —— 直接粘给婉宜即可'
+    : '诊断信息已在新窗口打开，请全选复制发给婉宜';
+});
 
 // ---------- 引擎事件（Tauri event）----------
 async function listenEngineEvents() {
