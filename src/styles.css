@@ -522,3 +522,15 @@ html[data-platform="win"].no-glass[data-mode="dark"] { background: #0f1523 !impo
 #btnGlass { display: none; }
 html[data-platform="win"] #btnGlass { display: inline-flex; align-items: center; justify-content: center; }
 html[data-platform="win"] #btnGlass.on { color: var(--accent); }
+
+/* ================= Windows 性能收口（10-08 真机实测：核显上模糊合成要多烧 2.2 倍 DWM CPU）=================
+   ① 所有残留 backdrop-filter 一律关掉：每个元素上的 backdrop-filter 都会让合成器
+      每帧回读背景 + 模糊一次，弱核显上是实打实的掉帧来源。
+   ② 全屏 body::before 那层半透明渐变也去掉：每帧都要做全窗口 alpha 混合。 */
+html[data-platform="win"] *,
+html[data-platform="win"] *::before,
+html[data-platform="win"] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html[data-platform="win"] body::before { display: none !important; }
