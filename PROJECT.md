@@ -739,3 +739,10 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
   **macOS 的 vibrancy/毛玻璃一字未改。**
 - 验证手段（可复用）：`GetWindowLongPtr(h, GWL_EXSTYLE)` 看 `WS_EX_NOREDIRECTIONBITMAP`(0x00200000)
   —— 有=透明窗口，无=不透明；拿记事本做对照。
+
+## 2026-10-08 · 港口英文名识别加固（爹地要求：只看英文名，要能正确识别 + 对上船司名录）
+- 新增 `data/port-aka.json`（620 别名：市场名/旧名/缩写/常见拼错，全部经词典核验）+ `data/major-ports.json`（39 主干港排名）
+- 解析器加**归一化 + 别名 + 多源排序**（人工优先表 > 公开排名 > MSC 名录 > 多家船司别名命中；**不看单一船司**）
+- 修复：Portland→USPDX（原澳大利亚）、Alexandria→EGALY（原美国小镇）、**SHA→上海（原静默查沙迦）**、Genoa/Chittagong/Pusan/Port-of-Spain 从查不到变命中
+- 新增两个可复跑测试：`qa/port-compat.mjs`（130 例全过）、`qa/port-hint-verify.mjs`（界面提示 11 例全过）
+- 详见 docs/port-recognition.md

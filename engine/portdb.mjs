@@ -1,43 +1,105 @@
-// 港口词典：ports = UN/LOCODE 权威（17,520 港）；aliases = 船司实测映射
+// 港口词典：ports = UN/LOCODE 权威（17,522 港）；aliases = 船司实测别名 + 市场名/缩写（carrier='un'）
+// 解析顺序（爹地 10-08 定：只看英文名，要能正确识别 + 对上各船司名录）：
+//   ① 归一化（大小写/空格/连字符/点号都无所谓：Port-of-Spain = port of spain = portofspain）
+//   ② 别名精确命中（船司专属优先 → 通用）—— 覆盖市场名/旧名/常用缩写/常见拼错
+//   ③ 词典名字精确 → 前缀 → 包含（包含要求 ≥5 字符，防 "true"→"sTruer" 那类事故）
+//   ④ 多候选时排序：人工同名优先表 > 公开吞吐量排名 > MSC 名录 > 多家船司别名命中数 > 名字完全相等
+//      —— 「主干港优先」必须多源交叉（不能只看一家船司，爹地 10-08 纠正）
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const db = new DatabaseSync(path.join(__dirname, '..', 'db', 'ports.db'));
 
-// 语义（9-29 澄清）：aliases.locode = 【船司自己用的码头码】（可能是 CNSHA、TRHYY 这种
-// 不在 UN/LOCODE 表里的值）；ports 表才是权威地名来源。所以别名命中后，名字/国家用
-// ports 表兜底解析（先按码精确查，查不到就按港名模糊查），码本身照船司的用。
-//
-// 9-30 修正：alias 查询必须【按船司】。同一城市不同船司的码可以不同（上海 = CNSHA 给 10 家，
-// ZIM 却是 CNSNH），旧的 `WHERE alias=? LIMIT 1` 会把「任意一家」的码当成所有人的码 ——
-// 谁先被查到就用谁，HMM 能否点中【候选 [CNSHA]】纯属撞运气。现按 carrier 优先（其次 'un' 通用）。
+const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+const normSp = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+const sigOf = (locode) => db.prepare('SELECT * FROM port_signal WHERE locode = ?').get(locode)
+  || { locode, major_rank: null, in_msc: 0, carrier_hits: 0 };
+
+// 候选打分（越大越优先）
+function score(p, wn) {
+  const s = sigOf(p.locode);
+  let v = 0;
+  if (norm(p.name_ascii) === wn) v += 500;                 // 归一化后与输入完全相等
+  if (s.major_rank) v += 300 - Math.min(280, Number(s.major_rank));  // 公开排名越靠前越高
+  if (s.in_msc) v += 120;                                  // 船司①：MSC 名录里有
+  v += Math.min(120, Number(s.carrier_hits || 0) * 40);    // 船司②：有几家船司的已验证别名命中
+  v -= (p.name_ascii || '').length > 24 ? 5 : 0;           // 名字特别长的（"xxx Terminal"）稍降权
+  return v;
+}
+
 export function findPort(word, carrierId) {
-  // 9-30 加固：空串/过短/非字符串一律拒绝。
-  //   事故：destination=true（CLI 参数被 shell 传成布尔）→ LIKE '%%' 命中全表第一行 →
-  //   变成 "Struer (DKSTR)"（"sTRUE r"！）；空串同理命中 "Abu al Bukhoosh"。
-  //   垃圾输入必须立刻返回 null（走 unknown 兜底），绝不静默查一个随机港口。
+  // 加固（9-30）：空串/过短/非字符串一律拒绝 —— 垃圾输入必须走 unknown 兜底，绝不随机命中一个港口。
   if (typeof word !== 'string' && typeof word !== 'number') return null;
-  const w = String(word).toLowerCase().trim();
-  if (w.length < 3) return null; // 前端 matchPort 早就要求 ≥3 字符，后端此前漏了
-  const first = (sql, ...args) => db.prepare(sql).get(...args)?.locode || null;
+  const raw = String(word).trim();
+  const w = raw.toLowerCase();
+  if (w.length < 3) return null;
+  const wn = norm(w);
+
+  // ② 别名（船司专属 → 通用 'un'）—— 先按原样（老别名含空格），再按归一化
+  const pick1 = (sql, ...args) => db.prepare(sql).get(...args)?.locode || null;
   let aliasCode = null;
-  if (carrierId) {
-    aliasCode = first('SELECT locode FROM aliases WHERE alias = ? AND carrier = ? LIMIT 1', w, carrierId)
-      || first("SELECT locode FROM aliases WHERE alias = ? AND carrier = 'un' LIMIT 1", w);
+  for (const a of [w, normSp(w), wn]) {
+    if (aliasCode) break;
+    if (carrierId) aliasCode = pick1('SELECT locode FROM aliases WHERE alias = ? AND carrier = ? LIMIT 1', a, carrierId)
+      || pick1("SELECT locode FROM aliases WHERE alias = ? AND carrier = 'un' LIMIT 1", a);
+    if (!aliasCode) aliasCode = pick1('SELECT locode FROM aliases WHERE alias = ? LIMIT 1', a);
   }
-  if (!aliasCode) aliasCode = first('SELECT locode FROM aliases WHERE alias = ? LIMIT 1', w); // 未指定船司时的旧行为
-  const nameRe = "function LIKE '%1%' LIMIT 1";
-  const port = (aliasCode && db.prepare('SELECT * FROM ports WHERE locode=?').get(aliasCode))
-    || db.prepare(`SELECT * FROM ports WHERE LOWER(name_ascii)=? AND ${nameRe}`).get(w)
-    // 前缀优先于「包含」：字符串 "true" 曾在「包含」兜底里命中 "sTRUE r"（Struer, DK）
-    || db.prepare(`SELECT * FROM ports WHERE LOWER(name_ascii) LIKE ? AND ${nameRe}`).get(`${w}%`)
-    || (w.length >= 5 // 「包含」兜底要求 ≥5 字符：否则 "true" 会命中 "sTRUE r"(Struer)"
-      ? db.prepare(`SELECT * FROM ports WHERE LOWER(name_ascii) LIKE ? AND ${nameRe}`).get(`%${w}%`)
-      : null)
-    || null;
-  if (!port) return null; // 词典与 ports 都查不到 → unknown 兜底，绝不抛错拖垮整批
-  const locode = aliasCode || port.locode; // 有船司别名码就优先用船司的码
-  const carrierAliases = db.prepare('SELECT carrier, alias FROM aliases WHERE locode=?').all(locode);
+  // 同名港人工优先表（portland→USPDX、alexandria→EGALY …）
+  const prefCode = pick1('SELECT locode FROM port_prefer WHERE name_norm = ? LIMIT 1', wn);
+
+  const first = (sql, ...args) => db.prepare(sql).get(...args) || null;
+  let port = aliasCode ? first('SELECT * FROM ports WHERE locode = ?', aliasCode) : null;
+
+  if (!port) {
+    // ③ 词典（精确 → 前缀 → 包含≥5）
+    const cands = [];
+    for (const r of db.prepare('SELECT * FROM ports WHERE LOWER(name_ascii) = ? OR LOWER(name) = ?').all(w, w)) cands.push(r);
+    if (!cands.length) {
+      const pre = db.prepare("SELECT * FROM ports WHERE LOWER(name_ascii) LIKE ? ESCAPE '\\'").all(`${w.replace(/[%_]/g, '\\$&')}%`);
+      cands.push(...pre);
+    }
+    if (!cands.length && w.length >= 5) {
+      const inc = db.prepare("SELECT * FROM ports WHERE LOWER(name_ascii) LIKE ? ESCAPE '\\'").all(`%${w.replace(/[%_]/g, '\\$&')}%`);
+      cands.push(...inc);
+    }
+    if (!cands.length) {
+      // 归一化兜底（连字符/空格/点号/大小写一律忽略）：
+      //   先求「归一化后完全相等」（Port-of-Spain ↔ portofspain、St. John's ↔ stjohns），
+      //   再退「归一化前缀」（Ningbo-Zhoushan → ningbo*）；只在前面都没命中时才全表扫。
+      for (const r of db.prepare('SELECT * FROM ports').all()) {
+        if (norm(r.name_ascii) === wn) cands.push(r);
+      }
+      if (!cands.length && wn.length >= 5) {
+        for (const r of db.prepare('SELECT * FROM ports').all()) {
+          if (norm(r.name_ascii).startsWith(wn)) cands.push(r);
+        }
+      }
+    }
+    if (!cands.length) return null;
+    // ④ 排序（人工优先表 > 多源信号）
+    cands.sort((a, b) => {
+      const pa = prefCode && a.locode === prefCode ? 1 : 0, pb = prefCode && b.locode === prefCode ? 1 : 0;
+      if (pa !== pb) return pb - pa;
+      return score(b, wn) - score(a, wn);
+    });
+    port = cands[0];
+  }
+  const locode = aliasCode || port.locode;
+  const carrierAliases = db.prepare('SELECT carrier, alias FROM aliases WHERE locode = ?').all(locode);
   return { locode, name: port.name_ascii, country: port.country, carrierAliases };
+}
+
+// 供诊断/测试：看某个词会命中哪些候选以及打分
+export function explainPort(word) {
+  const w = String(word || '').toLowerCase().trim();
+  if (!w) return [];
+  const wn = norm(w);
+  const cands = [];
+  for (const r of db.prepare('SELECT * FROM ports WHERE LOWER(name_ascii) = ? OR LOWER(name) = ?').all(w, w)) cands.push(r);
+  if (!cands.length) cands.push(...db.prepare("SELECT * FROM ports WHERE LOWER(name_ascii) LIKE ?").all(`${w}%`));
+  if (!cands.length && w.length >= 5) cands.push(...db.prepare("SELECT * FROM ports WHERE LOWER(name_ascii) LIKE ?").all(`%${w}%`));
+  if (!cands.length) for (const r of db.prepare('SELECT * FROM ports').all()) if (norm(r.name_ascii) === wn) cands.push(r);
+  return cands.slice(0, 8).map((p) => ({ locode: p.locode, name: p.name_ascii, country: p.country, score: score(p, wn), sig: sigOf(p.locode) }));
 }

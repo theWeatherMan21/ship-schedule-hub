@@ -19,10 +19,14 @@ const CARRIERS = [
 // 数据由 tools/export_ports.py 从 db/ports.db 生成（UN/LOCODE 17522 港 + 坐标近邻「港口圈」）
 let PORTS = [];
 let PORTS_LOADED = false;
+// 别名/同名优先/主干港信号（由 tools/build_port_aka.mjs 从 db/ports.db 导出）——
+// 识别逻辑必须与引擎 engine/portdb.mjs 一致，否则界面提示和实际查询会对不上（婉宜 10-08）
+let AK = { aka: {}, prefer: {}, major: {}, msc: [], signal: {} };
 // 构建期内嵌（动态 import，Vite 单独切一个 chunk），不用运行时 fetch ——
 // 运行期 fetch('ports.json') 在 Tauri 生产包里能否命中，取决于资源是否被内嵌，
 // 而 release 的前端资源是压缩内嵌的、strings 也验不出来（婉宜 9-30 差点又靠 strings 下结论）。
 // 直接 import：词典跟其它 UI 代码走同一条打包路径，UI 能显示它就一定在。
+import('./port-aka.json').then((m) => { AK = m.default || m; }).catch(() => {});
 import('./ports.json')
   .then((m) => m.default || m)
   .then((d) => {
@@ -38,18 +42,57 @@ import('./ports.json')
   })
   .catch((e) => console.warn('[ports] 词典加载失败（识别提示不可用）:', e));
 
+// 归一化：大小写/空格/连字符/点号一律忽略（Port-of-Spain = port of spain = portofspain）
+const pNorm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// 多源打分（与 engine/portdb.mjs 的 score() 同款：主干港优先，多源交叉，不只看一家船司）
+function pScore(p, wn) {
+  const sig = (AK.signal || {})[p.l] || [null, 0, 0];
+  let v = 0;
+  if (pNorm(p.n) === wn) v += 500;
+  if (sig[0]) v += 300 - Math.min(280, Number(sig[0]));
+  if (sig[1]) v += 120;
+  v += Math.min(120, Number(sig[2] || 0) * 40);
+  if ((p.n || '').length > 24) v -= 5;
+  return v;
+}
+
 function matchPort(q) {
-  const s = (q || '').trim().toLowerCase();
+  const raw = (q || '').trim();
+  const s = raw.toLowerCase();
   if (s.length < 3) return null;
-  // 区分「精确 / 前缀 / 包含」——逆着逻辑测出来的隐患：输入 shan 会被前缀匹配到
-  // 爱尔兰 Shannon (CANON)，旧版界面照样显示「✅ 识别为 Shannon」，用户会以为查的是上海。
-  const exact = PORTS.find((p) => p.n.toLowerCase() === s);
-  if (exact) return { p: exact, how: 'exact' };
-  const pre = PORTS.find((p) => p.n.toLowerCase().startsWith(s));
-  if (pre) return { p: pre, how: 'prefix' };
-  const inc = PORTS.find((p) => p.n.toLowerCase().includes(s));
-  if (inc) return { p: inc, how: 'contains' };
-  return null;
+  const wn = pNorm(s);
+  const pref = (AK.prefer || {})[wn];
+
+  // ① 别名（市场名/旧名/常用缩写/常见拼错）
+  const akaHit = (AK.aka || {})[wn];
+  if (akaHit) {
+    const p = PORTS.find((x) => x.l === akaHit);
+    if (p) return { p, how: 'alias', short: wn.length <= 4 };
+  }
+  // ② 词典：精确 → 前缀 → 包含（≥5 字符）
+  const cands = [];
+  for (const p of PORTS) {
+    const pn = pNorm(p.n);
+    if (pn === wn) cands.push(p);
+  }
+  let how = 'exact';
+  if (!cands.length) {
+    for (const p of PORTS) if (pNorm(p.n).startsWith(wn)) cands.push(p);
+    how = 'prefix';
+  }
+  if (!cands.length && s.length >= 5) {
+    for (const p of PORTS) if (pNorm(p.n).includes(wn)) cands.push(p);
+    how = 'contains';
+  }
+  if (!cands.length) return null;
+  // ③ 同名港排序：人工优先表 > 公开排名 > MSC 名录 > 多家船司别名
+  cands.sort((a, b) => {
+    const pa = pref && a.l === pref ? 1 : 0, pb = pref && b.l === pref ? 1 : 0;
+    if (pa !== pb) return pb - pa;
+    return pScore(b, wn) - pScore(a, wn);
+  });
+  return { p: cands[0], how, short: s.replace(/[^a-z0-9]/g, '').length <= 4 };
 }
 
 function renderPortHint(inputId, hintId) {
@@ -69,15 +112,20 @@ function renderPortHint(inputId, hintId) {
     return;
   }
   const near = (m.p.near || []).map((x) => x.n).slice(0, 6);
-  if (m.how === 'exact') {
-    el.innerHTML =
-      `✅ 识别为 <b>${m.p.n}</b> (${m.p.l}${m.p.c ? ' · ' + m.p.c : ''})` +
+  const loc = `${m.p.l}${m.p.c ? ' · ' + m.p.c : ''}`;
+  const shortWarn = m.short
+    ? '<br><span class="near">⚠️ 这是短代码匹配 —— 如果不是这个港，请把港名写完整</span>'
+    : '';
+  if (m.how === 'alias') {
+    el.innerHTML = `✅ 识别为 <b>${m.p.n}</b> (${loc})　<span class="near">按常用名/缩写「${raw}」匹配</span>` +
+      (near.length ? `<br><span class="near">同港区：${near.join(' / ')}</span>` : '') + shortWarn;
+    el.className = 'porthint ok' + (m.short ? ' warn' : '');
+  } else if (m.how === 'exact') {
+    el.innerHTML = `✅ 识别为 <b>${m.p.n}</b> (${loc})` +
       (near.length ? `<br><span class="near">同港区：${near.join(' / ')}</span>` : '');
     el.className = 'porthint ok';
   } else {
-    // 前缀/包含匹配：可能不是用户想要的那个港 —— 必须让人看见并要求确认
-    el.innerHTML =
-      `⚠️ 近似匹配 <b>${m.p.n}</b> (${m.p.l}${m.p.c ? ' · ' + m.p.c : ''})　` +
+    el.innerHTML = `⚠️ 近似匹配 <b>${m.p.n}</b> (${loc})　` +
       `<span class="near">不是精确名称，请确认是不是这个港（输入越完整越准）</span>`;
     el.className = 'porthint warn';
   }
