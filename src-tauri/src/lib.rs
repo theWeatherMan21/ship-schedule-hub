@@ -644,19 +644,49 @@ fn stop_query(app: AppHandle) -> Result<serde_json::Value, String> {
     Ok(serde_json::json!({ "ok": true, "killed": killed }))
 }
 
+/// 运行期切换 Windows 毛玻璃档位（婉宜 10-08：这台机是 i5-7500 + Intel HD 630 核显，
+/// 模糊合成要多烧 2.7 倍 DWM CPU，拖动会迟滞 → 让爹地自己随手切，不用找婉宜重编）。
+/// mode: "blur"(默认，够看且省) | "acrylic"(最好看，最费) | "off"(全关，最省)
+#[tauri::command]
+fn set_glass(window: tauri::WebviewWindow, mode: String) -> Result<String, String> {
+    let m = mode.to_lowercase();
+    #[cfg(windows)]
+    {
+        use tauri::window::{Effect, EffectsBuilder};
+        let eff = match m.as_str() {
+            "off" => EffectsBuilder::new().build(),
+            "acrylic" => EffectsBuilder::new().effect(Effect::Acrylic).build(),
+            _ => EffectsBuilder::new().effect(Effect::Blur).build(),
+        };
+        // 失败不算致命（可能系统策略禁用），继续把 CSS 侧同步好
+        let _ = window.set_effects(eff);
+    }
+    let js = if m == "off" {
+        "document.documentElement.classList.add('no-glass')"
+    } else {
+        "document.documentElement.classList.remove('no-glass')"
+    };
+    let _ = window.eval(js);
+    Ok(m)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .manage(EngineState::default())
         .setup(|app| {
-            // Windows 毛玻璃：config 里的 windowEffects 写的是 **macOS 材质**（hudWindow），
-            // Windows 只认 acrylic / blur → 不设就是「透明的但没有模糊」，观感=透得像没底
-            // （爹地真机反馈「透明度太高」，婉宜 10-08）。这里按平台补上。
+            // Windows 玻璃效果（婉宜 10-08，真机迭代三轮定稿）
+            // 背景：config 的 windowEffects 写的是 macOS 材质名(hudWindow)，Windows 不认 → 必须运行时设。
+            // 三档用 SSH_GLASS 切换（不重编即可 A/B）：
+            //   "blur"（默认）= DWM 普通模糊。便宜、拖动顺滑，观感足够「磨砂」。
+            //   "acrylic"     = 亚克力（带噪点纹理）。最好看，但 Win10 上是**全屏实时重算**，
+            //                   拖动窗口明显迟滞（爹地 10-08 实测「拖动都感觉迟滞」）→ 不默认。
+            //   "off"         = 完全关掉窗口效果（最省；弱机器兜底），并给 <html> 加 .no-glass
+            //                   让 CSS 换回实底，避免「半透明但没模糊」的脏观感。
             #[cfg(windows)]
             {
                 use tauri::window::{Effect, EffectsBuilder};
                 if let Some(w) = app.get_webview_window("main") {
-                    // 结果写盘：GUI 的 stderr 远程看不到，毛玻璃失败必须留痕（婉宜 10-08）
                     let log = |m: &str| {
                         let dir = std::env::var("LOCALAPPDATA")
                             .map(|l| std::path::PathBuf::from(l).join("ShipScheduleHub"))
@@ -668,21 +698,39 @@ pub fn run() {
                         }
                         eprintln!("[glass] {m}");
                     };
-                    match w.set_effects(EffectsBuilder::new().effect(Effect::Acrylic).build()) {
-                        Ok(_) => log("acrylic OK"),
-                        Err(e) => {
-                            log(&format!("acrylic 失败: {e}；试 blur"));
-                            match w.set_effects(EffectsBuilder::new().effect(Effect::Blur).build()) {
-                                Ok(_) => log("blur OK"),
-                                Err(e2) => log(&format!("blur 也失败: {e2}")),
-                            }
+                    let mode = std::env::var("SSH_GLASS").unwrap_or_else(|_| "blur".into()).to_lowercase();
+                    match mode.as_str() {
+                        "off" => {
+                            let _ = w.set_effects(EffectsBuilder::new().build());
+                            let _ = w.eval("document.documentElement.classList.add('no-glass')");
+                            log("glass off（窗口效果关闭 + CSS 实底）");
                         }
+                        "acrylic" => match w.set_effects(EffectsBuilder::new().effect(Effect::Acrylic).build()) {
+                            Ok(_) => log("acrylic OK（注意：Win10 拖动可能迟滞）"),
+                            Err(e) => {
+                                log(&format!("acrylic 失败: {e}；退 blur"));
+                                match w.set_effects(EffectsBuilder::new().effect(Effect::Blur).build()) {
+                                    Ok(_) => log("blur OK"),
+                                    Err(e2) => log(&format!("blur 也失败: {e2}")),
+                                }
+                            }
+                        },
+                        _ => match w.set_effects(EffectsBuilder::new().effect(Effect::Blur).build()) {
+                            Ok(_) => log("blur OK（默认档：便宜顺滑）"),
+                            Err(e) => {
+                                log(&format!("blur 失败: {e}；退 acrylic"));
+                                match w.set_effects(EffectsBuilder::new().effect(Effect::Acrylic).build()) {
+                                    Ok(_) => log("acrylic OK"),
+                                    Err(e2) => log(&format!("acrylic 也失败: {e2}")),
+                                }
+                            }
+                        },
                     }
                 }
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![run_query, stop_query, open_external, selftest_enabled, diagnose])
+        .invoke_handler(tauri::generate_handler![run_query, stop_query, open_external, selftest_enabled, diagnose, set_glass])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

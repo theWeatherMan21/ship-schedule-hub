@@ -106,6 +106,7 @@ app.innerHTML = `
       <button class="sw" data-t="graphite" title="石墨灰"></button>
       <button class="sw" data-t="sand" title="暖沙"></button>
       <button class="sw mode" id="modeToggle" title="深色 / 浅色">◐</button>
+      <button class="sw mode" id="btnGlass" title="毛玻璃强度：✨轻 / ❖亚克力 / ▢关闭（机器拖动卡就切「关闭」）">✨</button>
     </div>
     <span><span id="engineDot" class="engine-dot"></span><span id="engineState">engine 未启动</span></span>
     <button id="btnDiag" class="btn-ghost" title="查看引擎/node 路径与最近输出（排查「点了没反应」）">诊断</button>
@@ -682,13 +683,23 @@ listenEngineEvents();
     } catch { /* 读不到就用默认 */ }
     // 默认跟随系统明暗，配色用海运蓝
     const dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    return { theme: 'sea', mode: dark ? 'dark' : 'light' };
+    return { theme: 'sea', mode: dark ? 'dark' : 'light', glass: 'blur' };
   }
   const state = load();
 
   function apply() {
     root.dataset.theme = state.theme;
     root.dataset.mode = state.mode;
+    // 毛玻璃档位（仅 Windows 显示该按钮；macOS 用系统 vibrancy 不动）
+    const gLabel = { blur: '✨', acrylic: '❖', off: '▢' };
+    const gBtn = document.getElementById('btnGlass');
+    if (gBtn) {
+      const cur = state.glass || 'blur';
+      gBtn.textContent = gLabel[cur] || '✨';
+      gBtn.title = '当前毛玻璃：' + ({ blur: '轻（默认，省）', acrylic: '亚克力（最好看/最费）', off: '已关闭（最省，拖动最顺）' }[cur] || cur) + ' —— 点击切换';
+      gBtn.classList.toggle('on', cur !== 'off');
+      if (hasTauri) invoke('set_glass', { mode: cur }).catch(() => {});
+    }
     const box = document.getElementById('themes');
     if (box) {
       box.querySelectorAll('.sw[data-t]').forEach((b) => b.classList.toggle('on', b.dataset.t === state.theme));
@@ -713,6 +724,12 @@ listenEngineEvents();
       const b = e.target.closest('button');
       if (!b) return;
       if (b.id === 'modeToggle') state.mode = state.mode === 'dark' ? 'light' : 'dark';
+      else if (b.id === 'btnGlass') {
+        // 三档循环：轻(blur) → 亚克力(acrylic) → 关闭(off)
+        const order = ['blur', 'acrylic', 'off'];
+        const cur = order.indexOf(state.glass || 'blur');
+        state.glass = order[(cur + 1) % order.length];
+      }
       else if (THEMES.includes(b.dataset.t)) state.theme = b.dataset.t;
       apply();
     });

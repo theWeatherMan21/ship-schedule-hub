@@ -469,30 +469,56 @@ html[data-mode="dark"] .cgroup { background: var(--glass-3) !important; }
 html[data-mode="dark"] .empty, html[data-mode="dark"] .placeholder { color: var(--ink-2) !important; }
 
 
-/* ================= Windows 平台适配（10-08 真机实测后定稿）=================
-   结论先行：Windows 上**不做整窗透明**。原因（真机 + 日志实证）：
-     · tauri 的 windowEffects 在 Windows 上只认 acrylic/blur，我们已按平台在运行时套了
-       （%LOCALAPPDATA%\ShipScheduleHub\glass.log 里能看到 "acrylic OK"）；
-     · 但 Win10 的 DWM acrylic 绘制在 webview **之后**，而 WebView2 自身是不透明白底 →
-       除非去掉系统标题栏（decorations:false，要自绘窗口按钮），否则看不出透出效果；
-     · 爹地的诉求是「别太透」，所以 Windows 走实底 + 内部层次：底是实色，面层保留少量
-       半透明做纵深，观感干净、文字好读，且不跟系统/WebView2 打架。
-   macOS 不受影响（下面规则都带 html[data-platform="win"] 前缀）。 */
+/* ================= Windows 平台适配（10-08 真机迭代二）=================
+   爹地要的是「看得见的 acrylic」，所以 Windows **保留整窗透明**，靠 DWM 的 acrylic 透出背景。
+   要让 acrylic 真的能看见，三件事缺一不可（10-08 逐条实证）：
+     ① tauri.conf.json：transparent=true + backgroundColor="#00000000"
+        （Windows 上只有 alpha=0 才会把 webview 层也透明化，否则 WebView2 画白底 → 怎么调 CSS 都是白）；
+     ② 运行时 set_effects(Acrylic)（失败退 Blur），结果留痕 %LOCALAPPDATA%\ShipScheduleHub\glass.log；
+     ③ 本文件：底不能画实色，面层用半透明 —— 底一实，acrylic 就白装了。
+   macOS 不受影响（以下规则都带 html[data-platform="win"] 前缀）。 */
 html[data-platform="win"] {
-  background: var(--bg) !important;          /* 实底：整窗不再透出桌面 */
-  --glass-1: rgba(255, 255, 255, .72);
-  --glass-2: rgba(255, 255, 255, .58);
-  --glass-3: rgba(255, 255, 255, .84);
-  --glass-hi: rgba(255, 255, 255, .50);
+  background: transparent !important;            /* 别实底：实底 = acrylic 看不见 */
+  --glass-1: rgba(255, 255, 255, .58);
+  --glass-2: rgba(255, 255, 255, .44);
+  --glass-3: rgba(255, 255, 255, .68);
+  --glass-hi: rgba(255, 255, 255, .42);
 }
 html[data-platform="win"][data-mode="dark"] {
-  background: #0f1523 !important;
-  --glass-1: rgba(24, 33, 51, .92);
-  --glass-2: rgba(24, 33, 51, .82);
-  --glass-3: rgba(30, 41, 62, .95);
-  --glass-hi: rgba(255, 255, 255, .08);
+  background: transparent !important;
+  --glass-1: rgba(16, 24, 40, .62);
+  --glass-2: rgba(16, 24, 40, .52);
+  --glass-3: rgba(22, 32, 50, .70);
+  --glass-hi: rgba(255, 255, 255, .10);
 }
-/* Windows 用系统标题栏 → 顶栏不需要 macOS Overlay 的 86px 左边距 */
-html[data-platform="win"] .topbar { padding-left: 18px; height: 52px; }
-html[data-platform="win"] .app { border-radius: 8px; }
-html[data-platform="win"] body::before { opacity: .5; }   /* 装饰渐变在实底上要收敛 */
+/* Windows 窗口是直角（Win11 由系统自己圆）→ 容器不要再加圆角，
+   否则四角留下透明缝隙，看着像"一圈奇怪的半透明边框"。 */
+html[data-platform="win"] .app { border-radius: 0 !important; }
+html[data-platform="win"] .topbar { padding-left: 18px; height: 48px; }
+/* Windows 有系统标题栏，应用头部再写一遍产品名 = 两行标题冗余 → 隐藏副标题 */
+html[data-platform="win"] .topbar h1,
+html[data-platform="win"] .topbar .sub { display: none; }   /* 名字交给系统标题栏，应用头部不再重复 */
+/* 透明底上次要文字要提一点对比度，否则玻璃底上发灰难读 */
+html[data-platform="win"] { --ink-2: #3b4a5d; }
+html[data-platform="win"][data-mode="dark"] { --ink-2: #b9c6da; }
+html[data-platform="win"] body::before { opacity: .38; }   /* 透明底上装饰渐变要收敛，否则糊成一片 */
+/* 系统那层已经在模糊了，应用内再 backdrop-filter 一次 = 双层模糊白烧 GPU
+   （爹地 10-08 实测拖动迟滞的主因之一）→ Windows 上全关，靠面层半透明叠出层次。 */
+html[data-platform="win"] .topbar,
+html[data-platform="win"] .formbar,
+html[data-platform="win"] .cgroup,
+html[data-platform="win"] .card,
+html[data-platform="win"] .statushead {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* SSH_GLASS=off 时（弱机器兜底）走实底 */
+html[data-platform="win"].no-glass {
+  background: var(--bg) !important;
+}
+html[data-platform="win"].no-glass[data-mode="dark"] { background: #0f1523 !important; }
+
+/* 毛玻璃档位开关：只有 Windows 需要（macOS 用系统 vibrancy，不给爹地添乱） */
+#btnGlass { display: none; }
+html[data-platform="win"] #btnGlass { display: inline-flex; align-items: center; justify-content: center; }
+html[data-platform="win"] #btnGlass.on { color: var(--accent); }
