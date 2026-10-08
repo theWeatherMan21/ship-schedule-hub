@@ -79,7 +79,16 @@ export default {
     const schedules = [];
     try {
       const norm = String(text).replace(/[ \t\xa0]+/g, ' ');
-      if (process.env.SSH_DUMP_DOM === 'evergreen') { try { (await import('node:fs')).writeFileSync('/tmp/dom-evergreen.txt', norm); console.error('[evergreen] DOM 已写'); } catch {} }
+      if (process.env.SSH_DUMP_DOM === 'evergreen') {
+        try {
+          const fsmod = await import('node:fs');
+          fsmod.writeFileSync('/tmp/dom-evergreen.txt', norm);
+          // 表格结构（列对应关系只有按单元格读才准）
+          const tables = await page.evaluate(() => [...document.querySelectorAll('table')].map((t) => [...t.querySelectorAll('tr')].map((tr) => [...tr.querySelectorAll('th,td')].map((c) => (c.innerText || '').replace(/\s+/g, ' ').trim())))).catch(() => []);
+          fsmod.writeFileSync('/tmp/dom-evergreen-table.json', JSON.stringify(tables, null, 1));
+          console.error('[evergreen] DOM + 表格已写');
+        } catch { /* 忽略 */ }
+      }
       // 9-30 修：正则原来写死 NINGBO, CHINA / ISTANBUL —— 换起运/目的港就抽不到行（只能停在「已预填」）。
       // 改为按本次查询的港口名动态构造：取解析出的港名首词（大写），缺失则退化为通配。
       const cityPat = (name) => {
@@ -94,14 +103,25 @@ export default {
         // cm[6] = "CSCL VENUS 090W NOV-05-2026 ----"（vessel voyage + ETA + ----）
         const vm = /^\s*(.+?)\s*((?:\d{3,4}-)?\d{2,4}[W E])\s+([A-Z]{3}-\d{2}-\d{4})/.exec(cm[6]);
         const fmt = (s) => { const m = /^([A-Z]{3})-(\d{2})-(\d{4})$/.exec(s); return m ? `${m[3]}-${{ JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', JUN: '06', JUL: '07', AUG: '08', SEP: '09', OCT: '10', NOV: '11', DEC: '12' }[m[1]]}-${m[2]}` : s; };
+        // 9-30 修真 bug（婉宜）：cm[1]（如 OCT-10-2026 20:00）**不是开船日，是 Port Cut Off Date**！
+        // 证据：官网 Transit Time 列反推 —— OCT-10→NOV-14=35 天但官网写 33；用 cm[5]+日期(OCT-12)→NOV-14=33 ✓
+        // （另一行 OCT-08→NOV-12=35 ✓ 也与官网一致）。真正的开船日在 cm[5]。
+        const tail = norm.slice(cm.index, cm.index + 420);
+        const cutTimes = [...tail.matchAll(/([A-Z]{3}-\d{2}-\d{4} \d{2}:\d{2})/g)].map((x) => x[1]);
+        const cutoffs = {};
+        if (cutTimes[0]) cutoffs['港口截关（Port Cut Off）'] = cutTimes[0];
+        if (cutTimes[1]) cutoffs['VGM（EDI/WEB/APP）'] = cutTimes[1];
         schedules.push({
           vessel: vm ? vm[1].trim() : cm[6].trim(),
           voyage: vm ? vm[2].trim() : '',
-          etd: fmt(cm[1]),
+          etd: fmt(cm[5]),                        // ← 真开船日（原来错用 cm[1] = 截单日期）
           eta: fmt(vm ? vm[3] : cm[5]),
           transitDays: Number(cm[4]) || cm[4],
           via: '',
           direct: true,   // 结果表未显示中转列（宁波→伊斯坦布尔挂直挂），不编造
+          detail: Object.keys(cutoffs).length
+            ? { service: (cm[2] || '').trim(), routing: 'Direct', co2: '', legs: [], cutoffs }
+            : undefined,
         });
       }
     } catch { /* 抽取失败 → 保持 prefilled */ }

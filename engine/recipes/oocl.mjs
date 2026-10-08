@@ -106,7 +106,15 @@ export default {
           const vm = /^([A-Z][A-Z0-9 .&'-]{3,28}) (\d{1,3}[A-Z]{1,2}\d{0,2})$/.exec(lines[k].trim());
           if (vm) { vessel = vm[1].trim(); voyage = vm[2]; break; }
         }
-        if (vessel) rows.push({ from, etdRaw, to, etaRaw, days, vessel, voyage });
+        if (vessel) {
+          // 截单时间就在同一张卡里（innerText: "CY Cutoff: 10 Oct (Sat) 23:00" / "SI Cutoff: ..."）——婉宜 9-30
+          const cutoffs = {};
+          for (let k = j; k < Math.min(j + 16, lines.length); k++) {
+            const ctm = /^([A-Za-z][A-Za-z /]{0,15}?)\s*Cutoff:\s*(.+)$/i.exec(lines[k]);
+            if (ctm) cutoffs[`${ctm[1].trim()} 截单`] = ctm[2].trim();
+          }
+          rows.push({ from, etdRaw, to, etaRaw, days, vessel, voyage, cutoffs });
+        }
         if (rows.length >= 12) break;
       }
       return { n: (document.body.innerText.match(/Search Result: (\d+)/) || [])[1], rows };
@@ -136,7 +144,12 @@ export default {
     const schedules = rows.rows.map((r) => {
       const etd = stamp(r.etdRaw, Date.now());
       const eta = stamp(r.etaRaw, etd ? Date.parse(etd + 'T00:00:00Z') : Date.now());
-      return { vessel: r.vessel, voyage: r.voyage, etd, eta, transitDays: r.days, via: '', direct: true };
+      return {
+        vessel: r.vessel, voyage: r.voyage, etd, eta, transitDays: r.days, via: '', direct: true,
+        detail: Object.keys(r.cutoffs || {}).length
+          ? { service: '', routing: 'Direct', co2: '', legs: [], cutoffs: r.cutoffs }
+          : undefined,
+      };
     }).sort((a, b) => (a.etd > b.etd ? 1 : -1));
     return { status: 'done', schedules, msg: `已查到 ${schedules.length} 条：` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ${r.etd} → ${r.eta} ${r.transitDays}天`).join(' ｜ ') };
   },

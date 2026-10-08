@@ -96,6 +96,18 @@ export default {
       let cm;
       while ((cm = cardRe.exec(text)) !== null && schedules.length < 12) {
         const vm = /^([^(]+?)(?:\s*\(([^)]+)\))?\s*$/.exec(cm[7].trim());
+        // 截单时间：卡片里是「标签一行、值一行」（Inland Cut-off / Port Cut-off / DOC Cut-off）——婉宜 9-30
+        const cutoffs = {};
+        {
+          const seg = text.slice(cm.index, cm.index + 1500);
+          const cutRe = /(Inland Cut-off|Port Cut-off|DOC Cut-off|VGM Cut-off)\n\s*([^\n]+)/g;
+          let cg;
+          while ((cg = cutRe.exec(seg)) !== null) {
+            const v = cg[2].trim();
+            if (!v) continue;
+            cutoffs[cg[1]] = /^Unavailable$/i.test(v) ? '暂不可用（官网原值）' : v;
+          }
+        }
         schedules.push({
           vessel: vm ? vm[1].trim() : cm[7].trim(),
           voyage: vm && vm[2] ? vm[2].trim() : '',
@@ -103,6 +115,9 @@ export default {
           transitDays: Number(cm[3]) || cm[3],
           via: '',   // 卡片版 innerText 不含中转港名（cm[2] 是 Origin 港名，误用会显示「转NINGBO」）——非直达下方统一标 T/S
           direct: cm[4].startsWith('Direct'),
+          detail: Object.keys(cutoffs).length
+            ? { service: '', routing: cm[4].startsWith('Direct') ? 'Direct' : 'Via', co2: '', legs: [], cutoffs }
+            : undefined,
         });
       }
       // Transshipment 卡的 via 港名：innerText 卡片段落后有「Next Port(T/S)」明细（表格版），卡片版无 → 用 1st Vessel 兜底标 T/S

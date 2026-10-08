@@ -618,3 +618,28 @@ Error: EISDIR: illegal operation on a directory, lstat 'D:'
 - 调试钩子：`SSH_DUMP_RAW=maersk`（落盘原始响应）、`SSH_DUMP_DOM=<carrier>`（落盘结果页文本），后面探针都能复用
 
 覆盖进度：**7 家**已有详情（MSC/ONE/阳明/COSCO/ZIM/赫伯罗特/马士基/达飞），剩 3 家 DOM（长荣/OOCL/HMM）正在挖。
+
+### 9-30 · 船期详情全 11 家覆盖完成 + 修长荣开船日错误（婉宜）
+
+**最终覆盖**（宁波→伊斯坦布尔，实测 11/11 家 102 条，天数自洽 73/73）：
+
+| 船司 | 截单类数 | 航程段 | 说明 |
+|---|---|---|---|
+| MSC | 5 | 1 | CY/VGM/提单指示/危险品/冷藏 + 码头 + 挂靠港序列 |
+| 赫伯罗特 | 9 | 2 | 官网代码原样 + 中文备注；真实中转（宁波→塞得港→伊斯坦布尔）|
+| ONE | 3 | 1 | cct/dct/inlandCct + 码头名 |
+| 阳明 | 3 | 1 | CY/SI/VGM + 码头名 |
+| HMM | 3 | 0 | Inland/Port/DOC Cut-off（官网原值，"Unavailable" 照实标）|
+| OOCL | 2 | 0 | CY/SI Cutoff |
+| 长荣 | 2 | 0 | Port Cut Off + VGM（**顺带修了开船日 bug，见下**）|
+| COSCO | 1 | 1 | CY 截关 + 分段 |
+| 达飞 | 1 | 0 | 卡里的 Port Cut-off |
+| 马士基 | 0 | 2 | 分段（设施码+服务名）；截单在另一个接口，未取 |
+| ZIM | 0 | 5 | 分段；官网接口无截单字段 |
+
+**长荣真 bug（重要）**：原来的 `etd` 取的是 **Port Cut Off Date（截单日）**，不是开船日 —— 用官网
+Transit Time 列反推实锤（OCT-10→NOV-14=35 天但官网写 33；改取 OCT-12→NOV-14=33 ✓）。
+修后 **7/7 条天数自洽**（修前 0/7）。教训：**抽取字段必须用站内其它列交叉验证**（天数/ETA 就是最好的校验器）。
+
+调试钩子（复用价值高）：`SSH_DUMP_RAW=<carrier>` 落盘原始响应、`SSH_DUMP_DOM=<carrier>` 落盘结果页文本
+与表格结构 —— 探针不必再重写请求，直接跑引擎就能拿到原始数据。
