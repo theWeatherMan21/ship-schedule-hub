@@ -85,6 +85,15 @@ function matchPort(q) {
     for (const p of PORTS) if (pNorm(p.n).includes(wn)) cands.push(p);
     how = 'contains';
   }
+  if (!cands.length) {
+    // 后缀容错：PORTLAND, OR / UMM QASR PT / WILMINGTON, NC
+    const strip = s.replace(/,\s*[a-z]{2,3}$/i, '').replace(/\s+(pt|port|harbour|harbor|terminal)$/i, '').trim();
+    if (strip && strip !== s && strip.length >= 3) {
+      const sw = pNorm(strip);
+      for (const p of PORTS) { const pn = pNorm(p.n); if (pn === sw || pn.startsWith(sw)) cands.push(p); }
+      how = 'prefix';
+    }
+  }
   if (!cands.length) return null;
   // ③ 同名港排序：人工优先表 > 公开排名 > MSC 名录 > 多家船司别名
   cands.sort((a, b) => {

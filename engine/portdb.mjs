@@ -65,6 +65,13 @@ export function findPort(word, carrierId) {
       cands.push(...inc);
     }
     if (!cands.length) {
+      // 后缀容错：船司全名常带地区/类型后缀（PORTLAND, OR / UMM QASR PT / WILMINGTON, NC）
+      const stripped = w.replace(/,\s*[a-z]{2,3}$/i, '').replace(/\s+(pt|port|harbour|harbor|terminal)$/i, '').trim();
+      if (stripped && stripped !== w && stripped.length >= 3) {
+        for (const r of db.prepare('SELECT * FROM ports WHERE LOWER(name_ascii) = ? OR LOWER(name) = ? OR LOWER(name_ascii) LIKE ?').all(stripped, stripped, `${stripped}%`)) cands.push(r);
+      }
+    }
+    if (!cands.length) {
       // 归一化兜底（连字符/空格/点号/大小写一律忽略）：
       //   先求「归一化后完全相等」（Port-of-Spain ↔ portofspain、St. John's ↔ stjohns），
       //   再退「归一化前缀」（Ningbo-Zhoushan → ningbo*）；只在前面都没命中时才全表扫。

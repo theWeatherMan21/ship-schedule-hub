@@ -58,6 +58,42 @@ for (const f of files) {
 }
 console.log(`船司名录别名：+${carAdd} 条（跳过 ${carSkip} 条无法唯一映射，冲突 ${carConflict} 条保留既有）· 来源 ${files.join(', ') || '无'}`);
 
+// 1.8) 从 MSC 目录派生别名（船司自己的叫法就是最好的别名；每条都用它的码校验回词典）
+//   变体规则（只做能唯一映射的）：
+//     · 原名整体      · 去尾部 ", XX" 地区码        · 去尾部 " PT"/" PORT"
+//     · 括号里的别名（KAMPONG SAOM (SIHANOUKVILLE) → sihanoukville）
+//     · 首段主名（AUGUSTA PORT OF CATANIA → augusta；只在首段唯一命中时用）
+const stripQual = (s) => String(s || '')
+  .replace(/\s*\(([^)]*)\)\s*$/, ' $1')          // 括号别名并入
+  .replace(/,\s*[A-Za-z]{2,3}$/, '')               // ", OR" / ", NC"
+  .replace(/\s+(PT|PORT|HARBOUR|HARBOR|TERMINAL)$/i, '')
+  .trim();
+const mscRows = db.prepare('SELECT LocationName, LocationCode FROM msc_ports').all();
+let mscAdd = 0, mscSkip = 0;
+const knownSet = known;
+for (const r of mscRows) {
+  const code = String(r.LocationCode || '').toUpperCase();
+  if (!code || !knownSet.has(code)) { mscSkip++; continue; }
+  const variants = new Set();
+  const full = String(r.LocationName || '').trim();
+  if (full) variants.add(full);
+  const st = stripQual(full);
+  if (st) variants.add(st);
+  const paren = full.match(/\(([^)]+)\)/);
+  if (paren) variants.add(paren[1].trim());
+  const head = st.split(/\s+(?:PORT OF|OF|DE|DEL)\s+/i)[0].trim();
+  if (head && head !== st) variants.add(head);
+  for (const v of variants) {
+    const k = v.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!k || k.length < 4) continue;
+    const exists = db.prepare('SELECT locode FROM aliases WHERE alias = ? AND carrier = ? LIMIT 1').get(k, 'un');
+    if (exists) { if (exists.locode !== code) mscSkip++; continue; }   // 已指向别处 → 不覆盖
+    insCar.run(k, code, 'carrier:msc');
+    mscAdd++;
+  }
+}
+console.log(`MSC 目录派生别名：+${mscAdd} 条（跳过 ${mscSkip}）`);
+
 // 2) 信号表：主干港排名 / MSC 名录 / 船司别名数
 db.exec(`CREATE TABLE IF NOT EXISTS port_signal (
   locode TEXT PRIMARY KEY, major_rank INTEGER, in_msc INTEGER DEFAULT 0, carrier_hits INTEGER DEFAULT 0
