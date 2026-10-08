@@ -648,6 +648,24 @@ fn stop_query(app: AppHandle) -> Result<serde_json::Value, String> {
 pub fn run() {
     tauri::Builder::default()
         .manage(EngineState::default())
+        .setup(|app| {
+            // Windows 毛玻璃：config 里的 windowEffects 写的是 **macOS 材质**（hudWindow），
+            // Windows 只认 acrylic / blur → 不设就是「透明的但没有模糊」，观感=透得像没底
+            // （爹地真机反馈「透明度太高」，婉宜 10-08）。这里按平台补上。
+            #[cfg(windows)]
+            {
+                use tauri::window::{Effect, EffectsBuilder};
+                if let Some(w) = app.get_webview_window("main") {
+                    if let Err(e) = w.set_effects(EffectsBuilder::new().effect(Effect::Acrylic).build()) {
+                        eprintln!("[glass] acrylic 设置失败({e})，退回 blur");
+                        if let Err(e2) = w.set_effects(EffectsBuilder::new().effect(Effect::Blur).build()) {
+                            eprintln!("[glass] blur 也失败: {e2}（窗口会保持纯透明）");
+                        }
+                    }
+                }
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![run_query, stop_query, open_external, selftest_enabled, diagnose])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

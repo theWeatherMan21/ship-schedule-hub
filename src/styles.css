@@ -467,3 +467,23 @@ html[data-mode="dark"] .formbar,
 html[data-mode="dark"] .carriers { background: var(--glass-1) !important; }
 html[data-mode="dark"] .cgroup { background: var(--glass-3) !important; }
 html[data-mode="dark"] .empty, html[data-mode="dark"] .placeholder { color: var(--ink-2) !important; }
+
+
+/* ================= Windows 平台适配（10-08 真机反馈「透明度太高」）=================
+   原因：Windows 的 acrylic 模糊比 macOS 的 vibrancy 弱很多，同样的面层 alpha 会显得
+   「透明到没有底」。所以 Windows 下面层一律加实一档；同时 Windows 用系统标题栏
+   （不是 macOS 的 Overlay），顶栏不需要给红绿灯让位的 86px 左边距。 */
+html[data-platform="win"] {
+  --glass-1: rgba(255, 255, 255, .74);
+  --glass-2: rgba(255, 255, 255, .66);
+  --glass-3: rgba(255, 255, 255, .80);
+  --glass-hi: rgba(255, 255, 255, .55);
+}
+html[data-platform="win"][data-mode="dark"] {
+  --glass-1: rgba(16, 24, 40, .76);
+  --glass-2: rgba(16, 24, 40, .68);
+  --glass-3: rgba(22, 32, 50, .82);
+  --glass-hi: rgba(255, 255, 255, .10);
+}
+html[data-platform="win"] .topbar { padding-left: 18px; height: 52px; }
+html[data-platform="win"] .app { border-radius: 8px; }

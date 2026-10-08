@@ -662,6 +662,12 @@ window.addEventListener('unhandledrejection', (e) => {
 
 listenEngineEvents();
 
+// 平台标记：Windows 与 macOS 的毛玻璃强度/标题栏布局不同，CSS 据此分流（婉宜 10-08）
+{
+  const ua = navigator.userAgent || '';
+  document.documentElement.dataset.platform = /Windows/i.test(ua) ? 'win' : (/Mac/i.test(ua) ? 'mac' : 'other');
+}
+
 // ---------- 外观：配色主题 / 深色浅色 / 点击涟漪（婉宜 10-08，爹地要求）----------
 // 毛玻璃本体来自窗口的 windowEffects（系统层，见 tauri.conf.json），这里只管主题与反馈。
 (function initAppearance() {
