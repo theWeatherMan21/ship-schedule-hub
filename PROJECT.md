@@ -581,3 +581,24 @@ Error: EISDIR: illegal operation on a directory, lstat 'D:'
 ③ 跨平台路径代码必须用平台的绝对路径语义（Windows 的 `D:` ≠ `D:\`）。
 
 **建议**：安装时用默认目录（`%LOCALAPPDATA%\ShipScheduleHub`），别选盘符根目录。
+
+### 9-30 · 船期详情：点一下看「航程 + 截单时间」（MSC 先行 · 婉宜）
+
+爹地要求：点 MSC 官网的船期能看航程和截单时间，评估能否整合 → **能，而且零额外请求**。
+
+**关键发现**：MSC 列表接口（我们已在用的 `SearchSailingRoutes`）的每条船期里**本来就带着**：
+- `CutOffs`：**5 类截单时间** —— CY 截关 / VGM 截止 / 提单指示 / 危险品 / 冷藏箱
+- `RouteScheduleLegDetails[]`：每段航程（起运/到达港 + **码头名** + ETD/ETA + 船名/**IMO/建造年/船旗** + 服务名 + **挂靠港序列** + 该段 CO₂）
+- 顶层 `LoadingService` / `IsDirectRoute` / `RoutingType` / `TransitTime`
+
+之前只取了 6 个字段（船名/航次/ETD/ETA/天数/直达），其余全丢。
+
+**实现**：
+- 引擎 `fastpath.mjs`：新增 `mscDetail()`，把上述字段归一化成 `detail: { service, routing, co2, legs[], cutoffs{} }`，
+  挂在每条船期行上（**严格按官网返回值，不做任何推断/换算**）
+- 前端：船期行整行可点 → 行内展开（与卡片折叠同一套事件委托），上部航程、下部截单时间；
+  截单用 `display: contents` + 父级 grid 做到 label/value 严格两列对齐
+- 数据关系已核对：每班的截单与**它自己的 ETD** 是对应的（10.17 开船→10.04 截关、11.21 开船→11.15 截关），字段没取错
+- 验收：harness 第 ⑥ 节（可展开行 → 点开 → 航程段 1 / 截单项 5 / 再点收起）+ 截图目视
+
+**待办**：其他 10 家逐家探测同类字段（ONE/ZIM/COSCO 已知有 `cutoffCY` 但前端未显示 → 下一步接进同一视图）。

@@ -309,12 +309,53 @@ for (const x of r.Data) {
       transitDays: tdays,
       via: x.RoutingType === 'Direct' ? '' : (x.Key && x.Key.ViaPortName || (x.Routes || []).slice(1).map((lg) => lg.PortOfLoad || lg.PortOfLoading || '').filter(Boolean)[0] || ''),
       direct: x.IsDirectRoute === true || x.RoutingType === 'Direct',
+      // ── 详情（婉宜 9-30 · 爹地要「点一下看航程和截单」）──
+      // 这些字段本来就在同一个响应里，之前全丢了。严格按官网返回值呈现，不做推断。
+      detail: mscDetail(x, leg0),
     });
   }
   if (rows.length >= 12) break;
 }
 if (!rows.length) return null;
 return { rows, note: 'API 直查 ' + rows.length + ' 条' };
+}
+
+// MSC 单班详情：航程（分段/码头/船信息/挂靠港）+ 截单时间（官网原样）
+function mscDetail(x, leg) {
+  const c = leg.CutOffs || {};
+  const legs = (leg.RouteScheduleLegDetails || []).map((l) => ({
+    seq: l.LegSequence,
+    from: l.DeparturePortName || '',
+    fromCode: l.DeparturePortUNCode || '',
+    fromTerminal: l.DepartureEquipmentHandlingFacilityName || '',
+    etd: (l.EstimatedDepartureTimeFormatted || l.EstimatedDepartureTime || '').slice(0, 24),
+    to: l.ArrivalPortName || '',
+    toCode: l.ArrivalPortUNCode || '',
+    toTerminal: l.ArrivalEquipmentHandlingFacilityName || '',
+    eta: (l.EstimatedArrivalTimeFormatted || l.EstimatedArrivalTime || '').slice(0, 24),
+    vessel: (l.Vessel && l.Vessel.VesselName) || '',
+    imo: (l.Vessel && l.Vessel.VesselImoCode) || '',
+    built: (l.Vessel && l.Vessel.VesselBuiltYear) || '',
+    flag: (l.Vessel && l.Vessel.VesselFlag) || '',
+    service: l.MaritimeServiceName || '',
+    co2: l.CO2FootPrint || '',
+    // 挂靠港序列（该船这一程沿途挂的港）
+    calls: (l.PortCalls || []).map((pc) => `${pc.PortName || ''}${pc.PortCode ? '(' + pc.PortCode + ')' : ''}`).filter(Boolean),
+  }));
+  const cut = [
+    ['CY 截关', c.ContainerYardCutOffDate],
+    ['VGM 截止', c.VerifiedGrossMassCutOffDate],
+    ['提单指示', c.ShippingInstructionsCutOffDate],
+    ['危险品', c.DangerousCargoCutOffDate],
+    ['冷藏箱', c.ReeferCutOffDate],
+  ].filter(([, v]) => v);
+  return {
+    service: (legs[0] && legs[0].service) || x.LoadingService || '',
+    routing: x.RoutingType || (x.IsDirectRoute ? 'Direct' : ''),
+    co2: leg.CO2FootPrint || x.CO2FootPrint || '',
+    legs,
+    cutoffs: Object.fromEntries(cut),
+  };
 }
 
 // ---------- COSCO（第二档：页面内 fetch）----------

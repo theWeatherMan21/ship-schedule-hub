@@ -162,6 +162,59 @@ console.log(`  hidden=${diag.hidden}`);
 console.log('  内容:', diag.text || '(空)');
 await page.screenshot({ path: path.join(OUT, '5-diagnostics.png'), fullPage: true });
 
+// ---------- ⑥ 船期行详情（航程 + 截单）----------
+const detailRow = {
+  type: 'carrier-status', carrier: 'msc', name: 'MSC 地中海航运', status: 'done', msg: 'API 直查 8 条',
+  schedules: [{
+    vessel: 'MSC VIVIANA', voyage: 'GT637W', etd: '2026-10-09', eta: '2026-11-04', transitDays: 26, via: '', direct: true,
+    detail: {
+      service: 'TIGER SERVICE', routing: 'Direct', co2: '1.1465 Tons',
+      legs: [{
+        seq: 1, from: 'NINGBO', fromCode: 'CNNGB', fromTerminal: 'GANGJI TERMINAL (PHASE IV)',
+        etd: 'Fri 9th Oct 2026 08:00', to: 'ISTANBUL', toCode: 'TRIST', toTerminal: 'MARPORT TERMINAL',
+        eta: 'Wed 4th Nov 2026 14:30', vessel: 'MSC VIVIANA', imo: '9777216', built: '2017', flag: 'LIBERIA',
+        service: 'TIGER SERVICE', co2: '1.1465 Tons',
+        calls: ['SHEKOU(CNSHK)', 'SINGAPORE(SGSIN)', 'TEKIRDAG (ASYAPORT)(TRTEK)', 'EVYAP PORT(TREYP)'],
+      }],
+      cutoffs: {
+        'CY 截关': 'Sun 20th Sep 2026 14:00', 'VGM 截止': 'Sun 20th Sep 2026 14:00',
+        '提单指示': 'Sun 20th Sep 2026 14:00', '危险品': 'Wed 16th Sep 2026 12:00',
+        '冷藏箱': 'Sun 20th Sep 2026 14:00',
+      },
+    },
+  }],
+};
+await emit(detailRow);
+await page.waitForTimeout(400);
+console.log('\n═══ ⑥ 船期行详情 ═══');
+const before6 = await page.evaluate(() => {
+  const w = document.querySelector('.trow-wrap.expandable');
+  return { hasExpandable: !!w, openBefore: w ? w.classList.contains('open') : null, detailVisible: w ? (w.querySelector('.tdetail')?.offsetParent !== null) : null };
+});
+console.log(`  可展开行: ${before6.hasExpandable}  展开前 detail 可见: ${before6.detailVisible}`);
+
+await page.click('.trow-wrap.expandable .trow');
+await page.waitForTimeout(400);
+const after6 = await page.evaluate(() => {
+  const w = document.querySelector('.trow-wrap.expandable');
+  const d = w.querySelector('.tdetail');
+  return {
+    open: w.classList.contains('open'),
+    visible: d.offsetParent !== null,
+    text: d.innerText.replace(/\s+/g, ' ').slice(0, 260),
+    cuts: [...d.querySelectorAll('.dcut')].length,
+    legs: [...d.querySelectorAll('.dleg')].length,
+  };
+});
+console.log(`  点一下 → open=${after6.open}  可见=${after6.visible}  航程段=${after6.legs}  截单项=${after6.cuts}`);
+console.log('  内容:', after6.text);
+await page.screenshot({ path: path.join(OUT, '6-row-detail.png'), fullPage: true });
+
+await page.click('.trow-wrap.expandable .trow');
+await page.waitForTimeout(300);
+const toggleBack = await page.evaluate(() => document.querySelector('.trow-wrap.expandable').classList.contains('open'));
+console.log(`  再点一下 → open=${toggleBack}`);
+
 console.log('\n═══ ③ 报错 ═══');
 console.log('  页面错误数:', errs.length);
 errs.slice(0, 6).forEach((e) => console.log('   ', e));

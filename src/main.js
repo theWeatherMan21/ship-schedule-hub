@@ -169,23 +169,49 @@ function splitDate(v) {
 function fmtMD(v) { const t = splitDate(v); return t ? `${t.m}.${String(t.d).padStart(2, '0')}` : String(v || '?').slice(0, 10); }
 function fmtWD(v) { const t = splitDate(v); return t ? WD[new Date(t.y, t.m - 1, t.d).getDay()] : ''; }
 
-// 一条船期 = 时间轴中的一行（左：开船日期；中：航线+船名航次；右：天数+直达/转）
+// 一条船期 = 时间轴中的一行；带 detail 时整行可点，展开看「航程 + 截单时间」（婉宜 9-30）
 function scheduleRowHTML(r, accent) {
   const q = lastQuery || { origin: '', destination: '' };
   const pill = r.direct
     ? '<span class="pill direct">直达</span>'
     : `<span class="pill trans">转${r.via ? ' ' + r.via : ''}</span>`;
-  return `<div class="trow" style="--accent:${accent}">
+  const det = r.detail || null;
+  const cuts = det ? Object.entries(det.cutoffs || {}) : [];
+  const hasDet = !!(det && ((det.legs || []).length || cuts.length));
+  const row = `<div class="trow${hasDet ? ' clickable' : ''}"${hasDet ? ' title="点一下看航程与截单时间"' : ''}>
     <div class="when"><div class="md">${fmtMD(r.etd)}</div><div class="wd">${fmtWD(r.etd)}</div></div>
     <div class="rail"><span class="node"></span></div>
     <div class="body">
       <div class="line1">${q.origin} <span class="arrow">→</span> ${q.destination}</div>
       <div class="vessel">${r.vessel || '?'}${r.voyage ? ` <span class="voy">${r.voyage}</span>` : ''} · ${fmtMD(r.eta)} 到港</div>
     </div>
-    <div class="right"><span class="days">${r.transitDays ?? '?'}<span>天</span></span>${pill}</div>
+    <div class="right"><span class="days">${r.transitDays ?? '?'}<span>天</span></span>${pill}${hasDet ? '<span class="tmore">详情</span>' : ''}</div>
   </div>`;
+  return `<div class="trow-wrap${hasDet ? ' expandable' : ''}">${row}${hasDet ? `<div class="tdetail">${detailHTML(det)}</div>` : ''}</div>`;
 }
 
+// 详情体：上部航程（分段/码头/船信息/挂靠港），下部截单时间（官网原值，不做任何推断）
+function detailHTML(det) {
+  const legs = (det.legs || []).map((l) => {
+    const from = `${l.from || '?'}${l.fromTerminal ? ` <span class="term">${l.fromTerminal}</span>` : ''}`;
+    const to = `${l.to || '?'}${l.toTerminal ? ` <span class="term">${l.toTerminal}</span>` : ''}`;
+    // 船信息：不再带 service / CO₂（标题行已有，避免同一屏重复两次）
+    const ship = [l.vessel, l.imo ? `IMO ${l.imo}` : '', l.built ? `${l.built} 年造` : '', l.flag]
+      .filter(Boolean).join(' · ');
+    return `<div class="dleg">
+      <div class="dline">${from} <span class="arw">→</span> ${to}</div>
+      <div class="dtimes">${l.etd || ''} → ${l.eta || ''}${(l.seq || 1) > 1 ? ` · 第 ${l.seq} 段` : ''}</div>
+      ${ship ? `<div class="dvessel">${ship}</div>` : ''}
+      ${(l.calls || []).length ? `<div class="dcalls">挂靠：${l.calls.join(' · ')}</div>` : ''}
+    </div>`;
+  }).join('');
+  const cutRows = Object.entries(det.cutoffs || {})
+    .map(([k, v]) => `<div class="dcut"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join('');
+  const head = ['航程', det.service, det.routing, det.co2 ? `CO₂ ${det.co2}` : ''].filter(Boolean).join(' · ');
+  return `
+    ${legs ? `<div class="dsec"><div class="dtitle">${head}</div><div class="dlegs">${legs}</div></div>` : ''}
+    ${cutRows ? `<div class="dsec"><div class="dtitle">截单时间<span class="dnote">（官网原值）</span></div><div class="dcuts">${cutRows}</div></div>` : ''}`;
+}
 function badgeFor(patch) {
   if (patch.status === 'done') {
     const n = (patch.schedules || []).length;
@@ -241,6 +267,10 @@ function setRow(carrierId, patch) {
 
 // 点卡片头 → 折叠 / 展开（事件委托，重建 DOM 后依然有效）
 document.getElementById('statusList').addEventListener('click', (ev) => {
+  // ① 船期行：点一下展开「航程 + 截单」（婉宜 9-30）
+  const row = ev.target.closest('.trow.clickable');
+  if (row) { row.closest('.trow-wrap')?.classList.toggle('open'); return; }
+  // ② 卡片头：折叠/展开整家
   const head = ev.target.closest('.chead');
   if (!head) return;
   if (ev.target.closest('a')) return;              // 头部里的链接不触发折叠

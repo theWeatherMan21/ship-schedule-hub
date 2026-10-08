@@ -98,6 +98,28 @@ body {
 .diagbox .dv { color: var(--ink-2); font-family: var(--mono); word-break: break-all; }
 .diagbox .dv.bad { color: #b42318; }
 
+/* 船期行详情（点一下展开：航程 + 截单时间 · 婉宜 9-30） */
+.trow.clickable { cursor: pointer; }
+.trow .tmore { font-size: 10.5px; font-weight: 600; color: var(--ink-3); white-space: nowrap; padding: 2px 7px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); }
+.trow-wrap.open .trow .tmore { color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent); }
+.trow-wrap.open > .trow { background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, #fff), #fff 62%); }
+.tdetail { display: none; padding: 10px 16px 13px 104px; background: #fbfcfe; border-top: 1px dashed var(--line-soft); }
+.trow-wrap.open .tdetail { display: block; animation: bodyin .18s ease; }
+.tdetail .dsec + .dsec { margin-top: 13px; }
+.tdetail .dtitle { font-size: 11.5px; font-weight: 660; color: var(--ink); margin-bottom: 7px; letter-spacing: .01em; }
+.tdetail .dnote { font-weight: 400; color: var(--ink-3); margin-left: 3px; font-size: 10.5px; }
+.tdetail .dleg + .dleg { margin-top: 9px; padding-top: 9px; border-top: 1px dashed var(--line-soft); }
+.tdetail .dline { font-size: 12.5px; font-weight: 620; }
+.tdetail .dline .arw { color: #c9ced6; }
+.tdetail .term { font-weight: 500; font-size: 10.5px; color: var(--ink-2); background: var(--line-soft); border-radius: 4px; padding: 1px 5px; }
+.tdetail .dtimes { font-size: 12px; color: var(--ink-2); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.tdetail .dvessel { font-size: 12px; color: var(--ink-2); margin-top: 3px; line-height: 1.5; }
+.tdetail .dcalls { font-size: 11.5px; color: var(--ink-2); margin-top: 4px; line-height: 1.5; }
+.tdetail .dcuts { display: grid; grid-template-columns: max-content max-content; gap: 5px 18px; justify-content: start; }
+.tdetail .dcut { display: contents; }            /* 让标签/值直接落进外层网格 → 两列严格对齐 */
+.tdetail .dcut .dk { font-size: 12px; color: var(--ink-2); }
+.tdetail .dcut .dv { font-size: 12px; color: var(--ink); font-weight: 560; font-variant-numeric: tabular-nums; }
+
 /* ---------- 按钮 ---------- */
 .btn-primary {
   font: inherit; font-weight: 620; color: var(--accent-ink);
@@ -216,7 +238,7 @@ body {
   padding: 11px 14px 11px 10px;
   transition: background .18s ease, box-shadow .22s ease, transform .22s cubic-bezier(.2,.8,.3,1);
 }
-.trow + .trow { border-top: 1px solid var(--line-soft); }
+.trow-wrap + .trow-wrap .trow { border-top: 1px solid var(--line-soft); }
 .trow:hover {
   background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, #fff), #fff 62%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
@@ -227,8 +249,8 @@ body {
 .trow .when .wd { font-size: 11px; color: var(--ink-3); }
 .trow .rail { position: relative; align-self: stretch; display: flex; justify-content: center; }
 .trow .rail::before { content: ""; position: absolute; top: 0; bottom: 0; width: 1.5px; background: var(--line); }
-.trow:first-child .rail::before { top: 50%; }
-.trow:last-child .rail::before { bottom: 50%; }
+.trow-wrap:first-child .trow .rail::before { top: 50%; }
+.trow-wrap:last-child .trow .rail::before { bottom: 50%; }
 .trow .node {
   position: relative; align-self: center; width: 9px; height: 9px; border-radius: 50%;
   background: #fff; border: 2px solid var(--accent);
