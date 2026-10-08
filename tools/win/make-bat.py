@@ -18,9 +18,10 @@ PS = ROOT / 'tools/win/setup-remote-access.ps1'
 OUT = ROOT / 'tools/win/一键配置调试环境.bat'
 OUT_ASCII = ROOT / 'tools/win/setup-remote-access.bat'
 
-ps_text = PS.read_text(encoding='utf-8-sig')
+ps_text = PS.read_text(encoding='utf-8')   # 保留 \ufeff：BOM 随载荷一起进 bat，解码后文件自然带 BOM
 b64 = base64.b64encode(ps_text.encode('utf-16-le')).decode('ascii')
-# 解码端用 UTF8Encoding $true 写 BOM：PS 5.1 无 BOM 会按 GBK 读 → 中文把语法读崩（真机踩过）
+# 注意：PS 5.1 读无 BOM 的 UTF-8 会按 GBK 解码 → 中文把语法读崩。所以载荷首字符就是 U+FEFF，
+# 解码端用不带 BOM 的 UTF8Encoding 写文件，最终字节仍然是 EF BB BF（不重复加 BOM）。
 sha = hashlib.sha256(ps_text.encode('utf-8')).hexdigest()[:16]
 CH = 3500
 lines = [b64[i:i + CH] for i in range(0, len(b64), CH)]
