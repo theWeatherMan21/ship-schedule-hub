@@ -1,6 +1,2 @@
-# Windows 检出时不要把 JS/JSON 写成 CRLF（Node 脚本 + 正则对换行敏感）
-* text=auto eol=lf
-*.png binary
-*.icns binary
-*.ico binary
-*.db binary
+*.bat text eol=crlf
+*.ps1 text eol=crlf
