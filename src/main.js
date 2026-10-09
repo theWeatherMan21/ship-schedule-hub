@@ -323,6 +323,21 @@ function fmtMD(v) { const t = splitDate(v); return t ? `${t.m}.${String(t.d).pad
 function fmtWD(v) { const t = splitDate(v); return t ? WD[new Date(t.y, t.m - 1, t.d).getDay()] : ''; }
 
 // 一条船期 = 时间轴中的一行；带 detail 时整行可点，展开看「航程 + 截单时间」（婉宜 9-30）
+// 开船日 → 可比较的时间戳（认不出就给 Infinity，排到最后但不报错）
+function etdKey(s) {
+  const t = String(s || '').trim();
+  if (!t) return Infinity;
+  const MON = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  let m = t.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);                 // 2026-10-27 / 2026/10/27 / 2026.10.27
+  if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3]);
+  m = t.match(/([A-Za-z]{3})[\s\-.,]*(\d{1,2})[\s\-.,]*(\d{4})/);     // Oct 27 2026 / OCT-27-2026
+  if (m) { const mo = MON.indexOf(m[1].toLowerCase()); if (mo >= 0) return Date.UTC(+m[3], mo, +m[2]); }
+  m = t.match(/^(\d{1,2})[-/.](\d{1,2})$/);                               // 10.27（无年份）
+  if (m) return Date.UTC(new Date().getUTCFullYear(), +m[1] - 1, +m[2]);
+  const d = Date.parse(t);
+  return Number.isFinite(d) ? d : Infinity;
+}
+
 function scheduleRowHTML(r, accent) {
   const q = lastQuery || { origin: '', destination: '' };
   const pill = r.direct
@@ -402,7 +417,10 @@ function setRow(carrierId, patch) {
   // 船期行
   if (Array.isArray(patch.schedules) && patch.schedules.length) {
     const list = g.querySelector('.clist');
-    if (list) list.innerHTML = patch.schedules.map((r) => scheduleRowHTML(r, accent)).join('');
+    // 船期一律按**开船日（ETD）升序** —— 各家接口返回的顺序不一致（阳明曾按天数排），
+    // 爹地 10-09 报「顺序错误」。兼容多种日期写法：2026-10-27 / 2026/10/27 / 10.27 / OCT-27-2026。
+    if (list) list.innerHTML = patch.schedules.slice().sort((a, b) => etdKey(a.etd) - etdKey(b.etd) || (a.transitDays || 0) - (b.transitDays || 0))
+      .map((r) => scheduleRowHTML(r, accent)).join('');
   }
   // 无船期 → 维运网兜底链接（爹地 9-24）
   const noData = patch.status === 'prefilled' || patch.status === 'opened'

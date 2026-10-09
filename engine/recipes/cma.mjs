@@ -111,7 +111,8 @@ export default {
     } catch { /* 抽取失败 → 保持 prefilled */ }
 
     const m = sched.match(/\d+\s*Days/i);
-    const msg = `已预填 ${q.originText}(${q._o?.locode}) → ${q.destText}(${destLocode}) 并点搜索` +
+    const bare = (x) => String(x || '').replace(/\s*\([A-Z]{4,5}\)\s*$/, '').trim();  // 文案里别再重复一次 (ILASH)
+    const msg = `已预填 ${bare(q.originText)}(${q._o?.locode}) → ${bare(q.destText)}(${destLocode}) 并点搜索` +
       (schedules.length ? `，${schedules.length} 条船期：` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays}天${r.direct ? ' 直达' : ' 转' + r.via}`).join(' ｜ ')
         : (m ? `，结果页见 Transit ${m[0]}` : ''));
     if (schedules.length) return { msg, schedules };

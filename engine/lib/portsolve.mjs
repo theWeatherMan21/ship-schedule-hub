@@ -9,11 +9,14 @@ export async function resolvePort(carrierId, word) {
   if (!w) return { word: w, text: w, source: 'empty' };
   const hit = findPort(w, carrierId);
   if (!hit) return { word: w, text: w, source: 'unknown' }; // 词典没查到：原样传，不编造
-  const alias = (hit.carrierAliases || []).find((a) => a.carrier === carrierId)
-    || (hit.carrierAliases || []).find((a) => a.carrier === 'un');
-  if (alias) {
-    // alias 表存的是小写规范化串，候选匹配按不区分大小写进行
-    return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text: alias.alias, source: 'verified' };
+  const own = (hit.carrierAliases || []).find((a) => a.carrier === carrierId);
+  if (own) {
+    // 该船司【实测】过的叫法 —— 最准，直接用
+    return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text: own.alias, source: 'verified' };
   }
+  // ⚠️ 通用 aka（含市场名/缩写/内部码）**只用来"认出输入"，不拿去填表**：
+  //   它们可能是船司内部码头码（nbshan / kfaraviv 之类），填进别家表单就是"搜不到"。
+  //   填表一律用词典港名 + 码（10-09 真机：HMM 被填 'nbshan' → Search Results 0）。
+  return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text: `${hit.name} (${hit.locode})`, source: 'name' };
   return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text: `${hit.name} (${hit.locode})`, source: 'fallback' };
 }
