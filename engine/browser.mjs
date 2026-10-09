@@ -287,12 +287,25 @@ export async function openPage(ctx, url, opts = {}) {
   // SSH_XHR_DUMP=1：录下本页发出的 XHR/fetch（挖各家站内接口用；默认关、零开销）
   if (process.env.SSH_XHR_DUMP && !page.__xhrDumpHooked) {
     page.__xhrDumpHooked = true;
+    // ★ 10-09：按资源类型全录 XHR/fetch（不再按关键词筛——验证码/风控服务常藏在不起眼的 URL 里）
     page.on('request', (req) => {
       try {
-        const u = req.url();
-        if (/\.(js|css|png|jpe?g|gif|svg|ico|woff2?|ttf)(\?|$)/i.test(u)) return;
-        if (!/(api|json|schedule|search|grid|query|route|port|vessel)/i.test(u)) return;
-        console.log(JSON.stringify({ type: 'xhr-req', m: req.method(), u: u.slice(0, 260), b: String(req.postData() || '').slice(0, 900) }));
+        const rt = req.resourceType();
+        const u0 = req.url();
+        // 除 xhr/fetch 外，还录"验证码相关"的脚本/其它请求（SDK 按需加载，藏在 script 里）
+        const captchaish = /captcha|cs-captcha|verify|slide|puzzle/i.test(u0);
+        if (rt !== 'xhr' && rt !== 'fetch' && !captchaish) return;
+        console.log(JSON.stringify({ type: 'xhr-all', m: req.method(), u: req.url().slice(0, 300), b: String(req.postData() || '').slice(0, 900) }));
+      } catch { /* 忽略 */ }
+    });
+    // 同时录下 XHR/fetch 的响应体（验证码/token 的发放常藏在响应里）
+    page.on('response', async (resp) => {
+      try {
+        const rt = resp.request().resourceType();
+        if (rt !== 'xhr' && rt !== 'fetch') return;
+        const body = await resp.text().catch(() => '');
+        if (!body) return;
+        console.log(JSON.stringify({ type: 'xhr-all-resp', s: resp.status(), u: resp.url().slice(0, 200), body: body.replace(/\s+/g, ' ').slice(0, 700) }));
       } catch { /* 忽略 */ }
     });
     page.on('response', async (resp) => {
