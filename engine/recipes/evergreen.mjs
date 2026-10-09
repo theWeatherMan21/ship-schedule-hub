@@ -40,7 +40,7 @@ export default {
       for (const w of list) {
         await inp.click({ timeout: 6000 }).catch(() => {});
         await inp.fill('').catch(() => {});
-        await inp.pressSequentially(String(w).toLowerCase(), { delay: 120 }).catch(() => {});
+        await inp.type(String(w).toLowerCase(), { delay: 120 }).catch(() => { try { inp.pressSequentially(String(w).toLowerCase(), { delay: 120 }); } catch { /* no-op */ } });
         for (let i = 0; i < 7; i++) {
           await H.sleep(900);
           const pos = await page.evaluate(({ want, wantAlt }) => {
@@ -52,7 +52,7 @@ export default {
               if (!want.some((c) => t.includes(c)) && !wantAlt.some((c) => t.includes(c))) continue;
               const b = el.getBoundingClientRect();
               if (b.width < 20 || b.height < 8) continue;
-              return { x: b.x + 18, y: b.y + b.height / 2, t: (el.innerText || '').trim().replace(/\s+/g, ' ').slice(0, 60) };
+              return { x: b.x + 18, y: b.y + b.height / 2, t: ((el.textContent || el.innerText || '') + '').trim().replace(/\s+/g, ' ').slice(0, 60) };
             }
             return null;
           }, { want, wantAlt: want.map((c) => c.slice(2)) }).catch(() => null);

@@ -40,7 +40,7 @@ export default {
         const texts = [];
         for (let i = 0; i < 20; i++) {
           const n = await opts.count().catch(() => 0);
-          for (let j = 0; j < Math.min(n, 10); j++) { const t = (await opts.nth(j).innerText().catch(() => '')).trim(); if (t && !/^search(ing)?\./i.test(t)) texts.push(t.replace(/\s+/g, ' ')); }
+          for (let j = 0; j < Math.min(n, 10); j++) { const t = (((await opts.nth(j).textContent().catch(() => '')) || (await opts.nth(j).innerText().catch(() => '')) || '')).trim(); if (t && !/^search(ing)?\./i.test(t)) texts.push(t.replace(/\s+/g, ' ')); }
           if (texts.length) break;
           await H.sleep(500);
         }

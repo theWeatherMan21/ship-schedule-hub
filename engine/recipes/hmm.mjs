@@ -53,7 +53,7 @@ export default {
             }
           }
           if (!loc) continue;
-          const t = (await loc.innerText().catch(() => '')).trim().replace(/\s+/g, ' ').slice(0, 70);
+          const t = (((await loc.textContent().catch(() => '')) || (await loc.innerText().catch(() => '')) || '')).trim().replace(/\s+/g, ' ').slice(0, 70);
           await loc.click({ timeout: 3000 }).catch(() => {});
           await H.sleep(700);
           const code = await readCode();

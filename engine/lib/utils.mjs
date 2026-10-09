@@ -230,7 +230,10 @@ export async function typeAndPickCandidate(page, field, word, opts = {}) {
     // 换写法的前置：把输入框清干净（受控组件要全选删除，直接 fill('') 会被吞）
     try {
       await field.click({ timeout: 3000 });
-      await page.keyboard.press('Control+A').catch(() => {});
+      // ⚠️ 10-09 修（爹地指出"填表 approach 有问题"）：macOS 全选是 Meta+A，
+      // Control+A 只是"移到行首"→ 旧文字没清掉 → 下一种写法被拼接（tianjinXingang Pt）→ 候选永远匹配不上。
+      await field.fill('').catch(() => {});
+      await page.keyboard.press(process.platform === 'darwin' ? 'Meta+A' : 'Control+A').catch(() => {});
       await page.keyboard.press('Backspace').catch(() => {});
     } catch { /* no-op */ }
     await new Promise((r) => setTimeout(r, 600));
@@ -249,6 +252,14 @@ export function portPick(text, q, which = 'origin') {
     if (!t) return false;
     let score = 0;
     if (r.locode && t.includes(r.locode.toLowerCase())) score += 2;
+    // 很多候选不显示 LOCODE（如 Maersk 的 "Xingang (Tianjin), China CY"）→ 港名/同组港名命中也算强命中
+    const toks = String(r.name || '').toLowerCase().split(/\s+/).filter((x) => x.length >= 4);
+    const sibToks = [];
+    try {
+      for (const sib of (r.siblings || [])) toks.push(...String(sib.name || '').toLowerCase().split(/\s+/).filter((x) => x.length >= 4));
+    } catch { /* no-op */ }
+    if (toks.some((w) => t.includes(w))) score += 2;               // 港名命中（Tianjin / Xingang …）
+    if (sibToks.some((w) => t.includes(w))) score += 1;            // 同组港名命中（弱一档）
     if (r.country && t.includes(String(r.country).toLowerCase())) score += 1;
     if (/\b(cy)\b/.test(t) && !/\b(sdi|si)\b/.test(t)) score += 1;
     const word = (r.word || '').toLowerCase();

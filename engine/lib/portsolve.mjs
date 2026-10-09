@@ -2,7 +2,7 @@
 // 词典优先：db/ports.db aliases 表（实测映射，66 条）；无 alias 时兜底 "NAME (LOCODE)"。
 // 用法：const r = await resolvePort('maersk', 'Ningbo') → { word, locode, name, country, text, source }
 //   r.text 即填进输入框的字符串；r.source ∈ verified|un|fallback
-import { findPort } from '../portdb.mjs';
+import { findPort, siblingPorts } from '../portdb.mjs';
 
 export async function resolvePort(carrierId, word) {
   const w = String(word || '').trim();
@@ -25,5 +25,7 @@ export async function resolvePort(carrierId, word) {
   else if (userWord) { text = userWord; src = 'user'; }
   else if (own) { text = bare(own.alias).slice(0, 2).join(' '); src = 'verified'; }
   else { text = bare(hit.name).slice(0, 2).join(' ') || hit.name; src = 'name'; }
-  return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text, source: src };
+  let siblings = [];
+  try { siblings = siblingPorts({ locode: hit.locode, name: hit.name }, 4); } catch { /* 忽略 */ }
+  return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text, source: src, siblings };
 }
