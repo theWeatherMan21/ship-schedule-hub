@@ -11,7 +11,6 @@ export default {
   name: 'ZIM 以星',
   code: 'ZIM',
   kind: 'dom',
-  needsRealFingerprint: true,   // 10-09：需要真实浏览器指纹（硬拦无头）；仍静默（有头+CDP 最小化）
   entry: 'https://www.zim.com/',
   urls: ['https://www.zim.com/'],
   fallbackNote: '船期结果深链被 Akamai Challenge Validation 拦截（表单链路已验证：主页→Schedules tab→P2P 填选→Search→深链被拦），已尽力预填供手动继续',

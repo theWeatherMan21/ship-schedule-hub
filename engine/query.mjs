@@ -574,7 +574,7 @@ try {
     //   不是"查太多次"的限流 —— 跟爹地那条"别为压测做过度设计"不冲突：
     //   做法仍是**静默**的（有头 + CDP 最小化，实测 windowState=minimized、屏幕上无窗口），
     //   只对声明了 needsRealFingerprint 的船司启用，不是全家。
-    const needsReal = needBrowser.some((c) => c.needsRealFingerprint);
+    const needsReal = !process.env.SSH_FORCE_HEADLESS && needBrowser.some((c) => c.needsRealFingerprint);
     const lq = (process.env.SSH_ALLOW_HEADED === '1' || needsReal)
       ? await launchHeadedQuiet()
       : { ctx: await launch({}), mode: 'headless-new', window: null };
