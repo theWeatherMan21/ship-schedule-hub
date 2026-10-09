@@ -4,9 +4,24 @@
 //   r.text 即填进输入框的字符串；r.source ∈ verified|un|fallback
 import { findPort, siblingPorts, aliasRowsContaining } from '../portdb.mjs';
 
+// ★ 船司"港口替代"规则（爹地 2026-10-09 给的）：
+//   船司名录里没有这个小港时，用它有的大港代替搜索。
+//   maersk: Aliaga → Izmir（马士基名录无 Aliaga，只有 Izmir/TRIZM；实测 maersk 库自身别名 izmir→TRIZM）
+//   新增同类规则时在这里加一行即可（key 一律小写、不带空格）。
+const CARRIER_PORT_REDIRECT = {
+  maersk: { aliaga: 'izmir' },
+};
+
 export async function resolvePort(carrierId, word) {
-  const w = String(word || '').trim();
-  if (!w) return { word: w, text: w, source: 'empty' };
+  const w0 = String(word || '').trim();
+  if (!w0) return { word: w0, text: w0, source: 'empty' };
+  // ★ 船司港口替代（爹地规则）：如 maersk 无 Aliaga → 用 izmir 代替搜索
+  let redirectedFrom = '';
+  let w = w0;
+  {
+    const to = (CARRIER_PORT_REDIRECT[carrierId] || {})[w0.toLowerCase()];
+    if (to && to !== w0.toLowerCase()) { redirectedFrom = w0; w = to; }
+  }
   const hit = findPort(w, carrierId);
   if (!hit) return { word: w, text: w, source: 'unknown' }; // 词典没查到：原样传，不编造
   // ★ 10-09 定案（爹地铁证：马士基库里 天津=Xingang、伊斯坦布尔=Ambarli）：
@@ -38,5 +53,5 @@ export async function resolvePort(carrierId, word) {
   const altNames = distinctive.slice(1).concat([userWord, nameTok, ...all]).filter((x, i, a) => x && a.indexOf(x) === i && x !== text);
   let siblings = [];
   try { siblings = siblingPorts({ locode: hit.locode, name: hit.name }, 4); } catch { /* 忽略 */ }
-  return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text, source: src, siblings, alts: altNames };
+  return { word: w0, locode: hit.locode, name: hit.name, country: hit.country, text, source: src, siblings, alts: altNames, redirectedFrom };
 }
