@@ -67,17 +67,21 @@ export async function pickOption(page, query, { timeout = 8000, pick } = {}) {
     'ul.autocomplete li, [class*="autocomplete"] li, [class*="suggest"] li, li.ui-menu-item, ' +
     '.pac-item, [class*="dropdown"] li, [class*="options"] [class*="item"]',
   );
+  const ariaCands = page.getByRole('option');   // ARIA 兜底（role 属性的组件用上面，不写的用这个）
   const deadline = Date.now() + timeout;
   let texts = [];
   while (Date.now() < deadline) {
-    const n = await candidates.count().catch(() => 0);
     texts = [];
-    for (let i = 0; i < Math.min(n, 15); i++) {
-      const el = candidates.nth(i);
-      const vis = await el.isVisible().catch(() => false);
-      if (!vis) continue;
-      const t = (await el.innerText().catch(() => '')).trim().replace(/\s+/g, ' ');
-      if (t) texts.push({ i, t });
+    for (const [loc, which] of [[candidates, 'dom'], [ariaCands, 'aria']]) {
+      const n = await loc.count().catch(() => 0);
+      for (let i = 0; i < Math.min(n, 15); i++) {
+        const el = loc.nth(i);
+        if (!(await el.isVisible().catch(() => false))) continue;
+        // ⚠️ 别只读 innerText：自定义/Shadow DOM 组件上它是空串 → 候选全被当成不存在
+        const t = (((await el.textContent().catch(() => '')) || (await el.innerText().catch(() => '')) || '')).trim().replace(/\s+/g, ' ');
+        if (t) texts.push({ loc, i, t, which });
+      }
+      if (texts.length) break;
     }
     if (texts.length) break;
     await page.waitForTimeout(400);
@@ -86,12 +90,13 @@ export async function pickOption(page, query, { timeout = 8000, pick } = {}) {
   let best = null;
   if (pick) best = texts.find((x) => pick(x.t)) || null;
   if (!best) {
+    // 绝不盲点第一个：匹配不上就返回 null，交给上层换写法再试（盲点=选错港口，比失败更糟）
     best = texts.find((x) => x.t.toLowerCase().includes(key)) ||
       texts.find((x) => x.t.toLowerCase().split(/[(,]/)[0].trim() === key) ||
-      texts[0] || null;
+      null;
   }
   if (best) {
-    await candidates.nth(best.i).click({ timeout: 4000 }).catch(() => {});
+    await (best.loc || candidates).nth(best.i).click({ timeout: 4000 }).catch(() => {});
     await page.waitForTimeout(600);
     return best.t;
   }
@@ -148,6 +153,8 @@ async function pickOnce(page, field, word, opts = {}) {
     () => page.locator('[role="option"], [role="listbox"] [role="option"], li[role="option"]').all(),
     () => page.locator('.ivu-select-item, ul.autocomplete li, [class*="autocomplete"] li, [class*="suggest"] li, .k-list .k-item, li.ui-menu-item, .pac-item, [class*="select-item"]').all(),
     () => page.locator('ul:not([class]) li, ul[class=""] li').all(),
+    () => page.getByRole('option').all(),   // ARIA（无障碍树）：自定义组件常不写 role 属性，DOM 选择器抓不到
+    () => page.locator('li').all(),
   ];
   let pool = [];
   for (let n = 0; n < polls; n++) {
@@ -160,10 +167,11 @@ async function pickOnce(page, field, word, opts = {}) {
       } catch { /* next tier */ }
     }
     if (pool.length) {
-      const joined = (await Promise.all(pool.slice(0, 4).map((e) => e.innerText().catch(() => '')))).join(' ');
+      const readTxt = async (e) => ((await e.textContent().catch(() => '')) || (await e.innerText().catch(() => '')) || '');
+      const joined = (await Promise.all(pool.slice(0, 4).map((e) => readTxt(e)))).join(' ');
       if (/no results/i.test(joined)) { pool = []; await new Promise((r) => setTimeout(r, 800)); continue; }
       let transient = true;
-      for (const e of pool) { const x = (await e.innerText().catch(() => '')).trim(); if (x && !/^search(ing)?\.?\.?$|^loading/i.test(x)) { transient = false; break; } }
+      for (const e of pool) { const x = (await readTxt(e)).trim(); if (x && !/^search(ing)?\.?\.?$|^loading/i.test(x)) { transient = false; break; } }
       if (transient) { pool = []; await new Promise((r) => setTimeout(r, 1500)); continue; }
       // 候选「非空但 pick 不中」时继续轮询：同一容器里常先渲染无关项（COSCO 的 .ivu-select-item
       // 会先给出 BOTH/CY/DOOR 等服务模式项 30 个，港口候选要几秒后才追加进来）——
