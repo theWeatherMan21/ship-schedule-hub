@@ -527,12 +527,10 @@ try {
   // maersk/one 已改 API 直查、其余 5 家走 fastpath，均不需要浏览器。
   // 需要真·有头排查时：SSH_ALLOW_HEADED=1 启动 App/引擎 → 回退「有头 + 最小化」。
   if (needBrowser.length > 0) {
-    // 10-09：反爬盾（Akamai / Cloudflare）**无头是结构性失败**（拿不到 cf_clearance / 被 Akamai 拒绝），
-    // 只有「有头 + CDP 最小化」能过，而它是真静默（屏幕不可见）。所以这几家自动走安静有头，
-    // 不再让爹地在界面上看到"被拦截/查不到"。其余家仍走无头新档（零窗口）。
-    const NEEDS_REAL_FINGERPRINT = new Set(['zim', 'cma', 'hapag']);
-    const needHeaded = selected.some((c) => NEEDS_REAL_FINGERPRINT.has(c.id));
-    const lq = (process.env.SSH_ALLOW_HEADED === '1' || needHeaded)
+    // 默认无头（零窗口）。反爬盾的拦截多数是"短时间查太多次"自己招来的（爹地 10-09 指出），
+    // 真实使用场景有缓存兜底、不会这么打 → 不为压测用量做过度设计。
+    // 真遇到盾（或要排查）时：SSH_ALLOW_HEADED=1 走「有头 + CDP 最小化」（真静默，已实测 windowState=minimized）。
+    const lq = process.env.SSH_ALLOW_HEADED === '1'
       ? await launchHeadedQuiet()
       : { ctx: await launch({}), mode: 'headless-new', window: null };
     ctx = lq.ctx;
