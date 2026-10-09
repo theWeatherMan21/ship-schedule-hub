@@ -21,8 +21,9 @@ node "$tmp" "$@"; code=$?
 rm -f "$tmp"
 sleep 2
 after=$(count_win)
+_diff=$((after - before))
 if [ "$after" -gt "$before" ]; then
-  echo "✗ 违规：屏幕上多出 $((after - before)) 个窗口！"; "$ONSCREEN" 2>/dev/null | head -5; exit 3
+  echo "✗ 违规：屏幕上多出 ${_diff} 个窗口！"; "$ONSCREEN" 2>/dev/null | head -5; exit 3
 fi
-echo "✓ 静默自检通过（屏幕可见窗口 $before → $after）"
+echo "✓ 静默自检通过（屏幕可见窗口 ${before} -> ${after}）"
 exit $code
