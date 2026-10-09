@@ -662,65 +662,83 @@ const ZIM_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'Jul
 //   ③ 响应 { routes: [[leg,leg,...],...] }，leg.vesselName/portDepartureName/departureDate/arrivalDate/isLandTrans
 //   ④ 端口后缀 ;0 = 默认码头级；首段常是驳船(Land Trans)
 export async function zimInPage(page, originLocode, destLocode, isoDate) {
+  // ★ 2026-10-09 重写（爹地："使用正确的路径"）：改走 ZIM 自己的两条接口，**不再猜港口码后缀、不再填表**。
+  //   ① digitalMasterData/Locations/v1/p2p-route?searchTerm=CNNGB  → 拿准确的 { code: "CNNGB;10", locationType }
+  //      （必须挑 locationType 含 MARINE 的那条 —— 它才是能装船的港；同名的 LAND 条目是内陆点）
+  //   ② digitalSchedules/PointToPoint/v2?PortCode=CNNGB;10&PortDestinationCode=ILASH;10
+  //      &Direction=true&FromDate=dd-Month-yyyy&WeeksAhead=6&CountryCode=US&CargoType=true
+  //   证据：2026-10-09 实录（qa/probe-zim-correct.mjs、probe-zim-struct.mjs、/tmp/zim-struct.json）
+  //   旧实现的三个错：WeeksAhead=4（站点用 6）、码头后缀靠猜 ;0/;10、拿词典 LOCODE 直接当 ZIM 码
+  //   （ZIM 对阿什杜德用 ILASH，我们词典是 ILASD → 必空）
   const win = dateWindow(isoDate);
   const r = await page.evaluate(async ({ o, d, from }) => {
+    const key = '9d63cf020a4c4708a7b0ebfe39578300';   // 页面自带公开 key（非机密）
+    const resolve = async (term) => {
+      const u = `https://apigw.zim.com/digitalMasterData/Locations/v1/p2p-route?subscription-key=${key}&searchTerm=${encodeURIComponent(term)}&pageSize=100`;
+      const resp = await fetch(u, { headers: { accept: 'application/json' } });
+      const j = await resp.json().catch(() => null);
+      const list = (j && j.results) || [];
+      const marine = list.filter((x) => /MARINE/i.test(x.locationType || ''));
+      const hit = marine.find((x) => String(x.code || '').toUpperCase().startsWith(String(term).toUpperCase())) || marine[0] || list[0];
+      return hit ? { code: hit.code, name: hit.name, country: hit.country } : null;
+    };
     try {
-      const key = '9d63cf020a4c4708a7b0ebfe39578300';
-      const mk = (oc, dc) => `https://apigw.zim.com/digitalSchedules/PointToPoint/v2?subscription-key=${key}&PortCode=${encodeURIComponent(oc)}&PortDestinationCode=${encodeURIComponent(dc)}&Direction=true&FromDate=${from}&WeeksAhead=4&CountryCode=US&CargoType=true`;
-      // 9-30：ZIM 码头码后缀因港而异 —— 宁波 CNNGB;0，上海 CNSNH;10（实测 CNSNH;0 → HTTP400）。
-      // 逐个后缀组合试，首个返回 routes 数组的即用；宁波老链路第一组就命中，零回归。
-      const pairs = [[o + ';0', d + ';0'], [o + ';10', d + ';10'], [o + ';10', d + ';0'], [o + ';0', d + ';10']];
-      let last = null;
-      for (const [oc, dc] of pairs) {
-        const resp = await fetch(mk(oc, dc), { headers: { accept: 'application/json' } });
-        const t = await resp.text();
-        let j = null; try { j = JSON.parse(t); } catch { /* 非 JSON */ }
-        if (Array.isArray(j && j.routes)) return { routes: j.routes };
-        last = { error: 'HTTP ' + resp.status + ' ' + t.slice(0, 60) };
-      }
-      return last || { error: 'no routes' };
+      const oo = await resolve(o);
+      const dd = await resolve(d);
+      if (!oo || !dd) return { error: 'Locations 解析不到港口' };
+      const ask = async (weeks) => {
+        const u = `https://apigw.zim.com/digitalSchedules/PointToPoint/v2?subscription-key=${key}`
+          + `&PortCode=${encodeURIComponent(oo.code)}&PortDestinationCode=${encodeURIComponent(dd.code)}`
+          + `&Direction=true&FromDate=${from}&WeeksAhead=${weeks}&CountryCode=US&CargoType=true`;
+        const resp = await fetch(u, { headers: { accept: 'application/json' } });
+        const j = await resp.json().catch(() => null);
+        return j || null;
+      };
+      // 先要 12 周（爹地要求每家 ≥5 条）；站侧不认就退回 6 周（站点自己用 6）
+      let j = await ask(12);
+      if (!j || !Array.isArray(j.midPoints) || !j.midPoints.length) j = await ask(6);
+      if (!j) return { error: '接口无响应' };
+      return { from: oo, to: dd, midPoints: j.midPoints || [], isSuccess: j.isSuccess };
     } catch (e) { return { error: String(e).slice(0, 120) }; }
   }, { o: originLocode, d: destLocode, from: `${win.start.slice(6, 8)}-${ZIM_MONTHS[+win.start.slice(4, 6) - 1]}-${win.start.slice(0, 4)}` }).catch(() => null);
-  if (!r || r.error || !Array.isArray(r.routes)) return null;
-  const rows = r.routes.slice(0, 12).map((legs) => {
+  if (!r || r.error || !Array.isArray(r.midPoints) || !r.midPoints.length) return null;
+  const sea = (legs) => legs.filter((x) => !x.isLandTrans);
+  const rows = r.midPoints.slice(0, 12).map((legs) => {
     if (!Array.isArray(legs) || !legs.length) return null;
-    const sea = legs.filter((x) => !x.isLandTrans && x.vesselName && x.vesselName !== 'Land Trans');
-    const main = sea[0] || legs[0];
+    const slegs = sea(legs);
+    const main = slegs[0] || legs[0];
     const f = legs[0];
     const l = legs[legs.length - 1];
-    const via = legs.filter((x) => x.portDepartureName && !x.isLandTrans).slice(1, -1).map((x) => x.portDepartureName);
+    const etd = String(f.departureDate || main.departureDate || '').slice(0, 10);
+    const eta = String(l.berthArrivalDateTo || l.arrivalDate || '').slice(0, 10);
+    if (!etd || !eta) return null;
+    const via = slegs.slice(1).map((x) => x.portName).filter((n) => n && n !== ((r.to && r.to.name) || ''));   // 中转港；剔除终点名（接口不直接给中转港字段）
     return {
-      vessel: (main && main.vesselName) || '',
-      voyage: (main && main.voyage) || '',
-      etd: (f.departureDate || '').slice(0, 10),
-      eta: (l.arrivalDate || '').slice(0, 10),
-      transitDays: f.departureDate && l.arrivalDate ? Math.round((new Date(l.arrivalDate) - new Date(f.departureDate)) / 86400000) : '',
+      vessel: main.vesselName || '',
+      voyage: (main.voyageNumber || '') + (main.leg || ''),
+      etd,
+      eta,
+      transitDays: Math.round((new Date(eta) - new Date(etd)) / 86400000) || '',
       via: via.slice(0, 2).join('+'),
-      direct: legs.filter((x) => !x.isLandTrans).length <= 1,
-      // 逐段航程（ZIM 响应 routes[][]=各段；截单字段官网 API 未直接给出，留空）
+      direct: slegs.length <= 1,
+      cutoffCY: '',
       detail: mkDetail({
-        routing: legs.filter((x) => !x.isLandTrans).length > 1 ? 'Via' : 'Direct',
-        legs: legs.filter((x) => !x.isLandTrans).map((x, i) => ({
+        routing: slegs.length > 1 ? 'Via' : 'Direct',
+        legs: slegs.map((x, i) => ({
           seq: i + 1,
-          from: x.portDepartureName || '',
-          fromCode: x.portDepartureCode || '',
-          fromTerminal: x.departureTerminalName || '',
+          from: x.portName || '', fromCode: x.portCode || '',
+          fromTerminal: x.depotName || '',
           etd: String(x.departureDate || '').slice(0, 16),
-          to: x.portArrivalName || x.portDestinationName || '',
-          toCode: x.portArrivalCode || '',
-          toTerminal: x.arrivalTerminalName || '',
-          eta: String(x.arrivalDate || '').slice(0, 16),
-          vessel: x.vesselName || '',
-          service: x.serviceName || x.service || '',
-          co2: '',
-          calls: [],
+          to: (slegs[i + 1] && slegs[i + 1].portName) || (i === slegs.length - 1 ? (r.to && r.to.name) || '' : ''),
+          eta: String(x.berthArrivalDateTo || '').slice(0, 16),
+          vessel: x.vesselName || '', service: x.line || '',
         })),
-        cutoffs: { 'CY 截关': (main && (main.cutOffDate || main.cutoffDate || main.cutOff || '')) || '' },
+        extra: main.line ? '航线: ' + main.line : '',
       }),
     };
-  }).filter(Boolean).filter((r2) => r2.etd && r2.eta);
+  }).filter(Boolean);
   if (!rows.length) return null;
-  return { rows, note: 'API 直查 ' + rows.length + ' 条' };
+  return { rows, note: `接口直查 ${rows.length} 条（ZIM 码 ${r.from.code} → ${r.to.code}）` };
 }
 
 // ---------- Maersk（第二档：页面内 fetch）----------

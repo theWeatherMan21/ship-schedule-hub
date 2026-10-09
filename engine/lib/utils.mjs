@@ -88,6 +88,10 @@ export async function clearOverlays(page, { aggressive = true } = {}) {
           const covers = r.left <= cx && r.right >= cx && r.top <= cy && r.bottom >= cy;
           if (!covers) continue;
           if (cs.pointerEvents === 'none' && parseFloat(cs.opacity) < 0.1) continue;
+          // ★ 10-09 修：容器里若有表单控件（输入框/下拉/按钮）绝不删 —— 那可能是站点自己的
+          //   快速查询组件（ZIM 的 .quick-parent 就是固定定位全屏），删了等于把功能拆了。
+          //   真正的 cookie/通知遮罩里没有输入框，这条判据既准又稳。
+          if (el.querySelector('input, select, textarea, [role="combobox"], [contenteditable="true"]')) continue;
           el.remove(); n++;
         } catch { /* 单个元素出错不影响其余 */ }
       }
