@@ -402,6 +402,21 @@ export async function runCarrier(ctx, carrier) {
       blocked = await isBlockPage(page);
     }
 
+    // ---- 填表审计（SSH_FILL_AUDIT=1）：把表单里**实际填成的值**记进证据 ----
+    // 爹地 10-09：「你的填表 approach 有问题」—— 光看"成功/失败"看不出填对没有，得把填进去的原值留档。
+    if (fillAudit && page) {
+      try {
+        const fields = await page.evaluate(() => [...document.querySelectorAll('input, select')]
+          .filter((el) => el.offsetParent && el.type !== 'hidden')
+          .map((el) => ({ ph: (el.placeholder || el.name || el.id || '').slice(0, 26), v: String(el.value || '').slice(0, 46) }))
+          .filter((x) => x.v)).slice(0, 10);
+        const ev = { type: 'fill-audit', carrier: carrier.id, status: res.status, fields,
+          typedOrigin: (qLocal.originVariants || []).slice(0, 4), typedDest: (qLocal.destVariants || []).slice(0, 4) };
+        console.log(JSON.stringify(ev));
+        ndjson.write(JSON.stringify(ev) + '\n');
+      } catch { /* 审计失败不影响主流程 */ }
+    }
+
     if (res.status !== 'prefilled' && res.status !== 'done') {
       res.status = 'opened';                    // 保底价值：页面已打开
       res.level = 3;
@@ -542,6 +557,7 @@ if (needBrowser.length === 0) {
 
 // --record-xhr：给每页挂 fetch 记录器（挖各家 API 用，婉宜 9-23）
 const recordXhr = !!args['record-xhr'];
+const fillAudit = process.env.SSH_FILL_AUDIT === '1';   // 填表审计（记下表单实际填成什么）
 
 let ctx;
 try {

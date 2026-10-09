@@ -10,13 +10,20 @@ export async function resolvePort(carrierId, word) {
   const hit = findPort(w, carrierId);
   if (!hit) return { word: w, text: w, source: 'unknown' }; // 词典没查到：原样传，不编造
   const own = (hit.carrierAliases || []).find((a) => a.carrier === carrierId);
-  if (own) {
-    // 该船司【实测】过的叫法 —— 最准，直接用
-    return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text: own.alias, source: 'verified' };
-  }
-  // ⚠️ 通用 aka（含市场名/缩写/内部码）**只用来"认出输入"，不拿去填表**：
-  //   它们可能是船司内部码头码（nbshan / kfaraviv 之类），填进别家表单就是"搜不到"。
-  //   填表一律用词典港名 + 码（10-09 真机：HMM 被填 'nbshan' → Search Results 0）。
-  return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text: `${hit.name} (${hit.locode})`, source: 'name' };
-  return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text: `${hit.name} (${hit.locode})`, source: 'fallback' };
+  // ⚠️ 填进输入框的必须是**能触发表站自动补全的短地名前缀**（爹地 10-09 指出"填表 approach 有问题"）。
+  // 反面：把"给人看的标签"当输入 —— `Tianjin (CNTNJ)` / `ningbo cnngb` 这类带括号/码的全串，
+  // 站点联想框匹配不到（技能里早有此条：候选多为前缀匹配，别名要存短前缀）。
+  const bare = (x) => String(x || '').trim().replace(/[(),]/g, ' ').split(/\s+/).filter(Boolean);
+  const shortPrefix = (a) => {
+    const t = bare(a).filter((w) => !/^[A-Z0-9]{3,6}$/.test(w));   // 去掉纯码片段
+    return t.length === 1 && t[0].length >= 3 && t[0].length <= 14 ? t[0] : '';
+  };
+  const userWord = /^[A-Za-z][A-Za-z .'-]{1,23}$/.test(w) ? w : '';   // 用户自己打的纯地名（最贴近站点习惯）
+  let text = '';
+  let src = 'name';
+  if (own && shortPrefix(own.alias)) { text = shortPrefix(own.alias); src = 'verified'; }
+  else if (userWord) { text = userWord; src = 'user'; }
+  else if (own) { text = bare(own.alias).slice(0, 2).join(' '); src = 'verified'; }
+  else { text = bare(hit.name).slice(0, 2).join(' ') || hit.name; src = 'name'; }
+  return { word: w, locode: hit.locode, name: hit.name, country: hit.country, text, source: src };
 }
