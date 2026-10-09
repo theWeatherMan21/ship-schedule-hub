@@ -761,6 +761,7 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 本轮填表修复已收口：填表用短前缀、macOS 清框 Meta+A、候选读 textContent、候选查找加 listbox 语义子项与 ARIA 层、pickOption 不再盲点/键盘兜底默认关。**复核跑完前不再改引擎代码。**
 
 ## 芝麻仓（不在关键路径、排队等）
+- 船名显示：MSC 数据里的 `TBN`（To Be Nominated）在界面上改成「待定」更易懂。
 - 变体顺序优化：把「同组港名的短尾」（如 Xingang）提到第 3 位（现在排第 4，60 秒预算常试不到）——等 sweep 结论后改。
 
 - 候选轮询默认 30 次 → 拟降到 14 次（每个写法省 ~20 秒，让 60 秒预算内能试完更多写法）。**等本轮 sweep 跑完再改**。
