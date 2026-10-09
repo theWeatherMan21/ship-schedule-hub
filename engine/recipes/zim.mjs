@@ -69,6 +69,7 @@ export default {
     // 2026-09-23：引擎改为「有头 + CDP 最小化」后，Akamai 会放行（它只看指纹，不看窗口可见性）。
     // 旧版在这里无条件 throw，导致表单全通也永远显示 opened —— 改成真被拦才降级。
     const blocked = await H.isBlockPage(page);
+    if (process.env.SSH_DUMP_DOM === 'zim') { try { (await import('node:fs')).writeFileSync('/tmp/dom-zim.txt', `URL: ${page.url()}\n\n` + (await page.content())); console.error('[zim] DOM 已写 /tmp/dom-zim.txt'); } catch {} }
     const txt = await page.evaluate(() => document.body.innerText).catch(() => '');
     const hasResult = /vessel|voyage|transit|sailing|schedule detail|departure/i.test(txt);
     if (okO && okD && !blocked && (landed || hasResult)) {

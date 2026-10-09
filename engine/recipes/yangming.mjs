@@ -24,7 +24,7 @@ export default {
       if (formOk) break;
       await H.sleep(1500); // react-select 渲染/挂载期元素会 detach，分轮重试
     }
-    if (!formOk) throw new Error('表单未出现，仅开页');
+    if (!formOk) { if (process.env.SSH_DUMP_DOM === 'yangming') { try { (await import('node:fs')).writeFileSync('/tmp/dom-yangming.txt', `URL: ${page.url()}\n\n` + (await page.content())); console.error('[yangming] DOM 已写 /tmp/dom-yangming.txt'); } catch {} } throw new Error('表单未出现，仅开页'); }
 
     // 打主词首段（大写，匹配 m4-probe 实测 "Ningbo"/"Istanbul"）
     const cap = (s) => { const w = String(s).split(/[ (,]/)[0].trim(); return w ? w[0].toUpperCase() + w.slice(1) : ''; };
