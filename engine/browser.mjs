@@ -256,7 +256,14 @@ export async function launchHeadedQuiet() {
     ctx = r.ctx;
     try { ctx.setDefaultTimeout(15000); } catch { /* older core */ }
     const w = await quietWindow(ctx, 'minimized');
-    if (w && w.windowState === 'minimized') { try { hideChromeFromDock(PROFILE_DIR); } catch { /* 忽略 */ } return { ctx, mode: 'headed-minimized', window: w }; }
+    if (w && w.windowState === 'minimized') {
+      try { hideChromeFromDock(PROFILE_DIR); } catch { /* 忽略 */ }
+      // ★ 10-09：单次隐藏不够 —— Chrome 被激活后 Dock 图标会「回来」（实测泄露 20s）。
+      //   跑着的时候持续盯着，一冒头就按回去；ctx 关闭时自动停。
+      const timer = setInterval(() => { try { hideChromeFromDock(PROFILE_DIR); } catch { /* 忽略 */ } }, 1500);
+      try { ctx.on('close', () => clearInterval(timer)); } catch { /* 老核 */ }
+      return { ctx, mode: 'headed-minimized', window: w };
+    }
     // 最小化没生效 —— 立刻关掉，别让窗口留在屏幕上
     await ctx.close().catch(() => {});
     ctx = null;
