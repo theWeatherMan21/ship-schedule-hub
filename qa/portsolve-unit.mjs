@@ -20,6 +20,6 @@ for (const ca of ['msc','maersk','cma','cosco','hapag','one','evergreen','yangmi
 t('44 条组合填表文本全部合规', true);
 // ④ 备选写法里必须兜着"用户原词"（万一船司叫法失效还能退回）
 r = await resolvePort('maersk', 'istanbul');
-t('maersk/istanbul 备选里有 istanbul 兜底', JSON.stringify(r.__alts || []).includes('istanbul'));
+t('maersk/istanbul 备选里有 istanbul 兜底', JSON.stringify(r.alts || []).includes('istanbul'));
 console.log(`\n  ${pass} 过 / ${fail} 败`);
 process.exit(fail ? 1 : 0);

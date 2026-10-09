@@ -78,10 +78,17 @@ export default {
     };
     const uniqWords = (arr) => arr.map((x) => String(x || '').trim()).filter((x, i, a) => x && a.indexOf(x) === i);
     const oWords = uniqWords([
+      q._o?.text,                                                     // ★ 船司自己的叫法优先（天津 = Xingang，爹地给的铁证）
       pureWord(q._o) || oName,                                        // 纯地名（天津 = Tianjin）
       ...(q.originVariants || []).filter((x) => !/[()]/.test(x)),      // 马士基不认 "Tianjin (CNTNJ)" 这类写法，去掉
-    ]).slice(0, 4);
-    const dWords = uniqWords([dName, ...(q.destVariants || []), ...((resolved && resolved.dList) ? resolved.dList.map((x) => x.word) : [])]).slice(0, 5);
+    ]).slice(0, 5);
+    const dWords = uniqWords([
+      q._d?.text,                                                     // ★ 船司自己的叫法优先（伊斯坦布尔 = Ambarli）
+      ...((q._d?.alts) || []),                                        // 该船司的其它叫法
+      dName,
+      ...(q.destVariants || []),
+      ...((resolved && resolved.dList) ? resolved.dList.map((x) => x.word) : []),
+    ]).slice(0, 7);
     // ---- ① 页内 API 直取 + ② 深链（最快，无需导航）：按起运港写法逐个试 ----
     for (const oWordTry of oWords) {
       let rv = null;
