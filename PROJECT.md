@@ -773,6 +773,27 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 
 **实测**：maersk 天津→伊斯坦布尔 = `API 直取（Xingang → Ambarli Port Istanbul）4 条` ✓（修前 0 条 No schedules）。
 
+
+## 2026-10-09 收口（以星/阳明复活 + 静默补漏）
+
+**以星 ZIM（从 0 → 11 条）**：站点改版，旧入口 `/tools/schedules` 已 404。重写为"正路"：
+① 先调它的 `digitalMasterData/Locations/v1/p2p-route` 解析港口（**挑 locationType 含 MARINE 的**——能装船的那个），
+拿到它自己的码（`CNNGB;10` / `ILASH;10`，后缀不可猜；我们词典的 ILASD ≠ ZIM 的 ILASH）；
+② 再调 `digitalSchedules/PointToPoint/v2`（WeeksAhead=12 退 6）。实测宁波→阿什杜德 **11 条**。
+
+**阳明（从 0 → 7 条）**：病因 = **通知弹窗挡表单** + 无头指纹被识破。
+弹窗三层盾 + 真指纹（有头+CDP最小化）+ 网络抖动重试 → 实测 **7 条**。
+
+**静默补漏（爹地指正）**：真指纹模式（有头）虽窗口最小化，但 **Chrome 会出现在 Dock/Cmd-Tab** ——
+原先的静默检查只查"屏幕可见窗口"，漏了这一层。修：按 pid 精准隐藏（绝不碰用户自己的 Chrome）+
+**每 1.5 秒盯守**（单次隐藏会被 Chrome 激活后复原，实测泄露 20s）。验证：60 秒采样**泄露 0 次** ✓。
+
+**环境**：爹地机器的 Clash 节点当时卡在死节点（香港02），已切到 3/3 稳定节点；
+诊断/切换走 clash-domestic-services 技能脚本。
+
+**教训**：①"站点改版→抄它自己的接口"（记录在 web-scraping 技能）②静默判据必须含 Dock 层
+③限流（少查+缓存）≠ 指纹硬拦（真指纹）——今天把后者误删过一次，已恢复。
+
 ## 芝麻仓（不在关键路径、排队等）
 - 长荣配方去重：DOM 里同一行出现两份（实测 20 条里 7 条重复）→ 建议在配方抽取时就按「船名+航次+ETD」去重（前端已兜底，但消息里的条数会偏大）。
 - 船名显示：MSC 数据里的 `TBN`（To Be Nominated）在界面上改成「待定」更易懂。
