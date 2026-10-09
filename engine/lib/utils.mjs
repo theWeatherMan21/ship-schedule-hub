@@ -63,7 +63,9 @@ export async function dismissCookies(page) {
 // 在已经弹出的候选列表里点最匹配的一项；没候选就用键盘选第一项。
 export async function pickOption(page, query, { timeout = 8000, pick, keyboardFallback = false } = {}) {
   const candidates = page.locator(
-    '[role="option"], [role="listbox"] [role="option"], li[role="option"], .k-list .k-item, ' +
+    '[role="option"], [role="listbox"] [role="option"], li[role="option"], ' +
+    '[role="listbox"] > li, [role="listbox"] li[aria-selected], ' +   // 语义子项：合法 ARIA option 但无 role 属性
+    '.k-list .k-item, ' +
     'ul.autocomplete li, [class*="autocomplete"] li, [class*="suggest"] li, li.ui-menu-item, ' +
     '.pac-item, [class*="dropdown"] li, [class*="options"] [class*="item"]',
   );
