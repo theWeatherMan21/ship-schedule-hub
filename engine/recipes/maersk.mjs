@@ -33,7 +33,7 @@ export default {
     const oName = q._o?.name || String(q.originText || '').split(/[,(]/)[0].trim();
     const dName = q._d?.name || String(q.destText || '').split(/[,(]/)[0].trim();
     const iso = String(q.raw?.date || new Date().toISOString().slice(0, 10));
-    const earliest = addDays(iso, 1), latest = addDays(iso, 29);
+    const earliest = addDays(iso, 1), latest = addDays(iso, 57);  // ★ 10-09：8 周（原来 4 周）
 
     // ---- 卡片解析（官网结果页 innerText 结构，双线实测）----
     const MONTHS = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
@@ -112,7 +112,7 @@ export default {
           `from=${resolved.o.geo}`, `to=${d.geo}`,
           `fromRkstCode=${resolved.o.rkst}`, `toRkstCode=${d.rkst}`,
           'containerIsoCode=45G1', 'fromServiceMode=CY', 'toServiceMode=CY',
-          'numberOfWeeks=4', 'dateType=D', `date=${earliest}`, `dateTo=${latest}`, 'vesselFlag=',
+          'numberOfWeeks=8', 'dateType=D', `date=${earliest}`, `dateTo=${latest}`, 'vesselFlag=',
         ].join('&');
         await page.goto(deep, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
         const text = await pollText();

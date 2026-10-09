@@ -139,18 +139,30 @@ async function yangming(origin, dest, dateWin) {
   // YangMing API 规则（9-24 实测）：startDate 必须 >= 今天+4；窗口长度 ≤ 30 天
   const base = dateWin.start;
   const add = (d, n) => { const t = new Date(d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8)+'T00:00:00Z'); t.setUTCDate(t.getUTCDate()+n); return t.toISOString().slice(0,10).replace(/-/g,''); };
-  const start = add(base, 4);
-  const end = add(base, 34);
-  const url = 'https://www.yangming.com/api/P2P/GetP2PRoutes'
-    + `?locationCodeFrom=${origin}&serviceTermFrom=Y`
-    + `&locationCodeTo=${dest}&serviceTermTo=Y`
-    + `&priorityWay=ALL&dateDefinition=DEP&startDate=${start}&endDate=${end}`;
-  const r = await getJSON(url);
-  if (r.status !== 200 || !Array.isArray(r.json)) {
-    console.error(`[fastpath] yangming status=${r.status} isArray=${Array.isArray(r.json)} err=${r.error || ''} body=${(r.text || '').slice(0, 60)}`);
-    return null;
+  // ★ 10-09：站侧窗口 ≤30 天 → 分两段查（D+4~D+34 / D+34~D+64），凑够 5 条以上（爹地要求每家 ≥5 条）
+  const one = async (s0, e0) => {
+    const url = 'https://www.yangming.com/api/P2P/GetP2PRoutes'
+      + `?locationCodeFrom=${origin}&serviceTermFrom=Y`
+      + `&locationCodeTo=${dest}&serviceTermTo=Y`
+      + `&priorityWay=ALL&dateDefinition=DEP&startDate=${s0}&endDate=${e0}`;
+    const r = await getJSON(url);
+    if (r.status !== 200 || !Array.isArray(r.json)) {
+      console.error(`[fastpath] yangming status=${r.status} isArray=${Array.isArray(r.json)} err=${r.error || ''} body=${(r.text || '').slice(0, 60)}`);
+      return null;
+    }
+    return r.json;
+  };
+  let js = await one(add(base, 4), add(base, 34));
+  if (js && js.length < 5) {
+    const js2 = await one(add(base, 34), add(base, 64));
+    if (js2 && js2.length) js = js.concat(js2);
   }
-  const rows = r.json.map((x) => {
+  if (!js) return null;
+  const seen = new Set();
+  const rows = js.filter((x) => {
+    const k = `${x.masterVesselName || ''}|${x.masterVoyageCode || ''}|${x.masterETD || ''}`;
+    if (seen.has(k)) return false; seen.add(k); return true;
+  }).map((x) => {
     const legs = Array.isArray(x.routeDetails) ? x.routeDetails : [];
     // routeDetails 是逐段航段：最后一段的 locationCodeTo = 目的港；中间段的 locationCodeTo = 中转港
     const finalCode = (x.placeOfDeliveryCode || '').toUpperCase();
@@ -875,7 +887,7 @@ export async function maerskInPage(page, originLocode, destLocode, isoDate, oNam
   if (!page || !oName || !dName) return null;
   const win = dateWindow(isoDate);
   const add = (s, n) => { const t = new Date(`${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}T00:00:00Z`); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
-  const earliest = add(win.start, 1), latest = add(win.start, 29);
+  const earliest = add(win.start, 1), latest = add(win.start, 57);  // ★ 10-09：8 周（原来 4 周，爹地要求每家 ≥5 条）
   const res = await maerskResolve(page, oName, dName, originLocode, destLocode);
   if (!res || res.error) { console.error(`[fastpath] maersk 港口解析失败: ${res && res.error}`); return null; }
   const tried = [...res.tried];
