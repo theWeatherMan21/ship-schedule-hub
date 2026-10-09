@@ -10,6 +10,7 @@ export default {
   name: 'CMA CGM 达飞',
   code: 'CMDU',
   kind: 'dom',
+  needsRealFingerprint: true,   // 10-09：需要真实浏览器指纹（硬拦无头）；仍静默（有头+CDP 最小化）
   timeoutMs: 60000,   // 达飞官网搜索一次常要 50-60s（实测），别用全局 60s 截断真结果
   entry: 'https://www.cma-cgm.com/ebusiness/schedules',
   urls: ['https://www.cma-cgm.com/ebusiness/schedules', 'https://www.cma-cgm.com/'],

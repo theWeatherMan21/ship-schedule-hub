@@ -9,6 +9,7 @@ export default {
   name: 'Yang Ming 阳明',
   code: 'YML',
   kind: 'dom',
+  needsRealFingerprint: true,   // 10-09：需要真实浏览器指纹（硬拦无头）；仍静默（有头+CDP 最小化）
   entry: 'https://www.yangming.com/esolution/schedule/point_to_point_search?lang=en-us',
   urls: ['https://www.yangming.com/esolution/schedule/point_to_point_search?lang=en-us',
     'https://www.yangming.com/en/esolution/schedule/point_to_point_search'],

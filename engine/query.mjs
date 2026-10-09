@@ -570,7 +570,12 @@ try {
     // 默认无头（零窗口）。反爬盾的拦截多数是"短时间查太多次"自己招来的（爹地 10-09 指出），
     // 真实使用场景有缓存兜底、不会这么打 → 不为压测用量做过度设计。
     // 真遇到盾（或要排查）时：SSH_ALLOW_HEADED=1 走「有头 + CDP 最小化」（真静默，已实测 windowState=minimized）。
-    const lq = process.env.SSH_ALLOW_HEADED === '1'
+    // ★ 10-09（爹地：zim/阳明网页上明明有船期）：Akamai / Cloudflare 这类是**硬拦无头指纹**，
+    //   不是"查太多次"的限流 —— 跟爹地那条"别为压测做过度设计"不冲突：
+    //   做法仍是**静默**的（有头 + CDP 最小化，实测 windowState=minimized、屏幕上无窗口），
+    //   只对声明了 needsRealFingerprint 的船司启用，不是全家。
+    const needsReal = needBrowser.some((c) => c.needsRealFingerprint);
+    const lq = (process.env.SSH_ALLOW_HEADED === '1' || needsReal)
       ? await launchHeadedQuiet()
       : { ctx: await launch({}), mode: 'headless-new', window: null };
     ctx = lq.ctx;
