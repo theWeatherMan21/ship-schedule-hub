@@ -85,6 +85,15 @@ export default {
       if (/Main vessel/i.test(sched) && /\d+\s*Days/i.test(sched)) break;
       await H.sleep(2500);
     }
+    if (process.env.SSH_DUMP_DOM === 'cma') {
+      try {
+        const fsmod = await import('node:fs');
+        fsmod.writeFileSync('/tmp/dom-cma.txt', String(sched).replace(/[ \t\xa0]+/g, ' '));
+        const tables = await page.evaluate(() => [...document.querySelectorAll('table, [class*=routing], [class*=result], [class*=card]')].slice(0, 60).map((t) => ({ tag: t.tagName, cls: (t.className || '').toString().slice(0, 60), txt: (t.innerText || '').replace(/\s+/g, ' ').slice(0, 300) }))).catch(() => []);
+        fsmod.writeFileSync('/tmp/dom-cma-table.json', JSON.stringify(tables, null, 1));
+        console.error('[cma] DOM 已写 len=' + String(sched).length);
+      } catch { /* 忽略 */ }
+    }
     // ---- 结构化抽取（9-24 Istanbul 10 条实测）----
     // 卡结构： <ETD> POL <港>\n[Port Cut-off\n<...>\n]Main vessel\n<vessel>\nService\n<svc>\nVoyage Ref.\n<voyage>\n<ETA> POD <港>\n<N> Days\n<Direct|via X>
     const schedules = [];
@@ -110,12 +119,17 @@ export default {
       }
     } catch { /* 抽取失败 → 保持 prefilled */ }
 
+    // 官网有时直接回「没有方案」（10-09 天津→海法 实测：No solution has been found）——
+    // 这不是我们填错了，也不该显示成"已填表·无结构化结果"，要如实转达。
+    const noneRe = /No solution has been found|not able to propose solutions|no schedule[s]? (?:has|have|were|was) (?:been )?found/i;
+    const none = noneRe.exec(sched);
     const m = sched.match(/\d+\s*Days/i);
     const bare = (x) => String(x || '').replace(/\s*\([A-Z]{4,5}\)\s*$/, '').trim();  // 文案里别再重复一次 (ILASH)
     const msg = `已预填 ${bare(q.originText)}(${q._o?.locode}) → ${bare(q.destText)}(${destLocode}) 并点搜索` +
       (schedules.length ? `，${schedules.length} 条船期：` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays}天${r.direct ? ' 直达' : ' 转' + r.via}`).join(' ｜ ')
         : (m ? `，结果页见 Transit ${m[0]}` : ''));
     if (schedules.length) return { msg, schedules };
+    if (none) return { msg: `已查询：官网回「${none[0]}」——这条线达飞暂无方案` };
     return { msg };
   },
 };
