@@ -31,7 +31,10 @@ for (const r of db.prepare('SELECT locode, name_ascii, country FROM ports').all(
 }
 const known = new Set(db.prepare('SELECT locode FROM ports').all().map((r) => r.locode));
 db.exec("DELETE FROM aliases WHERE source LIKE 'carrier:%'");
-const insCar = db.prepare("INSERT OR IGNORE INTO aliases (alias, carrier, locode, source) VALUES (?, 'un', ?, ?)");
+// ⚠️ 必须用**船司自己的** carrier 写入（不能用 'un'）：
+// 船司名录里混着大量小地名（Maersk 的 kfaraviv、kfarhaim…），写成通用别名会把所有船司的解析都带偏
+// —— 10-09 真机实测：4 家填表船司因为被解析成 kfaraviv 而"候选未出"，全是这个 bug。
+const insCar = db.prepare("INSERT OR IGNORE INTO aliases (alias, carrier, locode, source) VALUES (?, ?, ?, ?)");
 let carAdd = 0, carSkip = 0, carConflict = 0;
 const files = readdirSync('data').filter((f) => /^carrier-ports-.*\.json$/.test(f));
 for (const f of files) {
@@ -50,9 +53,9 @@ for (const f of files) {
       }
     }
     if (!code) { carSkip++; continue; }
-    const before = db.prepare('SELECT locode FROM aliases WHERE alias = ? LIMIT 1').get(w);
-    if (before && before.locode !== code) { carConflict++; continue; }   // 已有别名指向别处 → 不覆盖
-    insCar.run(w, code, 'carrier:' + carrier);
+    const before = db.prepare("SELECT locode FROM aliases WHERE alias = ? AND carrier = 'un' LIMIT 1").get(w);
+    if (before && before.locode !== code) { carConflict++; continue; }   // 通用别名已指向别处 → 不覆盖
+    insCar.run(w, carrier, code, 'carrier:' + carrier);
     carAdd++;
   }
 }
@@ -88,7 +91,7 @@ for (const r of mscRows) {
     if (!k || k.length < 4) continue;
     const exists = db.prepare('SELECT locode FROM aliases WHERE alias = ? AND carrier = ? LIMIT 1').get(k, 'un');
     if (exists) { if (exists.locode !== code) mscSkip++; continue; }   // 已指向别处 → 不覆盖
-    insCar.run(k, code, 'carrier:msc');
+    insCar.run('msc', k, code, 'carrier:msc');
     mscAdd++;
   }
 }

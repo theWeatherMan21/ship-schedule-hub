@@ -76,6 +76,16 @@ import { pickOption } from './utils.mjs';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function fillAutocomplete(page, locator, text, opts = {}) {
+  // text 支持「一组写法」：主写法没出候选就换下一个（与 typeAndPickCandidate 同款策略，婉宜 10-09）
+  if (Array.isArray(text)) {
+    for (const w of text.map((x) => String(x ?? '').trim()).filter(Boolean)) {
+      const r = await fillAutocomplete(page, locator, w, opts);
+      if (r) return r;
+      try { await locator.click({ timeout: 3000 }); await page.keyboard.press('Control+A').catch(() => {}); await page.keyboard.press('Backspace').catch(() => {}); } catch { /* no-op */ }
+      await sleep(600);
+    }
+    return null;
+  }
   const t = String(text);
   await locator.click({ timeout: 10000 }).catch(() => {});
   const ro = await locator.getAttribute('readonly').catch(() => null);

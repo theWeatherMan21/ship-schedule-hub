@@ -56,12 +56,21 @@ export default {
       if (s.includes('(')) return s.split('(')[0].trim();
       return s.trim().split(/\s+/)[0];
     };
-    const okO = await pickRowRetry(box, cleanWord(q.originText), q._o?.locode || 'CNNGB', '起运', 'RoutingFinderViewModel_DeparturePlaceCode');
+    // 多种写法依次试（船司词 → 纯港名 → Name (LOCODE) → 用户原词）
+    const tryVariants = async (field, variants, locode, label, hiddenId) => {
+      for (const v of (variants || [])) {
+        const w = cleanWord(v) || cleanWord('');
+        if (!w) continue;
+        if (await pickRowRetry(field, w, locode, label, hiddenId)) return true;
+      }
+      return false;
+    };
+    const okO = await tryVariants(box, (q.originVariants || [q.originText]), q._o?.locode || 'CNNGB', '起运', 'RoutingFinderViewModel_DeparturePlaceCode');
     let dest = page.getByRole('group', { name: /^destination$/i }).getByRole('combobox').first();
     if (!(await dest.count().catch(() => 0))) dest = page.getByRole('combobox', { name: /port, city, country name or code/i }).nth(1);
     // 目的港：Istanbul 系按 CMA 实际候选选 Ambarli Port E. Side(TRAVC) Port；其他目的地用词典 locode
     const destLocode = q._d?.locode === 'TRIST' ? 'TRAVC' : (q._d?.locode || 'TRIST');
-    const okD = await pickRowRetry(dest, cleanWord(q.destText), destLocode, '目的', 'RoutingFinderViewModel_ArrivalPlaceCode');
+    const okD = await tryVariants(dest, (q.destVariants || [q.destText]), destLocode, '目的', 'RoutingFinderViewModel_ArrivalPlaceCode');
     if (!okO || !okD) throw new Error(`预填未完成（起运=${okO} 目的=${okD}），已尽力开页`);
 
     const search = page.getByRole('button', { name: /^search$/i }).first();

@@ -27,20 +27,37 @@ let AK = { aka: {}, prefer: {}, major: {}, msc: [], signal: {} };
 // 而 release 的前端资源是压缩内嵌的、strings 也验不出来（婉宜 9-30 差点又靠 strings 下结论）。
 // 直接 import：词典跟其它 UI 代码走同一条打包路径，UI 能显示它就一定在。
 import('./port-aka.json').then((m) => { AK = m.default || m; }).catch(() => {});
+import('./port-aka.json').then((m) => { AK = m.default || m; }).catch(() => {});
 import('./ports.json')
   .then((m) => m.default || m)
   .then((d) => {
     PORTS = d;
     PORTS_LOADED = true;
-    const dl = document.getElementById('portsList');
-    if (dl) {
-      // datalist 只放「名称较短的主港」避免下拉过长；完整匹配仍走 matchPort
-      const short = d.filter((p) => p.n && p.n.length <= 18);
-      dl.innerHTML = short.map((p) => `<option value="${p.n}">${p.l}${p.c ? ' · ' + p.c : ''}</option>`).join('');
-    }
+    refreshPortList('');
     console.log('[ports] 词典加载完成:', d.length);
   })
   .catch((e) => console.warn('[ports] 词典加载失败（识别提示不可用）:', e));
+
+// 下拉建议：**按输入实时筛选并按常见度排序**。
+// 以前是把「名字 ≤18 字符」的全量塞进 datalist —— 输入 tianjin 会蹦出 Tianjinbaoshuiqu/Tianjin Pt 这类
+// 生僻条目，爹地 10-09 反馈"名录看着有问题"。现在：主干港/船司名录里的港优先，最多 12 条。
+function refreshPortList(q) {
+  const dl = document.getElementById('portsList');
+  if (!dl || !PORTS_LOADED) return;
+  const s = pNorm(q);
+  let list = PORTS.filter((p) => (p.n || '').length <= 28);
+  // 别名命中的港要排在最前（输入 genoa → 建议 Genova；输入 sha → 建议 Shanghai Pt）
+  const akaCode = s.length >= 2 ? (AK.aka || {})[s] : null;
+  const akaPort = akaCode ? PORTS.find((p) => p.l === akaCode) : null;
+  if (s.length >= 2) {
+    const hit = list.filter((p) => pNorm(p.n).startsWith(s) || pNorm(p.n).includes(s));
+    if (hit.length) list = hit;
+  }
+  // 先按常见度排序，再把别名命中的港**插到最前**（顺序不能反：排序会把插进去的又排下去）
+  list = list.slice().sort((a, b) => pScore(b, s) - pScore(a, s)).slice(0, 12);
+  if (akaPort && !list.some((p) => p.l === akaPort.l)) list = [akaPort, ...list.slice(0, 11)];
+  dl.innerHTML = list.map((p) => `<option value="${p.n}">${p.l}${p.c ? ' · ' + p.c : ''}</option>`).join('');
+}
 
 // 归一化：大小写/空格/连字符/点号一律忽略（Port-of-Spain = port of spain = portofspain）
 const pNorm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -120,6 +137,11 @@ function matchPort(q) {
   return { p: cands[0], how, short: s.replace(/[^a-z0-9]/g, '').length <= 4 };
 }
 
+function onPortInput(inputId) {
+  const el = document.getElementById(inputId);
+  if (el) refreshPortList(el.value || '');
+}
+
 function renderPortHint(inputId, hintId) {
   const el = document.getElementById(hintId);
   if (!el) return;
@@ -141,11 +163,13 @@ function renderPortHint(inputId, hintId) {
   const shortWarn = m.short
     ? '<br><span class="near">⚠️ 这是短代码匹配 —— 如果不是这个港，请把港名写完整</span>'
     : '';
-  if (m.how === 'alias') {
+  // 输入本身就是港名（归一化后相同）时，不要说"按常用名/缩写匹配" —— 完整地名被这么描述会显得名录不靠谱
+  const sameAsName = pNorm(m.p.n) === pNorm(raw);
+  if (m.how === 'alias' && !sameAsName) {
     el.innerHTML = `✅ 识别为 <b>${m.p.n}</b> (${loc})　<span class="near">按常用名/缩写「${raw}」匹配</span>` +
       (near.length ? `<br><span class="near">同港区：${near.join(' / ')}</span>` : '') + shortWarn;
     el.className = 'porthint ok' + (m.short ? ' warn' : '');
-  } else if (m.how === 'exact') {
+  } else if (m.how === 'alias' || m.how === 'exact') {
     el.innerHTML = `✅ 识别为 <b>${m.p.n}</b> (${loc})` +
       (near.length ? `<br><span class="near">同港区：${near.join(' / ')}</span>` : '');
     el.className = 'porthint ok';
@@ -428,7 +452,7 @@ let stopFlag = false;
 
 ['origin', 'destination'].forEach((id) => {
   const el = document.getElementById(id);
-  if (el) el.addEventListener('input', () => renderPortHint(id, id + 'Hint'));
+  if (el) el.addEventListener('input', () => { onPortInput(id); renderPortHint(id, id + 'Hint'); });
 });
 
 // 正在查询时再点：不报错 —— 自动停掉旧的、接着跑新的（爹地 9-30：换港口重查会被「已在运行」拒掉）
@@ -537,8 +561,13 @@ function updateGoBtn() {
 function setEngineDot(state) {
   const dot = document.getElementById('engineDot');
   dot.className = 'engine-dot' + (state === 'on' ? ' on' : state === 'busy' ? ' busy' : '');
+  // 引擎是按次启动的进程：跑完就退出。之前跑完立刻显示"engine 未启动"，爹地以为坏了（10-09）。
+  // 现在区分「从没跑过」和「跑完了在休息」。
+  if (state === 'on' || state === 'busy') window.__ranOnce = true;
   document.getElementById('engineState').textContent =
-    state === 'on' ? 'engine 在线' : state === 'busy' ? 'engine 执行中' : 'engine 未启动';
+    state === 'on' ? 'engine 在线'
+      : state === 'busy' ? 'engine 执行中'
+        : (window.__ranOnce ? '空闲（上次已完成）' : 'engine 未启动');
 }
 
 // ---------- 错误条（独立显示，永不被摘要覆盖）----------

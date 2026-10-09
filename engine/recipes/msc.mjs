@@ -19,9 +19,9 @@ export default {
     const ptp = page.getByRole('button', { name: /point[\s-]*to[\s-]*point/i }).first();
     if (await ptp.isVisible().catch(() => false)) { await ptp.click().catch(() => {}); await H.sleep(800); }
 
-    await H.fillAutocomplete(page, from, q.originText, { pick: t => H.portPick(t, q, 'origin') });
+    await H.fillAutocomplete(page, from, (q.originVariants || q.originText), { pick: t => H.portPick(t, q, 'origin') });
     const to = page.locator('#to').first();
-    await H.fillAutocomplete(page, to, q.destText, { pick: t => H.portPick(t, q, 'dest') });
+    await H.fillAutocomplete(page, to, (q.destVariants || q.destText), { pick: t => H.portPick(t, q, 'dest') });
 
     const date = page.locator('input[placeholder="dd/MM/yyyy"]').first();
     if (await date.count()) { await date.click({ timeout: 4000 }).catch(() => {}); await H.setValue(date, q.date.dd_mm_yyyy); await page.keyboard.press('Enter').catch(() => {}); }  // 留空=今天（同网站默认）

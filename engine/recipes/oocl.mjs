@@ -22,7 +22,7 @@ export default {
     await H.dismissCookies(page).catch(() => {});
     if (await H.isBlockPage(page)) throw new Error('被拦截');
 
-    const pickPort = async (ngModel, word) => {
+    const pickPortOnce = async (ngModel, word) => {
       const inp = page.locator(`input[ng-model="${ngModel}"]`);
       await inp.click({ timeout: 15000 });
       await inp.fill('').catch(() => {});
@@ -41,12 +41,17 @@ export default {
       return picked;
     };
 
-    // 词典词（如 "istanbul turkey cy"）→ 取首词让 dropdown 搜，回车补全（OOCL 候选对纯城市名最稳）
-    const oWord = (q.originText || '').split(/[,/]/)[0].trim().split(/\s+/)[0];
-    const dWord = (q.destText || '').split(/[,/]/)[0].trim().split(/\s+/)[0];
-    const oPicked = await pickPort('user.origin', oWord);
+    // 词典词（如 "istanbul turkey cy"）→ 取首词让 dropdown 搜（OOCL 候选对纯城市名最稳）
+    const firstTok = (x) => String(x || '').split(/[,/]/)[0].trim().split(/\s+/)[0];
+    // 多种写法依次试：船司词 → 纯港名 → Name (LOCODE) → 用户原词
+    const pickPort = async (ngModel, words) => {
+      const list = (Array.isArray(words) ? words : [words]).map(firstTok).filter((x, i, a) => x && a.indexOf(x) === i);
+      for (const w of list) { const r = await pickPortOnce(ngModel, w); if (r) return r; }
+      return null;
+    };
+    const oPicked = await pickPort('user.origin', (q.originVariants || [q.originText]));
     if (!oPicked) throw new Error('起运候选未出');
-    const dPicked = await pickPort('user.destination', dWord);
+    const dPicked = await pickPort('user.destination', (q.destVariants || [q.destText]));
     if (!dPicked) throw new Error('目的候选未出');
 
     // 结果窗口：官网默认 user.weeks=2（2 周）→ 这条线只有 3 条（用户报「条数太少」）。

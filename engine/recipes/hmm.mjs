@@ -22,7 +22,7 @@ export default {
     await o.waitFor({ state: 'visible', timeout: 20000 });
 
     // HMM 候选：可见 li 中含 [LOCODE] 的行（精确 locode 匹配，防 Nowy Dwor Gdanski 误中 Gdansk——9-24 实测）
-    const pickPort = async (sel, word, locode) => {
+    const pickOnce = async (sel, word, locode) => {
       const inp = page.locator(sel);
       await inp.click({ timeout: 8000 }).catch(() => {});
       await inp.fill('').catch(() => {});
@@ -49,6 +49,15 @@ export default {
       }
       return picked;
     };
+    // 多种写法依次试（主写法没出候选 → 纯港名 → Name (LOCODE) → 用户原词）
+    const pickPort = async (sel, word, locode) => {
+      const list = (Array.isArray(word) ? word : [word]).map((x) => String(x || '').trim()).filter((x, i, a) => x && a.indexOf(x) === i);
+      for (const w of list) {
+        const r = await pickOnce(sel, w, locode);
+        if (r) return r;
+      }
+      return null;
+    };
 
     const oLocode = q._o?.locode || '';
     // 9-29 修正（爹地反馈）：Istanbul 曾硬映射 TRHAY(Haydarpaşa TMNL) → 实测 0 条。
@@ -56,8 +65,10 @@ export default {
     // 「ISTANBUL, TURKIYE」= TRIST（Ningbo→Istanbul 6 条）。所以按 TRIST 精确点选，别再硬映射。
     const dLocode = q._d?.locode || '';
     // HMM 特例：Gdansk fallback 文本 "Gdansk (PLGDN)" 候选不出（9-24 实测）——HMM 候选框吃纯地名词
-    const oWord = /\(/.test(q.originText) ? (String(q.originText).split('(')[0].trim() || q.originText) : q.originText;
-    const dWord = /\(/.test(q.destText) ? (String(q.destText).split('(')[0].trim() || q.destText) : q.destText;
+    const oVs = (q.originVariants || [q.originText]);
+    const oWord = oVs.map((x) => (/^\(/.test(x) || /\(/.test(x)) ? (String(x).split('(')[0].trim() || x) : x);
+    const dVs = (q.destVariants || [q.destText]);
+    const dWord = dVs.map((x) => (/\(/.test(x)) ? (String(x).split('(')[0].trim() || x) : x);
     const pO = await pickPort('#srchPointFrom', oWord, oLocode);
     if (!pO) throw new Error(`起运港候选未出（${q.originText}/${oLocode}），仅开页`);
     await H.sleep(800);

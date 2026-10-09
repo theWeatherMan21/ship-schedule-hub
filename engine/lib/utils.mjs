@@ -124,7 +124,8 @@ export async function isBlockPage(page) {
 // 轮询匹配 + 排除隐藏原生 select（CSS [role="option"] 不匹配原生 <option>，getByRole('option') 会）。
 // 打字用 field.type 定向输入（page.keyboard.type 在 React 重渲染后 focus 丢失，输入会进 <body>）。
 // 返回选中的候选文本；没候选返回 null（不抛错，由调用方决定兜底）。
-export async function typeAndPickCandidate(page, field, word, opts = {}) {
+// 一次性尝试（内部）；外层 typeAndPickCandidate 负责「多种写法依次试」。
+async function pickOnce(page, field, word, opts = {}) {
   const { pick, fallbacks, selectors, typeDelay = 70, settleMs = 2200, polls = 30, pollMs = 500 } = opts;
   const t = String(word || '');
   await field.click({ timeout: 8000 }).catch(() => {});
@@ -207,6 +208,29 @@ export async function typeAndPickCandidate(page, field, word, opts = {}) {
   if (!clicked) return null;
   await new Promise((r) => setTimeout(r, 800));
   return hit.txt;
+}
+
+// 候选点选（对外）：word 可以是**字符串**，也可以是**一组写法**（同一港口的不同叫法）。
+// 术语提醒：船司的下拉是时序敏感 + 对写法挑剔的 —— 主写法没出候选时，
+// 换「纯港名」「Name (LOCODE)」「用户原词」再试，比反复重开页面有效得多（婉宜 10-08）。
+export async function typeAndPickCandidate(page, field, word, opts = {}) {
+  const list = (Array.isArray(word) ? word : [word])
+    .map((x) => String(x ?? '').trim())
+    .filter((x, i, a) => x && a.indexOf(x) === i);
+  if (!list.length) return null;
+  for (let i = 0; i < list.length; i++) {
+    const polls = i === 0 ? (opts.polls ?? 30) : Math.min(opts.polls ?? 30, 14);
+    const hit = await pickOnce(page, field, list[i], { ...opts, polls });
+    if (hit) return hit;
+    // 换写法的前置：把输入框清干净（受控组件要全选删除，直接 fill('') 会被吞）
+    try {
+      await field.click({ timeout: 3000 });
+      await page.keyboard.press('Control+A').catch(() => {});
+      await page.keyboard.press('Backspace').catch(() => {});
+    } catch { /* no-op */ }
+    await new Promise((r) => setTimeout(r, 600));
+  }
+  return null;
 }
 
 // ---- 词典驱动的候选消歧：portPick(text, q, which) ----

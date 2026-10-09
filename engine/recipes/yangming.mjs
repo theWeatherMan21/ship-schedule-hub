@@ -32,10 +32,10 @@ export default {
     // 9-30：候选匹配不再写死宁波/伊斯坦布尔 —— 追加词典解析出的该船司词/码动态匹配；旧词保留兜底（零回归）。
     const hitWord = (t, r) => !!r && (String(t).toLowerCase().includes(String(r.word || '').toLowerCase())
       || (r.locode && String(t).toLowerCase().includes(String(r.locode).toLowerCase())));
-    const okO = await H.typeAndPickCandidate(page, from, cap(q.originText), {
+    const okO = await H.typeAndPickCandidate(page, from, (q.originVariants || [cap(q.originText)]).map((x) => cap(x)), {
       selectors: sel, pick: (x) => /ningbo/i.test(x) || /cnngb/i.test(x) || hitWord(x, q._o),
     });
-    const okD = await H.typeAndPickCandidate(page, to, cap(q.destText), {
+    const okD = await H.typeAndPickCandidate(page, to, (q.destVariants || [cap(q.destText)]).map((x) => cap(x)), {
       selectors: sel, pick: (x) => /istanbul/i.test(x) || /trist/i.test(x) || hitWord(x, q._d),
     });
     if (!okO || !okD) throw new Error(`候选点选未完成（o=${!!okO} d=${!!okD}），仅开页`);
@@ -45,6 +45,6 @@ export default {
     await page.locator('body').click({ position: { x: 5, y: 5 } }).catch(() => {});
     await H.clickByText(page, /^\s*search\s*$/i);
     await H.sleep(4000);
-    return { msg: `已填 ${cap(q.originText)} → ${cap(q.destText)}${q.skipDate ? '（日期用网站默认）' : `（起运 ${q.date.slashes}）`}并点搜索` };
+    return { msg: `已填 ${(q.originVariants || cap(q.originText))} → ${(q.destVariants || cap(q.destText))}${q.skipDate ? '（日期用网站默认）' : `（起运 ${q.date.slashes}）`}并点搜索` };
   },
 };

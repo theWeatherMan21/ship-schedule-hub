@@ -19,7 +19,7 @@ export default {
     await origin.waitFor({ state: 'visible', timeout: 20000 });
 
     // autocomplete：打词典词 → 点含 LOCODE 的候选（9-24 实测回写 "NINGBO, CHINA (CNNGB) [ZIP:...]"）
-    const pickEvg = async (sel, word, locode) => {
+    const pickEvgOnce = async (sel, word, locode) => {
       const inp = page.locator(sel);
       await inp.click({ timeout: 8000 }).catch(() => {});
       await inp.fill('').catch(() => {});
@@ -51,13 +51,19 @@ export default {
       if (s.includes('(')) return s.split('(')[0].trim();
       return s.trim().split(/\s+/)[0];
     };
-    const oWord = clean(q.originText) || q.originText;
-    const dWord = clean(q.destText) || q.destText;
-    const pO = await pickEvg('#txt_schedule_ori_name', oWord, q._o?.locode || 'CNNGB');
-    if (!pO) throw new Error(`起运港候选未出（${oWord}），仅开页`);
+    // 多种写法依次试（船司词 → 纯港名 → Name (LOCODE) → 用户原词）
+    const pickEvg = async (sel, words, locode) => {
+      const list = (Array.isArray(words) ? words : [words]).map((x) => clean(x) || x).filter((x, i, a) => x && a.indexOf(x) === i);
+      for (const w of list) { const r = await pickEvgOnce(sel, w, locode); if (r) return r; }
+      return null;
+    };
+    const oWords = (q.originVariants || [q.originText]);
+    const dWords = (q.destVariants || [q.destText]);
+    const pO = await pickEvg('#txt_schedule_ori_name', oWords, q._o?.locode || 'CNNGB');
+    if (!pO) throw new Error(`起运港候选未出（${clean(q.originText) || q.originText}），仅开页`);
     await H.sleep(600);
-    const pD = await pickEvg('#txt_schedule_dest_name', dWord, q._d?.locode || 'TRIST');
-    if (!pD) throw new Error(`目的港候选未出（${dWord}），仅开页`);
+    const pD = await pickEvg('#txt_schedule_dest_name', dWords, q._d?.locode || 'TRIST');
+    if (!pD) throw new Error(`目的港候选未出（${clean(q.destText) || q.destText}），仅开页`);
     // 回读验证隐藏域（txt_schedule_ori=CNNBO 等）
     const hid = await page.evaluate(() => ({
       o: document.getElementById('txt_schedule_ori')?.value || '',

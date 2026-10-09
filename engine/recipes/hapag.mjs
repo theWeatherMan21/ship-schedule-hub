@@ -42,11 +42,11 @@ export default {
     //       旧词保留作并集兜底（宁波/伊斯坦布尔链路零回归）。
     const hitWord = (t, r) => !!r && (String(t).toLowerCase().includes(String(r.word || '').toLowerCase())
       || (r.locode && String(t).toLowerCase().includes(String(r.locode).toLowerCase())));
-    const okO = await H.typeAndPickCandidate(page, o, q.originText, {
+    const okO = await H.typeAndPickCandidate(page, o, (q.originVariants || q.originText), {
       pick: (t) => /ningbo/i.test(t) || hitWord(t, q._o),
       polls: 70, pollMs: 500, settleMs: 2500,
     });
-    const okD = await H.typeAndPickCandidate(page, d, q.destText, {
+    const okD = await H.typeAndPickCandidate(page, d, (q.destVariants || q.destText), {
       pick: (t) => /istanbul|ambarli/i.test(t) || hitWord(t, q._d),
       polls: 70, pollMs: 500, settleMs: 2500,
     });

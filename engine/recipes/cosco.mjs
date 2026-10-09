@@ -56,12 +56,12 @@ export default {
     const keyOf = (r, text) => String(r?.word || String(text).split(/[(\s]/)[0] || text).toLowerCase();
     const oKey = keyOf(q._o, q.originText);
     const dKey = keyOf(q._d, q.destText);
-    const okO = await H.typeAndPickCandidate(page, o, q.originText, {
+    const okO = await H.typeAndPickCandidate(page, o, (q.originVariants || q.originText), {
       selectors: [() => page.locator('.ivu-select-item').all()],
       pick: (t) => t.toLowerCase().includes(oKey),
       polls: 80, pollMs: 500, settleMs: 2500,
     });
-    const okD = await H.typeAndPickCandidate(page, d, q.destText, {
+    const okD = await H.typeAndPickCandidate(page, d, (q.destVariants || q.destText), {
       selectors: [() => page.locator('.ivu-select-item').all()],
       pick: (t) => t.toLowerCase().includes(dKey),
       polls: 80, pollMs: 500, settleMs: 2500,

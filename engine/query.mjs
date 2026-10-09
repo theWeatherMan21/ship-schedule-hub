@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';   // --diagnose 段要用；漏了会 ReferenceError 直接崩（10-09 真机诊断抓到）
 import { launch, launchHeadedQuiet, quietWindow, windowBounds, openPage, jitterGap, sleep, shot, EVIDENCE_DIR } from './browser.mjs';
 import { CARRIERS, byId } from './registry.mjs';
 import { emit, emitCarrier } from './lib/events.mjs';
@@ -185,10 +186,24 @@ const noShots = !!args['no-shots'];
 const qDate = dateFormats(isoDate || new Date().toISOString().slice(0, 10));
 const skipDate = !args.date;
 const qBase = { date: qDate, skipDate, raw: { origin, destination, date: isoDate } };
+// 同一港口的多写法（给「候选点选」用）：船司词 → 纯港名 → Name (LOCODE) → 用户原词
+const cap1 = (x) => { const s = String(x || '').trim(); return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; };
+function portVariants(resolved, raw) {
+  const out = [];
+  const push = (x) => { const y = cap1(x); if (y && !out.includes(y)) out.push(y); };
+  push(resolved?.text);
+  push(resolved?.name);
+  if (resolved?.name && resolved?.locode) push(`${resolved.name} (${resolved.locode})`);
+  push(raw);
+  return out.slice(0, 4);
+}
+
 const q = new Proxy(qBase, {
   get(t, k) {
     if (k === 'originText') return t._o?.text ?? origin;
     if (k === 'destText') return t._d?.text ?? destination;
+    if (k === 'originVariants') return portVariants(t._o, origin);
+    if (k === 'destVariants') return portVariants(t._d, destination);
     return t[k];
   },
 });
@@ -217,6 +232,8 @@ export async function runCarrier(ctx, carrier) {
       get(t, k) {
         if (k === 'originText') return t._o?.text ?? origin;
         if (k === 'destText') return t._d?.text ?? destination;
+        if (k === 'originVariants') return portVariants(t._o, origin);
+        if (k === 'destVariants') return portVariants(t._d, destination);
         return t[k];
       },
     });

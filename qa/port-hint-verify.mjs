@@ -37,7 +37,12 @@ const CASES = [
   ['Port of Spain', ['TTPOS', 'TT']],      // 连字符变体
   ['Ningbo-Zhoushan', ['CNNGB', 'CN']],
   ['Atlantis', ['词典里没有']],             // 必须明确告知未识别
+  ['tianjin', ['CNTNJ']],                  // 完整地名 → 不该说"按常用名/缩写匹配"
+  ['ashdod', ['ILASH']],
+  ['genoa', ['ITGOA', 'Genova']],           // 市场名 → 只能说别名命中
 ];
+// 下拉首项必须是输入相关的那几个（爹地 10-09 反馈"名录看着有问题"：以前下拉是原始全量）
+const DATALIST = [['tianjin', 'Tianjin'], ['ashdod', 'Ashdod'], ['genoa', 'Genova'], ['xiamen', 'Xiamen']];
 let pass = 0; const fails = [];
 for (const [input, expects] of CASES) {
   await page.fill('#origin', '');
@@ -49,6 +54,17 @@ for (const [input, expects] of CASES) {
   if (ok) pass++; else fails.push(`${input} → 提示「${hint.trim().slice(0, 90)}」缺 ${expects.join('/')}`);
   console.log(`  ${ok ? '✅' : '❌'} ${input.padEnd(18)} ${hint.trim().replace(/\s+/g, ' ').slice(0, 76)}`);
 }
+// 下拉首项检查
+let dlPass = 0; const dlFails = [];
+for (const [input, expectFirst] of DATALIST) {
+  await page.fill('#origin', ''); await page.fill('#origin', input); await page.dispatchEvent('#origin', 'input');
+  await page.waitForTimeout(220);
+  const first = await page.$eval('#portsList option', (o) => o.value).catch(() => '');
+  if (first === expectFirst) dlPass++; else dlFails.push(`${input} → 下拉首项 ${first}（期望 ${expectFirst}）`);
+}
+console.log(`\n下拉建议验收：${dlPass}/${DATALIST.length} 通过`);
+for (const f of dlFails) console.log('  ✗ ' + f);
+if (dlFails.length) process.exitCode = 1;
 await page.screenshot({ path: '/tmp/port-hint.png' });
 await browser.close(); srv.close();
 console.log(`\n界面提示验收：${pass}/${CASES.length} 通过`);
