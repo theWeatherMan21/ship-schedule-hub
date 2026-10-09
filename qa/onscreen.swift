@@ -20,5 +20,13 @@ for w in list {
                 "w": Int((b["Width"] as? Double) ?? 0),
                 "x": Int((b["X"] as? Double) ?? 0), "y": Int((b["Y"] as? Double) ?? 0)])
 }
+// --ours：只列 Chrome/Chromium 系窗口（自动化自己的），避免把爹地自己开的 Safari 等算成"我们弹窗了"
+if CommandLine.arguments.contains("--ours") {
+    let browserOwners = ["Google Chrome", "Chromium", "chrome", "Google Chrome Helper"]
+    out = out.filter { w in
+        let o = (w["owner"] as? String) ?? ""
+        return browserOwners.contains(where: { o.contains($0) })
+    }
+}
 let data = try! JSONSerialization.data(withJSONObject: out, options: [])
 print(String(data: data, encoding: .utf8)!)

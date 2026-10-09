@@ -15,7 +15,7 @@ fi
 if [ ! -x "$ONSCREEN" ]; then echo "✗ 静默取证助手缺失（$ONSCREEN），拒绝在无法验证静默的情况下运行"; exit 4; fi
 probe="$1"; shift || true
 [ -f "$probe" ] || { echo "找不到探针：$probe"; exit 2; }
-count_win() { "$ONSCREEN" 2>/dev/null | python3 -c "import sys,json
+count_win() { "$ONSCREEN" --ours 2>/dev/null | python3 -c "import sys,json
 try: print(len(json.load(sys.stdin)))
 except Exception: print(0)" 2>/dev/null || echo 0; }
 before=$(count_win)
