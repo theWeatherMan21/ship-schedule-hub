@@ -317,7 +317,9 @@ export async function runCarrier(ctx, carrier) {
       const attempts = 2;
       for (let k = 1; k <= attempts; k++) {
         try {
-          const r = await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), carrier.timeoutMs || perCarrier, `配方超时(${carrier.timeoutMs || perCarrier}ms)`);
+          // 接口已明确无此线的，页面兜底只给 25s 确认窗口，别让爹地干等
+          const tmo = apiEmptyHint[carrier.id] ? Math.min(carrier.timeoutMs || perCarrier, 25000) : (carrier.timeoutMs || perCarrier);
+          const r = await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), tmo, `配方超时(${tmo}ms)`);
           res.status = 'prefilled';
           res.level = 2;
           res.msg = (r && r.msg) || '已预填并搜索';
@@ -437,6 +439,7 @@ if (CACHE_TTL_MS > 0 && !args['no-cache']) {
 // 只有需要浏览器兜底的船司才会启动浏览器 —— 大幅提速 + 不弹窗。
 const fastResults = new Map();   // carrierId -> {rows, note, ms}
 const needBrowser = [];
+const apiEmptyHint = Object.create(null);   // 接口明确查无此线的船司 → 页面兜底用短超时
 // 先并行解析各家港口（各家 alias/LOCODE 不同）
 const portResolutions = await Promise.all(selected.map(async (c) => {
   try {
@@ -448,6 +451,11 @@ const portResolutions = await Promise.all(selected.map(async (c) => {
 // 并发打 fastpath（互不依赖；每家有超时保护，总耗时≈最慢一家）
 await Promise.all(portResolutions.map(async ({ c, o, d }) => {
   const fr = await tryFastPath(c.id, portCodes(o), portCodes(d), isoDate);   // 传同组港码（天津 CNTNJ/CNTXG）
+  if (fr && fr.apiEmpty && !(fr.rows || []).length) {
+    // 接口明确无此线 → 页面兜底只给"确认一下"的时间，不陪着死等（省爹地的时间）
+    apiEmptyHint[c.id] = true;
+    emitCarrier(c.id, 'running', { name: c.name, msg: '接口查无此线，页面兜底确认中…' });
+  }
   if (fr && fr.rows && fr.rows.length) {
     fastResults.set(c.id, fr);
     emitCarrier(c.id, 'done', {

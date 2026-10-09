@@ -257,7 +257,9 @@ export async function tryFastPath(carrierId, originLocode, destLocode, isoDate) 
         }
       }
     }
-    return null;
+    // 所有码都试过、接口都通了，但**确实没船期** —— 把这个信息带出去，
+    // 让上层别再无谓地死等页面兜底（阳明 天津→海法 实测：接口 0 条，白等 60s）
+    return { carrier: carrierId, rows: [], apiEmpty: true, ms: Date.now() - t0, note: '接口查无此线' };
   } catch (e) {
     console.error(`[fastpath] ${carrierId} 异常: ${String(e && e.stack ? e.stack.split('\n')[0] : e).slice(0, 150)}`);
     return null; // fastpath 永不抛错：失败就回退浏览器
