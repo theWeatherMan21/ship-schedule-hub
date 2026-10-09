@@ -280,7 +280,22 @@ export async function runCarrier(ctx, carrier) {
     const inPageApi = carrier.id === 'msc' ? mscInPage : carrier.id === 'cosco' ? coscoApi : carrier.id === 'hapag' ? hapagInPage : carrier.id === 'zim' ? zimInPage : carrier.id === 'maersk' ? maerskApi : null;
     if (!blocked && inPageApi) {
       try {
-        const fp = await withTimeout(inPageApi(page, oRes.locode, dRes.locode, isoDate), 90000, 'inpage api');
+        // 同组港码兜底（爹地 10-09 点透）：船司接口认的是**码头码**，天津 = CNTNJ（市）/ CNTXG（新港）。
+        // 主码空手就换同组码再试 —— MSC 实测：递 CNTNJ 无结果、递 CNTXG 出 7 条。
+        const oCodes = portCodes(oRes).slice(0, 2);
+        const dCodes = portCodes(dRes).slice(0, 2);
+        let fp = null;
+        outer:
+        for (const oc of oCodes) {
+          for (const dc of dCodes) {
+            const r = await withTimeout(inPageApi(page, oc, dc, isoDate), 90000, 'inpage api').catch(() => null);
+            if (r && r.rows && r.rows.length) {
+              const same = oc === oCodes[0] && dc === dCodes[0];
+              fp = same ? r : { ...r, note: `${r.note}（同组港码 ${oc}→${dc}）` };
+              break outer;
+            }
+          }
+        }
         if (fp && fp.rows && fp.rows.length) {
           res.status = 'done';
           res.level = 1;
@@ -432,7 +447,7 @@ const portResolutions = await Promise.all(selected.map(async (c) => {
 }));
 // 并发打 fastpath（互不依赖；每家有超时保护，总耗时≈最慢一家）
 await Promise.all(portResolutions.map(async ({ c, o, d }) => {
-  const fr = await tryFastPath(c.id, o.locode, d.locode, isoDate);
+  const fr = await tryFastPath(c.id, portCodes(o), portCodes(d), isoDate);   // 传同组港码（天津 CNTNJ/CNTXG）
   if (fr && fr.rows && fr.rows.length) {
     fastResults.set(c.id, fr);
     emitCarrier(c.id, 'done', {

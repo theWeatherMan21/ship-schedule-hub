@@ -240,12 +240,24 @@ export async function tryFastPath(carrierId, originLocode, destLocode, isoDate) 
   const fn = ADAPTERS[carrierId];
   if (!fn) return null;
   if (!originLocode || !destLocode) return null;
+  // 同组港码兜底（爹地 10-09 点透的根因）：船司对同一座城市用的**码头码**不同 ——
+  // 天津 = CNTNJ（市）/ CNTXG（新港，集装箱码头）。主码没结果显示时换同组码再试：
+  // MSC 实测 CNTNJ 空手、CNTXG 出 7 条。每侧最多 2 个码 → 最多 4 次尝试，首次出结果即停。
+  const oList = (Array.isArray(originLocode) ? originLocode : [originLocode]).filter(Boolean).slice(0, 2);
+  const dList = (Array.isArray(destLocode) ? destLocode : [destLocode]).filter(Boolean).slice(0, 2);
   try {
     const win = dateWindow(isoDate);
     const t0 = Date.now();
-    const out = await fn(originLocode, destLocode, win);
-    if (!out) return null;
-    return { carrier: carrierId, ms: Date.now() - t0, ...out };
+    for (const o of oList) {
+      for (const d of dList) {
+        const out = await fn(o, d, win);
+        if (out && Array.isArray(out.rows) && out.rows.length) {
+          const same = o === oList[0] && d === dList[0];
+          return { carrier: carrierId, ms: Date.now() - t0, ...out, note: same ? out.note : `${out.note}（同组港码 ${o}→${d}）` };
+        }
+      }
+    }
+    return null;
   } catch (e) {
     console.error(`[fastpath] ${carrierId} 异常: ${String(e && e.stack ? e.stack.split('\n')[0] : e).slice(0, 150)}`);
     return null; // fastpath 永不抛错：失败就回退浏览器
