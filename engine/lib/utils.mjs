@@ -34,6 +34,75 @@ const COOKIE_TEXTS = [
   /^\s*allow all cookies\s*$/i, /^\s*i agree\s*$/i, /^\s*accept\s*$/i,
   /^\s*agree\s*$/i, /接受全部/, /全部接受/, /^\s*接受\s*$/, /同意/, /^\s*允许全部\s*$/,
 ];
+// ---- 通用遮罩/弹窗清除（2026-10-09 爹地破案：zim 的 cookie 弹窗、阳明的通知弹窗挡住了表单）----
+// 思路：① 先按文案点关闭/同意 ② 还挡着就移除"高 z-index + 固定定位 + 覆盖大半个屏幕"的遮罩元素 ③ 解开滚动锁
+// 这一层不依赖知道弹窗长什么样，页面改版也照样管用。
+const OVERLAY_CLOSE_TEXTS = [
+  /^\s*accept( all)?( cookies)?\s*$/i, /^\s*allow( all)?\s*$/i, /^\s*i agree\s*$/i,
+  /^\s*agree\s*$/i, /^\s*ok(ay)?\s*$/i, /^\s*got it\s*$/i, /^\s*close\s*$/i,
+  /^\s*dismiss\s*$/i, /^\s*no thanks\s*$/i, /^\s*continue\s*$/i, /^\s*×\s*$/,
+  /同意/, /接受/, /允许/, /知道了/, /关闭/, /继续/,
+];
+const OVERLAY_CLOSE_SELECTORS = [
+  'button[aria-label*="close" i]', '[aria-label*="dismiss" i]', '[aria-label*="關閉"]', '[aria-label*="关闭"]',
+  'button.close', '.modal-close', '.modal__close', '.popup-close', '.close-button', '[class*="close"][role="button"]',
+  '[class*="cookie"] button', '[class*="consent"] button', '[class*="notification"] button',
+];
+
+export async function clearOverlays(page, { aggressive = true } = {}) {
+  let acted = false;
+  for (const sel of OVERLAY_CLOSE_SELECTORS) {
+    try {
+      const el = page.locator(sel).first();
+      if (await el.isVisible({ timeout: 250 }).catch(() => false)) {
+        await el.click({ timeout: 1200, force: true }).catch(() => {});
+        acted = true; await page.waitForTimeout(250);
+      }
+    } catch { /* next */ }
+  }
+  for (const re of OVERLAY_CLOSE_TEXTS) {
+    try {
+      const btn = page.getByRole('button', { name: re }).first();
+      if (await btn.isVisible({ timeout: 200 }).catch(() => false)) {
+        await btn.click({ timeout: 1200, force: true }).catch(() => {});
+        acted = true; await page.waitForTimeout(250);
+      }
+    } catch { /* next */ }
+  }
+  if (!aggressive) return acted;
+  // 移除残存遮罩：固定/粘性定位、z-index 高、覆盖视口中心且面积大于 35%
+  try {
+    const removed = await page.evaluate(() => {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const cx = vw / 2, cy = vh / 2;
+      let n = 0;
+      const all = Array.from(document.querySelectorAll('div, section, aside, dialog, iframe'));
+      for (const el of all) {
+        try {
+          const cs = getComputedStyle(el);
+          if (cs.position !== 'fixed' && cs.position !== 'sticky' && cs.position !== 'absolute') continue;
+          const z = parseInt(cs.zIndex || '0', 10);
+          if (!(z >= 100 || cs.position === 'fixed')) continue;
+          const r = el.getBoundingClientRect();
+          if (r.width * r.height < vw * vh * 0.35) continue;
+          const covers = r.left <= cx && r.right >= cx && r.top <= cy && r.bottom >= cy;
+          if (!covers) continue;
+          if (cs.pointerEvents === 'none' && parseFloat(cs.opacity) < 0.1) continue;
+          el.remove(); n++;
+        } catch { /* 单个元素出错不影响其余 */ }
+      }
+      // 解开滚动锁
+      try {
+        if (getComputedStyle(document.body).overflow === 'hidden') document.body.style.overflow = 'auto';
+        if (getComputedStyle(document.documentElement).overflow === 'hidden') document.documentElement.style.overflow = 'auto';
+      } catch { /* 忽略 */ }
+      return n;
+    }).catch(() => 0);
+    if (removed) acted = true;
+  } catch { /* 忽略 */ }
+  return acted;
+}
+
 export async function dismissCookies(page) {
   // 1) 明确的 banner 按钮
   for (const sel of COOKIE_SELECTORS) {

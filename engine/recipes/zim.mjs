@@ -17,6 +17,8 @@ export default {
   fallbackNote: '船期结果深链被 Akamai Challenge Validation 拦截（表单链路已验证：主页→Schedules tab→P2P 填选→Search→深链被拦），已尽力预填供手动继续',
   async run(page, q, H) {
     await H.dismissCookies(page); // button "I Agree"
+    // 10-09：cookie 弹窗挡表单 → 装弹窗盾之外再做一次通用清理（点关闭 + 移除残存遮罩）
+    try { await H.clearOverlays(page); } catch { /* 没有就没 */ }
     if (await H.isBlockPage(page)) await H.waitThroughChallenge(page, 12000);
     if (await H.isBlockPage(page)) throw new Error('Akamai 拦截主页');
     // 点 Schedules tab（渲染有波动：轮询等出现）

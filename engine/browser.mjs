@@ -188,8 +188,21 @@ function killStaleProfileChrome() {
 
 // profile 锁兜底（10-09 爹地实测：另一个引擎实例在跑 → ProcessSingleton 失败 → 整批查询"没有任何结果"）。
 // 三级处理：① 直接用；② 清理残留 Chrome + 等 2s 重试；③ 仍锁就换**临时 profile** 继续跑，绝不让查询整体挂掉。
+// ---- 弹窗盾（2026-10-09 爹地破案：zim cookie 弹窗 / 阳明通知弹窗挡住表单）----
+// 拦掉同意管理 / 推送通知类 SDK 的请求：脚本加载不了，弹窗就根本不会出现。
+// 只列具体厂商域名关键词，不用泛化的 "cookie"（避免误伤站点自己的脚本）。
+const POPUP_SDK_RE = /(onetrust|cookielaw|cookiebot|osano|usercentrics|consentmanager|iubenda|privacy-mgmt|sourcepoint|civiccomputing|onesignal|webpushr|pushwoosh|fcmregistrations|firebaseinstallations|clarity\.ms|hotjar|cookieyes|termly|quantcast|trustarc|truste|ketchcdn)/i;
+async function applyPopupShields(ctx) {
+  try {
+    await ctx.route(POPUP_SDK_RE, (route) => route.abort().catch(() => {}));
+    console.error('[chrome] 弹窗盾已装（拦截同意/推送 SDK）');
+  } catch (e) { console.error('[chrome] 弹窗盾安装失败: ' + String(e).slice(0, 80)); }
+}
+
 async function launchCtxWithLockFallback(opts) {
-  const tryDir = (dir) => chromium.launchPersistentContext(dir, opts);
+  // permissions: [] = 所有权限都不授予 → 浏览器层的「允许通知?」原生弹窗直接不会出现（阳明那条）
+  const opts2 = { ...opts, permissions: [] };
+  const tryDir = async (dir) => { const c = await chromium.launchPersistentContext(dir, opts2); await applyPopupShields(c); return c; };
   try { return { ctx: await tryDir(PROFILE_DIR), dir: PROFILE_DIR }; }
   catch (e) {
     const msg = String((e && e.message) || e);
@@ -201,7 +214,8 @@ async function launchCtxWithLockFallback(opts) {
     catch (e2) {
       const tmp = `${PROFILE_DIR}-tmp-${Date.now()}`;
       console.error('[chrome] 仍被占用 → 改用临时 profile 继续本次查询：' + tmp);
-      const ctx = await chromium.launchPersistentContext(tmp, opts);
+      const ctx = await chromium.launchPersistentContext(tmp, opts2);
+      await applyPopupShields(ctx);
       return { ctx, dir: tmp, tmp: true };
     }
   }

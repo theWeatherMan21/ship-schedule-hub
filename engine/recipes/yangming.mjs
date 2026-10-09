@@ -15,6 +15,8 @@ export default {
     'https://www.yangming.com/en/esolution/schedule/point_to_point_search'],
   async run(page, q, H) {
     await H.dismissCookies(page); // button "Agree"
+    // 10-09 爹地破案：阳明有通知弹窗挡表单 → 通用清遮罩（点关闭 + 移除残存高 z-index 遮罩）
+    try { await H.clearOverlays(page); } catch { /* 没有弹窗就没 */ }
     if (await H.isBlockPage(page)) throw new Error('被拦截');
 
     const from = page.locator('xpath=//label[contains(., "Location From")]//following::input[1]').first();
@@ -23,6 +25,8 @@ export default {
     for (let i = 0; i < 10; i++) {
       formOk = await from.waitFor({ state: 'visible', timeout: 3000 }).then(() => true).catch(() => false);
       if (formOk) break;
+      // 延迟弹出的通知弹窗：每轮都清一次遮罩（前 3 轮）
+      if (i < 3) { try { await H.clearOverlays(page); } catch { /* 忽略 */ } }
       await H.sleep(1500); // react-select 渲染/挂载期元素会 detach，分轮重试
     }
     if (!formOk) { if (process.env.SSH_DUMP_DOM === 'yangming') { try { (await import('node:fs')).writeFileSync('/tmp/dom-yangming.txt', `URL: ${page.url()}\n\n` + (await page.content())); console.error('[yangming] DOM 已写 /tmp/dom-yangming.txt'); } catch {} } throw new Error('表单未出现，仅开页'); }
