@@ -38,16 +38,27 @@ export default {
         for (let i = 0; i < 18; i++) {
           await H.sleep(900);
           let loc = null;
+          let nameMode = false;
           for (const c of wantList) {   // 同组港口码都认（天津可能被写成 CNTXG/Tianjin Xingang）
             const l2 = page.locator(`li:has-text("[${c}]")`).first();
             if (await l2.isVisible({ timeout: 300 }).catch(() => false)) { loc = l2; break; }
+          }
+          // 兜底（10-09）：词典不认识这个港口时码表可能为空/对不上，此时按**打进去的词**找候选，
+          // 只要回读 code 非空就算选上了（三条铁律：不盲点、回读校验、选不上就换写法）。
+          if (!loc && !wantList.length) {
+            const w = String(word).toLowerCase().replace(/[^a-z ]/g, ' ').trim().split(/\s+/)[0];
+            if (w && w.length >= 3) {
+              const l3 = page.locator('li', { hasText: w }).first();
+              if (await l3.isVisible({ timeout: 300 }).catch(() => false)) { loc = l3; nameMode = true; }
+            }
           }
           if (!loc) continue;
           const t = (await loc.innerText().catch(() => '')).trim().replace(/\s+/g, ' ').slice(0, 70);
           await loc.click({ timeout: 3000 }).catch(() => {});
           await H.sleep(700);
           const code = await readCode();
-          if (wantList.includes(String(code).toUpperCase())) { picked = t; break; }  // 回读校验：本港或同组港码都认
+          const ok = nameMode ? !!String(code).trim() : wantList.includes(String(code).toUpperCase());
+          if (ok) { picked = t; break; }  // 回读校验：本港或同组港码都认；无码表时只要求"真的选上了"
         }
         if (!picked && attempt < 2) { await inp.click({ timeout: 4000 }).catch(() => {}); await H.sleep(600); }
       }
