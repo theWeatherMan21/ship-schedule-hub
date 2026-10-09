@@ -284,6 +284,28 @@ export async function openPage(ctx, url, opts = {}) {
   if (!page) { page = await ctx.newPage(); created = true; }
   // 新建标签页会把窗口唤醒 —— 立刻按回去
   if (created) { try { await quietWindow(ctx, 'minimized'); } catch {} }
+  // SSH_XHR_DUMP=1：录下本页发出的 XHR/fetch（挖各家站内接口用；默认关、零开销）
+  if (process.env.SSH_XHR_DUMP && !page.__xhrDumpHooked) {
+    page.__xhrDumpHooked = true;
+    page.on('request', (req) => {
+      try {
+        const u = req.url();
+        if (/\.(js|css|png|jpe?g|gif|svg|ico|woff2?|ttf)(\?|$)/i.test(u)) return;
+        if (!/(api|json|schedule|search|grid|query|route|port|vessel)/i.test(u)) return;
+        console.log(JSON.stringify({ type: 'xhr-req', m: req.method(), u: u.slice(0, 260), b: String(req.postData() || '').slice(0, 900) }));
+      } catch { /* 忽略 */ }
+    });
+    page.on('response', async (resp) => {
+      try {
+        const ct = (resp.headers()['content-type'] || '');
+        if (!/json/i.test(ct)) return;
+        const u = resp.url();
+        if (!/(api|schedule|search|grid|query|route|port|vessel)/i.test(u)) return;
+        const body = await resp.text().catch(() => '');
+        console.log(JSON.stringify({ type: 'xhr-resp', s: resp.status(), u: u.slice(0, 200), body: body.replace(/\s+/g, ' ').slice(0, 900) }));
+      } catch { /* 忽略 */ }
+    });
+  }
   try {
     const resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
     // SPA 壳页（COSCO/ONE 等）domcontentloaded 时 body 还是空的：
