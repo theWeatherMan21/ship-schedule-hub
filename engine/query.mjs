@@ -320,6 +320,16 @@ export async function runCarrier(ctx, carrier) {
     // ★ 10-09：ZIM 传港名兜底 —— 它的码常与联合国码不同（汉堡 GEHAM ≠ DEHAM），按码解析不到时用名字
     const zimApi = (pg, o, d, iso) => zimInPage(pg, o, d, iso, oRes?.name, dRes?.name);
     const inPageApi = carrier.id === 'msc' ? mscInPage : carrier.id === 'cosco' ? coscoApi : carrier.id === 'hapag' ? hapagInPage : carrier.id === 'zim' ? zimApi : carrier.id === 'maersk' ? maerskApi : null;
+    // ★ 10-09 轻量页提速（爹地问"不是都用 api 吗"）：站内接口只需要**同源上下文**，
+    //   不需要把整个 SPA 加载完。实测 hapag：完整页 40s+ → 轻量 404 页 4.3s，接口照样 200。
+    //   只对**实测过**的家启用（MSC 在轻量页会被 WAF 挡回 HTML，故不启用）。
+    const LIGHT_PAGE_OK = { hapag: true };
+    if (!blocked && inPageApi && LIGHT_PAGE_OK[carrier.id]) {
+      try {
+        const u0 = new URL(page.url());
+        await page.goto(u0.origin + '/__light_' + Date.now() + '__', { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
+      } catch { /* 保持原页面 */ }
+    }
     if (!blocked && inPageApi) {
       try {
         // 同组港码兜底（爹地 10-09 点透）：船司接口认的是**码头码**，天津 = CNTNJ（市）/ CNTXG（新港）。
