@@ -29,6 +29,15 @@ function score(p, wn) {
   return v;
 }
 
+// 全库反查：该船司（或通用）的别名文本里**含某个词**的那些别名（用于"伊斯坦布尔→ambarli"这类跨条目映射）
+export function aliasRowsContaining(word, carrierId) {
+  const like = `%${String(word || '').toLowerCase()}%`;
+  try {
+    return db.prepare("SELECT alias FROM aliases WHERE LOWER(alias) LIKE ? AND carrier = ?")
+      .all(like, carrierId).map((r) => r.alias);
+  } catch { return []; }
+}
+
 export function findPort(word, carrierId) {
   // 加固（9-30）：空串/过短/非字符串一律拒绝 —— 垃圾输入必须走 unknown 兜底，绝不随机命中一个港口。
   if (typeof word !== 'string' && typeof word !== 'number') return null;

@@ -198,7 +198,8 @@ function rotate(n, arr) {
 function portVariants(resolved, raw) {
   const out = [];
   const push = (x) => { const y = cap1(x); if (y && !out.includes(y)) out.push(y); };
-  push(resolved?.text);                       // 该船司自己的别名（最准）
+  push(resolved?.text);                       // 船司自己的短前缀（实测能出结果的名字，最准）
+  for (const a of (resolved?.alts || [])) push(a);   // 该船司的其它叫法（如 Istanbul 的 ambarli/istanbul 两条）
   push(resolved?.name);                       // 词典港名
   if (resolved?.name && resolved?.locode) push(`${resolved.name} (${resolved.locode})`);
   // 同组港名（同城不同码头）：各家叫法不同，天津 = Tianjin / Xingang / Xingang Pt…
