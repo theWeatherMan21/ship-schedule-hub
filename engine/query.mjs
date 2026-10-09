@@ -195,10 +195,18 @@ function portVariants(resolved, raw) {
   push(resolved?.text);                       // 该船司自己的别名（最准）
   push(resolved?.name);                       // 词典港名
   if (resolved?.name && resolved?.locode) push(`${resolved.name} (${resolved.locode})`);
-  // 同城/同组港名（各家船司叫法不同，天津 = Tianjin / Tianjin Xingang…）：只加 2 个，避免拖慢
-  for (const sib of siblingPorts(resolved, 2)) push(sib.name);
+  // 同组港名（同城不同码头）：各家叫法不同，天津 = Tianjin / Xingang / Xingang Pt…
+  // ⚠️ 关键（10-09 长荣实测）：多数船司的候选是**前缀匹配**，而它们库里根本没有 "Tianjin…"，
+  //    只有 "XINGANG (CNTXG)"。所以除了全名，还要试**去掉城市前缀的尾巴**（"Tianjin Xingang Pt" → "Xingang Pt" / "Xingang"）。
+  for (const sib of siblingPorts(resolved, 3)) {
+    const nm = String(sib.name || '').trim();
+    if (!nm) continue;
+    const tail = nm.split(/\s+/).slice(1).join(' ');   // 去掉首词（城市名）
+    if (tail && tail.length >= 4) { push(tail); push(tail.split(/\s+/)[0]); }
+    push(nm);
+  }
   push(raw);                                  // 用户原词
-  return out.slice(0, 6);
+  return out.slice(0, 9);
 }
 // 可接受的港口码集合：本港 + 同组港（船司把天津叫 Xingang 时，回读码是 CNTXG 也要认）
 function portCodes(resolved) {

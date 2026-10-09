@@ -1,182 +1,177 @@
-// Evergreen 长荣 —— 主页 Sailing Schedules 小部件 + Search by Point 结果页（9-24 实测）
-// 主页字段：#txt_schedule_ori_name / #txt_schedule_dest_name（autocomplete，候选点击后回写全称
-//   "NINGBO, CHINA (CNNGB) [ZIP:315000]"，隐藏域 txt_schedule_ori=CNNBO/dest=TRIST）→ #schedule_btn 整页跳转
-// 结果页：ss.shipmentlink.com TVS2_InteractiveScheduleRouting.jsp，表格每行：
-//   NINGBO, CHINA\n<ETD> HH:MM\n<服务 BEX/MD2> ISTANBUL ISTANBUL <transit天数> Details\n---- <cutOff> ----\n<vessel voyage> <ETA> ----
-// 9-24 Istanbul 实测 8 条（BEX 34/35/37/38、MD2 38/39/46/47 天）
+// Evergreen 长荣 —— 2026-10-09 改版重写（旧 tvs2 首页小部件已下线：TVS2_JspIndex.jsp = 404）
+// 入口：ss.shipmentlink.com/tvs2/jsp/TVS2_InteractiveSchedule.jsp （Sailing Schedule › Search by Point）
+// 字段：起运 #tvs2OriAC / 目的 #tvs2DesAC（自定义 ecType="AutoComplete" 组件，候选渲染在 #tuf1ac_tat_table 表格里）
+//   候选必须用**真实鼠标事件**点击（DOM click 不触发它的 afterComplete，隐藏域不写、提交无效 —— 10-09 实测）
+// 提交：input[value="Submit"] → 整页跳 TVS2_InteractiveScheduleRouting.jsp
+// 结果表结构（两行一条，10-09 实测宁波→阿什杜德）：
+//   行A：No.|Place of Receipt|Port of Loading|Port Cut Off Date|Service|Port of Discharge|Place of Delivery|Transit Time(days)|Routing Details|Remark
+//   行B：Departure Date|(ETD)|VGM via Hard Copy|(Vessel Voyage)|Arrival Date|(ETA)
 export default {
   id: 'evergreen',
   name: 'Evergreen 长荣',
   code: 'EGLV',
   kind: 'dom',
-  entry: 'https://www.shipmentlink.com/',
-  urls: ['https://www.shipmentlink.com/', 'https://www.shipmentlink.com/tvs2/jsp/TVS2_JspIndex.jsp'],
+  entry: 'https://ss.shipmentlink.com/tvs2/jsp/TVS2_InteractiveSchedule.jsp',
+  urls: ['https://ss.shipmentlink.com/tvs2/jsp/TVS2_InteractiveSchedule.jsp'],
   async run(page, q, H) {
     await H.dismissCookies(page); // Accept All
     if (await H.isBlockPage(page)) throw new Error('被拦截');
 
-    const origin = page.getByRole('textbox', { name: /^Origin$/i }).first();
-    await origin.waitFor({ state: 'visible', timeout: 20000 });
+    // 直达改版后的查询页（entry 已是它；万一停在首页也强制过去）
+    if (!/TVS2_InteractiveSchedule\.jsp/i.test(page.url())) {
+      await page.goto('https://ss.shipmentlink.com/tvs2/jsp/TVS2_InteractiveSchedule.jsp', { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+    }
+    // 等字段出现
+    let fieldOk = false;
+    for (let i = 0; i < 12; i++) { await H.sleep(1200); fieldOk = (await page.locator('#tvs2OriAC').count()) > 0; if (fieldOk) break; }
+    if (!fieldOk) throw new Error('查询页未加载出港口字段，仅开页');
 
-    // autocomplete：打词典词 → 点含 LOCODE 的候选（9-24 实测回写 "NINGBO, CHINA (CNNGB) [ZIP:...]"）
-    const pickEvgOnce = async (sel, word, locode) => {
-      const inp = page.locator(sel);
-      await inp.click({ timeout: 8000 }).catch(() => {});
-      await inp.fill('').catch(() => {});
-      await inp.type(String(word).toLowerCase(), { delay: 80 }).catch(() => { try { inp.pressSequentially(String(word).toLowerCase(), { delay: 80 }); } catch {} });
-      let picked = null;
-      for (let i = 0; i < 14; i++) {
-        await H.sleep(1000);
-        const found = await page.evaluate((want) => {
-          // want 可能是「一组码」（本港 + 同组港）：天津被船司写成 Xingang(CNTXG) 也要认（爹地 10-09）
-          const wantList = (Array.isArray(want) ? want : [want]).map((x) => String(x).toUpperCase()).filter(Boolean);
-          const els = [...document.querySelectorAll('li, [class*="menu"] li, [class*="autocomplete"] li, [class*="suggest"] li, [class*="ui-menu"] li, [class*="dropdown"] li')]
-            .filter((el) => el.offsetParent && wantList.some((c) => (el.innerText || '').toUpperCase().includes(c)) && (el.innerText || '').trim().length > 3);
-          if (els.length) {
-            let best = els[0];
-            for (const e of els) { if (e.contains(best)) best = e; }   // 最内层
-            const t = best.innerText.trim().replace(/\s+/g, ' ').slice(0, 60);
-            best.click();
-            return t;
-          }
-          return null;
-        }, locode).catch(() => null);
-        if (found) { picked = found; break; }
-      }
-      return picked;
-    };
-
-    // Evergreen 特例：打纯词（词典串 "ningbo china cnngb" 无候选，9-22/9-24 双实测）——取第一段地名
     const clean = (t) => {
-      const s = String(t);
+      const s = String(t || '');
       if (s.includes('(')) return s.split('(')[0].trim();
       return s.trim().split(/\s+/)[0];
     };
-    // 多种写法依次试（船司词 → 纯港名 → Name (LOCODE) → 用户原词）
-    const pickEvg = async (sel, words, locode) => {
+    // 依次试一组写法（船司词 → 纯港名 → Name (LOCODE) → 用户原词）；候选按 LOCODE（含同组港码）认
+    const pick = async (inputId, words, codes) => {
+      const want = (Array.isArray(codes) ? codes : [codes]).map((x) => String(x).toUpperCase()).filter(Boolean);
+      if (!want.length) return null;
       const list = (Array.isArray(words) ? words : [words]).map((x) => clean(x) || x).filter((x, i, a) => x && a.indexOf(x) === i);
-      for (const w of list) { const r = await pickEvgOnce(sel, w, locode); if (r) return r; }
+      const inp = page.locator('#' + inputId);
+      for (const w of list) {
+        await inp.click({ timeout: 6000 }).catch(() => {});
+        await inp.fill('').catch(() => {});
+        await inp.pressSequentially(String(w).toLowerCase(), { delay: 120 }).catch(() => {});
+        for (let i = 0; i < 7; i++) {
+          await H.sleep(900);
+          const pos = await page.evaluate(({ want, wantAlt }) => {
+            const tb = document.querySelector('#tuf1ac_tat_table');
+            if (!tb) return null;
+            for (const el of tb.querySelectorAll('tr,td,div')) {
+              const t = (el.innerText || '').toUpperCase();
+              if (!el.offsetParent || t.length > 140) continue;
+              if (!want.some((c) => t.includes(c)) && !wantAlt.some((c) => t.includes(c))) continue;
+              const b = el.getBoundingClientRect();
+              if (b.width < 20 || b.height < 8) continue;
+              return { x: b.x + 18, y: b.y + b.height / 2, t: (el.innerText || '').trim().replace(/\s+/g, ' ').slice(0, 60) };
+            }
+            return null;
+          }, { want, wantAlt: want.map((c) => c.slice(2)) }).catch(() => null);
+          if (pos) {
+            // 真实鼠标点候选（DOM click 不生效 —— 10-09 实测）
+            await page.mouse.move(pos.x, pos.y);
+            await page.mouse.click(pos.x, pos.y);
+            await H.sleep(1400);
+            return pos.t;
+          }
+        }
+      }
       return null;
     };
-    const oWords = (q.originVariants || [q.originText]);
-    const dWords = (q.destVariants || [q.destText]);
-    const pO = await pickEvg('#txt_schedule_ori_name', oWords, (q.originCodes && q.originCodes.length) ? q.originCodes : (q._o?.locode || 'CNNGB'));
+    const oCodes = (q.originCodes && q.originCodes.length) ? q.originCodes : [q._o?.locode || ''];
+    const dCodes = (q.destCodes && q.destCodes.length) ? q.destCodes : [q._d?.locode || ''];
+    const pO = await pick('tvs2OriAC', (q.originVariants || [q.originText]), oCodes);
     if (!pO) throw new Error(`起运港候选未出（${clean(q.originText) || q.originText}），仅开页`);
     await H.sleep(600);
-    const pD = await pickEvg('#txt_schedule_dest_name', dWords, (q.destCodes && q.destCodes.length) ? q.destCodes : (q._d?.locode || 'TRIST'));
+    const pD = await pick('tvs2DesAC', (q.destVariants || [q.destText]), dCodes);
     if (!pD) throw new Error(`目的港候选未出（${clean(q.destText) || q.destText}），仅开页`);
-    // 回读验证隐藏域（txt_schedule_ori=CNNBO 等）
-    const hid = await page.evaluate(() => ({
-      o: document.getElementById('txt_schedule_ori')?.value || '',
-      d: document.getElementById('txt_schedule_dest')?.value || '',
-    })).catch(() => ({ o: '', d: '' }));
-    if (!hid.o || !hid.d) throw new Error(`候选未生效（o=${hid.o || '空'} d=${hid.d || '空'}），仅开页`);
 
-    await H.clickByText(page, /^\s*search\s*$/i);
-    // 整页跳转到 ss.shipmentlink.com 结果页
+    // 提交（新版按钮是 input[value=Submit]；老版按文案兜底）
+    const sub = page.locator('input[value="Submit"]').first();
+    if (await sub.count()) await sub.click({ timeout: 8000 }).catch(() => {});
+    else await H.clickByText(page, /^\s*search\s*$/i);
+
     let text = '';
     for (let i = 0; i < 14; i++) {
       await H.sleep(2500);
       text = await page.evaluate(() => document.body?.innerText || '').catch(() => '');
       if (/are as following|Port of Loading/i.test(text)) break;
     }
+    if (/Maintenance/i.test(text) && !/Port of Loading/i.test(text)) {
+      throw new Error('长荣官网维护中（官网原文：Due to System Maintenance…），暂无法查询');
+    }
     if (!/Port of Loading/i.test(text)) throw new Error(`结果页未出现（len=${text.length}），可能预填丢失`);
 
-    // ---- 结构化抽取（9-24 Istanbul 8 条实测）----
-    const schedules = [];
+    if (process.env.SSH_DUMP_DOM === 'evergreen') {
+      try {
+        const fsmod = await import('node:fs');
+        fsmod.writeFileSync('/tmp/dom-evergreen.txt', String(text).replace(/[ \t\xa0]+/g, ' '));
+        const tables = await page.evaluate(() => [...document.querySelectorAll('table')].map((t) => [...t.querySelectorAll('tr')].map((tr) => [...tr.querySelectorAll('th,td')].map((c) => (c.innerText || '').replace(/\s+/g, ' ').trim())))).catch(() => []);
+        fsmod.writeFileSync('/tmp/dom-evergreen-table.json', JSON.stringify(tables, null, 1));
+        console.error('[evergreen] DOM + 表格已写');
+      } catch { /* 忽略 */ }
+    }
+
+    // ---- 结构化抽取：按单元格读（两行一条），不再依赖整页文本顺序 ----
+    const MON2 = { JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', JUN: '06', JUL: '07', AUG: '08', SEP: '09', OCT: '10', NOV: '11', DEC: '12' };
+    let schedules = [];
     try {
-      const norm = String(text).replace(/[ \t\xa0]+/g, ' ');
-      if (process.env.SSH_DUMP_DOM === 'evergreen') {
-        try {
-          const fsmod = await import('node:fs');
-          fsmod.writeFileSync('/tmp/dom-evergreen.txt', norm);
-          // 表格结构（列对应关系只有按单元格读才准）
-          const tables = await page.evaluate(() => [...document.querySelectorAll('table')].map((t) => [...t.querySelectorAll('tr')].map((tr) => [...tr.querySelectorAll('th,td')].map((c) => (c.innerText || '').replace(/\s+/g, ' ').trim())))).catch(() => []);
-          fsmod.writeFileSync('/tmp/dom-evergreen-table.json', JSON.stringify(tables, null, 1));
-          console.error('[evergreen] DOM + 表格已写');
-        } catch { /* 忽略 */ }
-      }
-      // 9-30 修：正则原来写死 NINGBO, CHINA / ISTANBUL —— 换起运/目的港就抽不到行（只能停在「已预填」）。
-      // 改为按本次查询的港口名动态构造：取解析出的港名首词（大写），缺失则退化为通配。
-      const cityPat = (name) => {
-        const s = String(name || '').toUpperCase().replace(/[^A-Z ]/g, ' ').trim().split(/\s+/)[0];
-        return s && s.length >= 3 ? s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : "[A-Z][A-Z ,.'/-]{2,30}";
-      };
-      const oPat = cityPat(q._o?.name || q.originText);
-      const dPat = cityPat(q._d?.name || q.destText);
-      const cardRe = new RegExp(`${oPat}[A-Z ,.']*\\n([A-Z]{3}-\\d{2}-\\d{4}) \\d{2}:\\d{2}\\n ?(\\w+) ?\\n?${dPat}[A-Z ,]*\\n?([A-Z ]+)?\\n?(\\d+) ?\\n?Details ?\\n---- ?\\n?([A-Z]{3}-\\d{2}-\\d{4}) ?\\n?----\\n ?([^\\n]+?) ?\\n`, 'gi');
-      let cm;
-      while ((cm = cardRe.exec(norm)) !== null && schedules.length < 12) {
-        // cm[6] = "CSCL VENUS 090W NOV-05-2026 ----"（vessel voyage + ETA + ----）
-        const vm = /^\s*(.+?)\s*((?:\d{3,4}-)?\d{2,4}[W E])\s+([A-Z]{3}-\d{2}-\d{4})/.exec(cm[6]);
-        const fmt = (s) => { const m = /^([A-Z]{3})-(\d{2})-(\d{4})$/.exec(s); return m ? `${m[3]}-${{ JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', JUN: '06', JUL: '07', AUG: '08', SEP: '09', OCT: '10', NOV: '11', DEC: '12' }[m[1]]}-${m[2]}` : s; };
-        // 9-30 修真 bug（婉宜）：cm[1]（如 OCT-10-2026 20:00）**不是开船日，是 Port Cut Off Date**！
-        // 证据：官网 Transit Time 列反推 —— OCT-10→NOV-14=35 天但官网写 33；用 cm[5]+日期(OCT-12)→NOV-14=33 ✓
-        // （另一行 OCT-08→NOV-12=35 ✓ 也与官网一致）。真正的开船日在 cm[5]。
-        const tail = norm.slice(cm.index, cm.index + 420);
-        const cutTimes = [...tail.matchAll(/([A-Z]{3}-\d{2}-\d{4} \d{2}:\d{2})/g)].map((x) => x[1]);
-        const cutoffs = {};
-        if (cutTimes[0]) cutoffs['港口截关（Port Cut Off）'] = cutTimes[0];
-        if (cutTimes[1]) cutoffs['VGM（EDI/WEB/APP）'] = cutTimes[1];
-        schedules.push({
-          vessel: vm ? vm[1].trim() : cm[6].trim(),
-          voyage: vm ? vm[2].trim() : '',
-          etd: fmt(cm[5]),                        // ← 真开船日（原来错用 cm[1] = 截单日期）
-          eta: fmt(vm ? vm[3] : cm[5]),
-          transitDays: Number(cm[4]) || cm[4],
-          via: '',
-          direct: true,   // 结果表未显示中转列（宁波→伊斯坦布尔挂直挂），不编造
-          detail: Object.keys(cutoffs).length
-            ? { service: (cm[2] || '').trim(), routing: 'Direct', co2: '', legs: [], cutoffs }
-            : undefined,
-        });
-      }
+      schedules = await page.evaluate((MON2) => {
+        const f = (s) => {
+          const m = /([A-Z]{3})[-/ ](\d{1,2})[-/ ](\d{4})/.exec(String(s || '').toUpperCase());
+          return m && MON2[m[1]] ? `${m[3]}-${MON2[m[1]]}-${String(m[2]).padStart(2, '0')}` : '';
+        };
+        const out = [];
+        for (const t of document.querySelectorAll('table')) {
+          const rows = [...t.querySelectorAll('tr')].map((tr) => [...tr.querySelectorAll('td,th')].map((c) => (c.innerText || '').replace(/\s+/g, ' ').trim()));
+          if (!rows.some((r) => r.join('|').includes('Transit Time (days)'))) continue;   // 只认主结果表
+          for (let i = 0; i < rows.length; i++) {
+            const r = rows[i];
+            if (!/^\d+$/.test(r[0] || '') || r.length < 8) continue;
+            const nx = rows[i + 1] || [];
+            const vesselVoy = (nx[3] || '').trim();
+            const vm = /^(.+?)\s+((?:\d{3,4}-)?\d{2,4}[W E])\s*$/.exec(vesselVoy);
+            const etd = f(nx[1]) || f(r[3]);
+            const eta = f(nx[4]);
+            const cutoff = /([A-Z]{3}-\d{2}-\d{4} \d{2}:\d{2})/.exec(r[3] || '');
+            out.push({
+              vessel: vm ? vm[1].trim() : vesselVoy,
+              voyage: vm ? vm[2].trim() : '',
+              etd, eta,
+              transitDays: Number(r[7]) || r[7],
+              via: '',
+              direct: true,
+              detail: {
+                service: r[4] || '', routing: 'Direct', co2: '', legs: [],
+                cutoffs: cutoff ? { '港口截关（Port Cut Off）': cutoff[1] } : {},
+              },
+            });
+          }
+          if (out.length) break;
+        }
+        return out.slice(0, 20);
+      }, MON2).catch(() => []);
     } catch { /* 抽取失败 → 保持 prefilled */ }
 
-    // 逐段航程：官网每班下面还有一张「航程明细表」（No.|From|To|Departure|Arrival|Service|Vessel Voyage|天数），
-    // 按 DOM 顺序与上面的班次一一对应（有中转的班次会出现多段，如 宁波→比雷埃夫斯→伊斯坦布尔）——婉宜 9-30
+    // 逐段航程（新版结构可能不同）：数量对不上就整批不挂，宁缺勿错位
     if (schedules.length) {
       try {
         const groups = await page.evaluate(() => {
           const out = [];
           for (const t of document.querySelectorAll('table')) {
-            const rows = [...t.querySelectorAll('tr')].map((tr) => [...tr.querySelectorAll('td,th')]
-              .map((c) => (c.innerText || '').replace(/\s+/g, ' ').trim()));
+            const rows = [...t.querySelectorAll('tr')].map((tr) => [...tr.querySelectorAll('td,th')].map((c) => (c.innerText || '').replace(/\s+/g, ' ').trim()));
             const head = rows.slice(0, 3).map((r) => r.join(' ')).join(' ');
-            if (!/Vessel Voyage/.test(head) || !/Location/.test(head)) continue;   // 只认「航程明细表」
-            // 主结果表也是 8+ 列且含 From/To —— 必须再区分：航程明细表的数据行**恰好 8 格**
-            // （序号|From|To|Departure|Arrival|Service|Vessel Voyage|天数）；主表每行 10+ 格。
-            // 不加这条会把主表也收进来，导致与班次的配对整体错位一格（实测踩过）。
+            if (!/Vessel Voyage/.test(head) || !/Location/.test(head)) continue;
             const dataRows = rows.filter((r) => /^\d+$/.test(r[0] || ''));
             if (!dataRows.length || !dataRows.every((r) => r.length === 8)) continue;
+            const MON2 = { JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', JUN: '06', JUL: '07', AUG: '08', SEP: '09', OCT: '10', NOV: '11', DEC: '12' };
             const legs = [];
             for (const r of dataRows) {
-              // 数据行：[序号, From, To, Departure, Arrival, Service, Vessel Voyage, 天数]
-              if (r.length < 8 || !/^\d+$/.test(r[0])) continue;
               const dep = /([A-Z]{3})-(\d{2})-(\d{4})/.exec(r[3] || '');
               const arr = /([A-Z]{3})-(\d{2})-(\d{4})/.exec(r[4] || '');
-              const MON2 = { JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', JUN: '06', JUL: '07', AUG: '08', SEP: '09', OCT: '10', NOV: '11', DEC: '12' };
               const f = (m) => (m ? `${m[3]}-${MON2[m[1]]}-${m[2]}` : '');
               const vesselRaw = (r[6] || '').trim();
               const vm = /^(.+?)\s+((?:\d{3,4}-)?\d{2,4}[W E])\s*$/.exec(vesselRaw);
               legs.push({
                 seq: Number(r[0]) || legs.length + 1,
-                from: r[1] || '', fromCode: '', fromTerminal: '',
-                etd: f(dep),
-                to: r[2] || '', toCode: '', toTerminal: '',
-                eta: f(arr),
-                vessel: vm ? vm[1].trim() : vesselRaw,
-                service: r[5] || '',
-                co2: '', calls: [],
+                from: r[1] || '', fromCode: '', fromTerminal: '', etd: f(dep),
+                to: r[2] || '', toCode: '', toTerminal: '', eta: f(arr),
+                vessel: vm ? vm[1].trim() : vesselRaw, service: r[5] || '', co2: '', calls: [],
               });
             }
             if (legs.length) out.push(legs);
           }
           return out;
         }).catch(() => []);
-        // 官网每张航程明细表在 DOM 里存在**两份**（隐藏 + 可见副本，实测 table 14/15、16/17 完全相同）
-        // → 先去重；再用「数量必须一一对应」做最后一道保险：对不上就整批不显示，
-        // 宁可不给航程，也不给错位的航程（配错一位用户根本看不出来）。
         const uniq = [];
         for (const g of groups) {
           const key = JSON.stringify(g);
@@ -192,8 +187,6 @@ export default {
             if (!s.detail.service) s.detail.service = legs[0].service || '';
             s.direct = legs.length <= 1;
           });
-        } else {
-          console.error(`[evergreen] 航程明细表数量(${uniq.length})与班次数(${schedules.length})不一致 → 不挂航程（避免错位）`);
         }
       } catch { /* 航程明细拿不到不影响主流程 */ }
     }
