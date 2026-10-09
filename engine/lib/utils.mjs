@@ -61,7 +61,7 @@ export async function dismissCookies(page) {
 }
 
 // 在已经弹出的候选列表里点最匹配的一项；没候选就用键盘选第一项。
-export async function pickOption(page, query, { timeout = 8000, pick } = {}) {
+export async function pickOption(page, query, { timeout = 8000, pick, keyboardFallback = false } = {}) {
   const candidates = page.locator(
     '[role="option"], [role="listbox"] [role="option"], li[role="option"], .k-list .k-item, ' +
     'ul.autocomplete li, [class*="autocomplete"] li, [class*="suggest"] li, li.ui-menu-item, ' +
@@ -100,12 +100,16 @@ export async function pickOption(page, query, { timeout = 8000, pick } = {}) {
     await page.waitForTimeout(600);
     return best.t;
   }
-  // 无候选：用键盘兜底（部分站点只用方向键下发选项）
-  await page.keyboard.press('ArrowDown');
-  await page.waitForTimeout(350);
-  await page.keyboard.press('Enter');
-  await page.waitForTimeout(600);
-  return '(keyboard)';
+  // ⚠️ 10-09 修（离线单元测试 qa/fill-unit.mjs 抓到的盲点）：ArrowDown+Enter 等于"选第一个" ——
+  // 选错港口比失败更糟。默认返回 null 让上层换写法再试；确需键盘兜底的配方显式传 keyboardFallback: true。
+  if (keyboardFallback) {
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(350);
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(600);
+    return '(keyboard)';
+  }
+  return null;
 }
 
 // ---- 防护页检测：Akamai/CF 挑战页或裸 403 ----
