@@ -317,7 +317,9 @@ export async function runCarrier(ctx, carrier) {
     // maersk 额外要港口名（geography API 按城市名查，不认 LOCODE）——包一层传 name
     const maerskApi = (pg, o, d, iso) => maerskInPage(pg, o, d, iso, oRes?.name, dRes?.name);
     const coscoApi = (pg, o, d, iso) => coscoInPage(pg, o, d, iso, oRes?.name, dRes?.name); // 9-30：港名兜底（PLGDN 等 CITY 表外的港）
-    const inPageApi = carrier.id === 'msc' ? mscInPage : carrier.id === 'cosco' ? coscoApi : carrier.id === 'hapag' ? hapagInPage : carrier.id === 'zim' ? zimInPage : carrier.id === 'maersk' ? maerskApi : null;
+    // ★ 10-09：ZIM 传港名兜底 —— 它的码常与联合国码不同（汉堡 GEHAM ≠ DEHAM），按码解析不到时用名字
+    const zimApi = (pg, o, d, iso) => zimInPage(pg, o, d, iso, oRes?.name, dRes?.name);
+    const inPageApi = carrier.id === 'msc' ? mscInPage : carrier.id === 'cosco' ? coscoApi : carrier.id === 'hapag' ? hapagInPage : carrier.id === 'zim' ? zimApi : carrier.id === 'maersk' ? maerskApi : null;
     if (!blocked && inPageApi) {
       try {
         // 同组港码兜底（爹地 10-09 点透）：船司接口认的是**码头码**，天津 = CNTNJ（市）/ CNTXG（新港）。

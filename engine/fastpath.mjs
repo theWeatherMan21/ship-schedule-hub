@@ -661,7 +661,7 @@ const ZIM_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'Jul
 //   ② 日期格式 d-MMMM-yyyy（23-September-2026）；参数 PortCode=CNNGB;0（URL 编码 %3B）
 //   ③ 响应 { routes: [[leg,leg,...],...] }，leg.vesselName/portDepartureName/departureDate/arrivalDate/isLandTrans
 //   ④ 端口后缀 ;0 = 默认码头级；首段常是驳船(Land Trans)
-export async function zimInPage(page, originLocode, destLocode, isoDate) {
+export async function zimInPage(page, originLocode, destLocode, isoDate, originName, destName) {
   // ★ 2026-10-09 重写（爹地："使用正确的路径"）：改走 ZIM 自己的两条接口，**不再猜港口码后缀、不再填表**。
   //   ① digitalMasterData/Locations/v1/p2p-route?searchTerm=CNNGB  → 拿准确的 { code: "CNNGB;10", locationType }
   //      （必须挑 locationType 含 MARINE 的那条 —— 它才是能装船的港；同名的 LAND 条目是内陆点）
@@ -671,7 +671,7 @@ export async function zimInPage(page, originLocode, destLocode, isoDate) {
   //   旧实现的三个错：WeeksAhead=4（站点用 6）、码头后缀靠猜 ;0/;10、拿词典 LOCODE 直接当 ZIM 码
   //   （ZIM 对阿什杜德用 ILASH，我们词典是 ILASD → 必空）
   const win = dateWindow(isoDate);
-  const r = await page.evaluate(async ({ o, d, from }) => {
+  const r = await page.evaluate(async ({ o, d, oName, dName, from }) => {
     const key = '9d63cf020a4c4708a7b0ebfe39578300';   // 页面自带公开 key（非机密）
     const resolve = async (term) => {
       const u = `https://apigw.zim.com/digitalMasterData/Locations/v1/p2p-route?subscription-key=${key}&searchTerm=${encodeURIComponent(term)}&pageSize=100`;
@@ -683,9 +683,17 @@ export async function zimInPage(page, originLocode, destLocode, isoDate) {
       return hit ? { code: hit.code, name: hit.name, country: hit.country } : null;
     };
     try {
-      const oo = await resolve(o);
-      const dd = await resolve(d);
-      if (!oo || !dd) return { error: 'Locations 解析不到港口' };
+      // ★ 10-09 修：ZIM 的码常与联合国码不同（汉堡是 GEHAM 不是 DEHAM）→ 按码查不到就退回按**港口名**查
+      //   （名字是通用语言，实测 Hamburg → GEHAM;10）。不回退的话整条链静默失败 = 用户看到"zim 搜不出来"。
+      const resolve2 = async (term, name) => {
+        const a = await resolve(term);
+        if (a) return a;
+        if (name && String(name).toLowerCase() !== String(term).toLowerCase()) return await resolve(name);
+        return null;
+      };
+      const oo = await resolve2(o, oName);
+      const dd = await resolve2(d, dName);
+      if (!oo || !dd) return { error: 'Locations 解析不到港口（码和名字都试过）' };
       const ask = async (weeks) => {
         const u = `https://apigw.zim.com/digitalSchedules/PointToPoint/v2?subscription-key=${key}`
           + `&PortCode=${encodeURIComponent(oo.code)}&PortDestinationCode=${encodeURIComponent(dd.code)}`
@@ -700,7 +708,7 @@ export async function zimInPage(page, originLocode, destLocode, isoDate) {
       if (!j) return { error: '接口无响应' };
       return { from: oo, to: dd, midPoints: j.midPoints || [], isSuccess: j.isSuccess };
     } catch (e) { return { error: String(e).slice(0, 120) }; }
-  }, { o: originLocode, d: destLocode, from: `${win.start.slice(6, 8)}-${ZIM_MONTHS[+win.start.slice(4, 6) - 1]}-${win.start.slice(0, 4)}` }).catch(() => null);
+  }, { o: originLocode, d: destLocode, oName: originName || '', dName: destName || '', from: `${win.start.slice(6, 8)}-${ZIM_MONTHS[+win.start.slice(4, 6) - 1]}-${win.start.slice(0, 4)}` }).catch(() => null);
   if (!r || r.error || !Array.isArray(r.midPoints) || !r.midPoints.length) return null;
   const sea = (legs) => legs.filter((x) => !x.isLandTrans);
   const rows = r.midPoints.slice(0, 12).map((legs) => {
