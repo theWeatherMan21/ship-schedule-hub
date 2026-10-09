@@ -116,6 +116,27 @@ export function findPort(word, carrierId) {
   return { locode, name: port.name_ascii, country: port.country, carrierAliases };
 }
 
+// 同城/同组港：名字首词相同（Tianjin / Tianjin Pt / Tianjin Xingang Pt / Tianjinbaoshuiqu）。
+// 爹地 10-09 点透的根因：**各家船司对同一座城市用的港口名不一样**（天津有的船司只认 "Tianjin Xingang"），
+// 我们只填一个名字 → 那些船司下拉里没有 → "候选未出"。所以填表要能试同组名字、并接受同组港口码。
+export function siblingPorts(resolved, limit = 4) {
+  try {
+    const name = String(resolved?.name || '');
+    const locode = resolved?.locode;
+    if (!name || !locode) return [];
+    const first = name.split(/[\s,–-]/)[0];
+    if (first.length < 4) return [];
+    // 排序（重要）：优先「船司名录里有的 / 主干港」——天津组里 "Tianjin Xingang Pt" 才是集装箱码头，
+    // 而它在字典顺序里排第三，早先按 LIMIT 2 取会被截掉（10-09 实测：长荣/赫伯罗特因此候选未出）。
+    return db.prepare(`SELECT p.locode, p.name_ascii AS name,
+        COALESCE(s.in_msc,0) AS in_msc, COALESCE(s.carrier_hits,0) AS hits, COALESCE(s.major_rank,999) AS rank
+      FROM ports p LEFT JOIN port_signal s ON s.locode = p.locode
+      WHERE LOWER(p.name_ascii) LIKE ? AND p.locode <> ?
+      ORDER BY in_msc DESC, hits DESC, rank ASC, LENGTH(p.name_ascii) ASC
+      LIMIT ?`).all(first.toLowerCase() + '%', locode, limit);
+  } catch { return []; }
+}
+
 // 供诊断/测试：看某个词会命中哪些候选以及打分
 export function explainPort(word) {
   const w = String(word || '').toLowerCase().trim();

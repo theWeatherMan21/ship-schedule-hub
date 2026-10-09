@@ -29,7 +29,8 @@ export default {
       await H.sleep(500);
       await page.keyboard.type(String(word), { delay: 80 });
       await H.sleep(2500);
-      const items = page.locator('li.place-suggestion').filter({ hasText: new RegExp(`\\(${locode}\\)`, 'i') });
+      const codeRe = (Array.isArray(locode) ? locode : [locode]).filter(Boolean).map((c) => String(c)).join('|');
+      const items = page.locator('li.place-suggestion').filter({ hasText: new RegExp(`\\((${codeRe})\\)`, 'i') });
       let n = 0;
       for (let i = 0; i < 20; i++) { n = await items.count().catch(() => 0); if (n > 0) break; await H.sleep(500); }
       if (!n) return false;
@@ -44,7 +45,8 @@ export default {
       const conf = await page.evaluate(() => document.getElementById('AutoCompletePOD')?.value || '').catch(() => '');
       const confO = await page.evaluate(() => document.getElementById('AutoCompletePOL')?.value || '').catch(() => '');
       const val = label === '目的' ? (conf || confO) : (confO || conf);
-      const ok = new RegExp(`;\\s*${locode}`, 'i').test(val) || new RegExp(`\\(${locode}\\)`, 'i').test(val) || new RegExp(`\\b${locode}\\b`, 'i').test(val);
+      const okCodes = (Array.isArray(locode) ? locode : [locode]).filter(Boolean).map((c) => String(c));
+      const ok = okCodes.some((c) => new RegExp(`;\\s*${c}`, 'i').test(val) || new RegExp(`\\(${c}\\)`, 'i').test(val) || new RegExp(`\\b${c}\\b`, 'i').test(val));
       return ok;
     };
     // pickRow 加固：时序抖动（下拉未及时出/点击被挡）重试一次
@@ -65,12 +67,12 @@ export default {
       }
       return false;
     };
-    const okO = await tryVariants(box, (q.originVariants || [q.originText]), q._o?.locode || 'CNNGB', '起运', 'RoutingFinderViewModel_DeparturePlaceCode');
+    const okO = await tryVariants(box, (q.originVariants || [q.originText]), (q.originCodes && q.originCodes.length) ? q.originCodes : (q._o?.locode || 'CNNGB'), '起运', 'RoutingFinderViewModel_DeparturePlaceCode');
     let dest = page.getByRole('group', { name: /^destination$/i }).getByRole('combobox').first();
     if (!(await dest.count().catch(() => 0))) dest = page.getByRole('combobox', { name: /port, city, country name or code/i }).nth(1);
     // 目的港：Istanbul 系按 CMA 实际候选选 Ambarli Port E. Side(TRAVC) Port；其他目的地用词典 locode
     const destLocode = q._d?.locode === 'TRIST' ? 'TRAVC' : (q._d?.locode || 'TRIST');
-    const okD = await tryVariants(dest, (q.destVariants || [q.destText]), destLocode, '目的', 'RoutingFinderViewModel_ArrivalPlaceCode');
+    const okD = await tryVariants(dest, (q.destVariants || [q.destText]), (q.destCodes && q.destCodes.length) ? q.destCodes : destLocode, '目的', 'RoutingFinderViewModel_ArrivalPlaceCode');
     if (!okO || !okD) throw new Error(`预填未完成（起运=${okO} 目的=${okD}），已尽力开页`);
 
     const search = page.getByRole('button', { name: /^search$/i }).first();

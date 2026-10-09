@@ -30,20 +30,24 @@ export default {
       // 9-29 修正：HMM 候选是 ac_results 组件，**必须真实鼠标点击**（Playwright locator）。
       // 用 JS 程序化 el.click() 时它不认，隐藏 code 会被写成默认第一项（Istanbul 场景写成 TRHAY→0 条）。
       const codeId = sel === '#srchPointFrom' ? 'srchPointFrom_code' : 'srchPointTo_code';
-      const wantU = String(locode).toUpperCase();
+      const wantList = (Array.isArray(locode) ? locode : [locode]).map((x) => String(x).toUpperCase()).filter(Boolean);
+      const wantU = wantList[0] || '';
       const readCode = () => page.evaluate((id) => document.getElementById(id)?.value || '', codeId).catch(() => '');
       let picked = null;
       for (let attempt = 0; attempt < 3 && !picked; attempt++) {
         for (let i = 0; i < 18; i++) {
           await H.sleep(900);
-          const loc = page.locator(`li:has-text("[${wantU}]")`).first();
-          const vis = await loc.isVisible({ timeout: 400 }).catch(() => false);
-          if (!vis) continue;
+          let loc = null;
+          for (const c of wantList) {   // 同组港口码都认（天津可能被写成 CNTXG/Tianjin Xingang）
+            const l2 = page.locator(`li:has-text("[${c}]")`).first();
+            if (await l2.isVisible({ timeout: 300 }).catch(() => false)) { loc = l2; break; }
+          }
+          if (!loc) continue;
           const t = (await loc.innerText().catch(() => '')).trim().replace(/\s+/g, ' ').slice(0, 70);
           await loc.click({ timeout: 3000 }).catch(() => {});
           await H.sleep(700);
           const code = await readCode();
-          if (String(code).toUpperCase() === wantU) { picked = t; break; }  // 回读校验：code 必须是我们要的
+          if (wantList.includes(String(code).toUpperCase())) { picked = t; break; }  // 回读校验：本港或同组港码都认
         }
         if (!picked && attempt < 2) { await inp.click({ timeout: 4000 }).catch(() => {}); await H.sleep(600); }
       }
@@ -69,11 +73,11 @@ export default {
     const oWord = oVs.map((x) => (/^\(/.test(x) || /\(/.test(x)) ? (String(x).split('(')[0].trim() || x) : x);
     const dVs = (q.destVariants || [q.destText]);
     const dWord = dVs.map((x) => (/\(/.test(x)) ? (String(x).split('(')[0].trim() || x) : x);
-    const pO = await pickPort('#srchPointFrom', oWord, oLocode);
+    const pO = await pickPort('#srchPointFrom', oWord, (q.originCodes && q.originCodes.length) ? q.originCodes : oLocode);
     if (!pO) throw new Error(`起运港候选未出（${q.originText}/${oLocode}），仅开页`);
     await H.sleep(800);
     // HMM 特例：Istanbul 用 TRHAY（Haydarpaşa），词典 fallback text 是 "istanbul"；dest locode 从 q._d 来
-    const pD = await pickPort('#srchPointTo', dWord, dLocode);
+    const pD = await pickPort('#srchPointTo', dWord, (q.destCodes && q.destCodes.length) ? q.destCodes : dLocode);
     if (!pD) throw new Error(`目的港候选未出（${q.destText}/${dLocode}），仅开页`);
 
     // 回读 code 域确认（_code 隐藏域由 HMM JS 在点选后填）

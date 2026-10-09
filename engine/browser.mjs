@@ -96,7 +96,7 @@ export async function launch({ headless = 'auto' } = {}) {
   // 否则一律降级为无头新档 —— 保证无论调用方怎么写，屏幕上都不会出现窗口。
   const allowHeaded = process.env.SSH_ALLOW_HEADED === '1';
   const useHeadless = !(headless === false && allowHeaded);
-  const ctx = await chromium.launchPersistentContext(PROFILE_DIR, {
+  const { ctx } = await launchCtxWithLockFallback({
     ...(await chromeOpts()),
     headless: useHeadless,
     args: useHeadless
@@ -186,17 +186,39 @@ function killStaleProfileChrome() {
   } catch { return 0; }
 }
 
+// profile 锁兜底（10-09 爹地实测：另一个引擎实例在跑 → ProcessSingleton 失败 → 整批查询"没有任何结果"）。
+// 三级处理：① 直接用；② 清理残留 Chrome + 等 2s 重试；③ 仍锁就换**临时 profile** 继续跑，绝不让查询整体挂掉。
+async function launchCtxWithLockFallback(opts) {
+  const tryDir = (dir) => chromium.launchPersistentContext(dir, opts);
+  try { return { ctx: await tryDir(PROFILE_DIR), dir: PROFILE_DIR }; }
+  catch (e) {
+    const msg = String((e && e.message) || e);
+    if (!/ProcessSingleton|already in use|profile directory/i.test(msg)) throw e;
+    console.error('[chrome] profile 被占用（另一个引擎实例或残留 Chrome）：' + msg.split('\n')[0]);
+    try { killStaleProfileChrome(); } catch { /* no-op */ }
+    await sleep(2000);
+    try { return { ctx: await tryDir(PROFILE_DIR), dir: PROFILE_DIR }; }
+    catch (e2) {
+      const tmp = `${PROFILE_DIR}-tmp-${Date.now()}`;
+      console.error('[chrome] 仍被占用 → 改用临时 profile 继续本次查询：' + tmp);
+      const ctx = await chromium.launchPersistentContext(tmp, opts);
+      return { ctx, dir: tmp, tmp: true };
+    }
+  }
+}
+
 export async function launchHeadedQuiet() {
   // 先清残留，再等一下让 profile 锁释放（否则立刻重试仍会失败）
   if (killStaleProfileChrome() > 0) await sleep(1500);
   let ctx = null;
   try {
-    ctx = await chromium.launchPersistentContext(PROFILE_DIR, {
+    const r = await launchCtxWithLockFallback({
       ...(await chromeOpts()),
       headless: false,
       args: launchArgs(),
       ignoreDefaultArgs: ['--enable-automation'],
     });
+    ctx = r.ctx;
     try { ctx.setDefaultTimeout(15000); } catch { /* older core */ }
     const w = await quietWindow(ctx, 'minimized');
     if (w && w.windowState === 'minimized') return { ctx, mode: 'headed-minimized', window: w };

@@ -28,9 +28,10 @@ export default {
       for (let i = 0; i < 14; i++) {
         await H.sleep(1000);
         const found = await page.evaluate((want) => {
-          const wantU = String(want).toUpperCase();
+          // want 可能是「一组码」（本港 + 同组港）：天津被船司写成 Xingang(CNTXG) 也要认（爹地 10-09）
+          const wantList = (Array.isArray(want) ? want : [want]).map((x) => String(x).toUpperCase()).filter(Boolean);
           const els = [...document.querySelectorAll('li, [class*="menu"] li, [class*="autocomplete"] li, [class*="suggest"] li, [class*="ui-menu"] li, [class*="dropdown"] li')]
-            .filter((el) => el.offsetParent && (el.innerText || '').toUpperCase().includes(wantU) && (el.innerText || '').trim().length > 3);
+            .filter((el) => el.offsetParent && wantList.some((c) => (el.innerText || '').toUpperCase().includes(c)) && (el.innerText || '').trim().length > 3);
           if (els.length) {
             let best = els[0];
             for (const e of els) { if (e.contains(best)) best = e; }   // 最内层
@@ -59,10 +60,10 @@ export default {
     };
     const oWords = (q.originVariants || [q.originText]);
     const dWords = (q.destVariants || [q.destText]);
-    const pO = await pickEvg('#txt_schedule_ori_name', oWords, q._o?.locode || 'CNNGB');
+    const pO = await pickEvg('#txt_schedule_ori_name', oWords, (q.originCodes && q.originCodes.length) ? q.originCodes : (q._o?.locode || 'CNNGB'));
     if (!pO) throw new Error(`起运港候选未出（${clean(q.originText) || q.originText}），仅开页`);
     await H.sleep(600);
-    const pD = await pickEvg('#txt_schedule_dest_name', dWords, q._d?.locode || 'TRIST');
+    const pD = await pickEvg('#txt_schedule_dest_name', dWords, (q.destCodes && q.destCodes.length) ? q.destCodes : (q._d?.locode || 'TRIST'));
     if (!pD) throw new Error(`目的港候选未出（${clean(q.destText) || q.destText}），仅开页`);
     // 回读验证隐藏域（txt_schedule_ori=CNNBO 等）
     const hid = await page.evaluate(() => ({

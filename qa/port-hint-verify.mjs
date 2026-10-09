@@ -54,6 +54,21 @@ for (const [input, expects] of CASES) {
   if (ok) pass++; else fails.push(`${input} → 提示「${hint.trim().slice(0, 90)}」缺 ${expects.join('/')}`);
   console.log(`  ${ok ? '✅' : '❌'} ${input.padEnd(18)} ${hint.trim().replace(/\s+/g, ' ').slice(0, 76)}`);
 }
+// 同名港（多国家）必须给出可点的选择，而不是替爹地拍板
+const AMBIG = [['portland', 3], ['victoria', 2]];   // valencia 在词典里只有西班牙一个 → 不该出选项
+let ambPass = 0; const ambFails = [];
+for (const [input, minCountries] of AMBIG) {
+  await page.fill('#origin', ''); await page.fill('#origin', input); await page.dispatchEvent('#origin', 'input');
+  await page.waitForTimeout(250);
+  const hint = (await page.textContent('#originHint')) || '';
+  const chips = await page.$$eval('#originHint .ctrypick', (bs) => bs.map((b) => b.textContent.trim())).catch(() => []);
+  const uniq = new Set(chips.map((c) => c.split(' ')[0]));
+  if (uniq.size >= minCountries) ambPass++; else ambFails.push(`${input}: ${chips.length} 个选项 ${[...uniq].join('/')}（期望 ≥${minCountries} 个国家）`);
+}
+console.log(`\n同名港选择验收：${ambPass}/${AMBIG.length} 通过`);
+for (const f of ambFails) console.log('  ✗ ' + f);
+if (ambFails.length) process.exitCode = 1;
+
 // 下拉首项检查
 let dlPass = 0; const dlFails = [];
 for (const [input, expectFirst] of DATALIST) {

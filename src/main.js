@@ -45,17 +45,15 @@ function refreshPortList(q) {
   const dl = document.getElementById('portsList');
   if (!dl || !PORTS_LOADED) return;
   const s = pNorm(q);
-  let list = PORTS.filter((p) => (p.n || '').length <= 28);
-  // 别名命中的港要排在最前（输入 genoa → 建议 Genova；输入 sha → 建议 Shanghai Pt）
+  // 下拉只在"真的在打字"时给最少提示（爹地 10-09：平时靠 autocorrect，不看下拉）
   const akaCode = s.length >= 2 ? (AK.aka || {})[s] : null;
   const akaPort = akaCode ? PORTS.find((p) => p.l === akaCode) : null;
+  let list = [];
   if (s.length >= 2) {
-    const hit = list.filter((p) => pNorm(p.n).startsWith(s) || pNorm(p.n).includes(s));
-    if (hit.length) list = hit;
+    list = PORTS.filter((p) => (p.n || '').length <= 28 && pNorm(p.n).startsWith(s))
+      .slice().sort((a, b) => pScore(b, s) - pScore(a, s)).slice(0, 8);
   }
-  // 先按常见度排序，再把别名命中的港**插到最前**（顺序不能反：排序会把插进去的又排下去）
-  list = list.slice().sort((a, b) => pScore(b, s) - pScore(a, s)).slice(0, 12);
-  if (akaPort && !list.some((p) => p.l === akaPort.l)) list = [akaPort, ...list.slice(0, 11)];
+  if (akaPort && !list.some((p) => p.l === akaPort.l)) list = [akaPort, ...list.slice(0, 7)];
   dl.innerHTML = list.map((p) => `<option value="${p.n}">${p.l}${p.c ? ' · ' + p.c : ''}</option>`).join('');
 }
 
@@ -74,6 +72,15 @@ function pScore(p, wn) {
   return v;
 }
 
+// 同名港歧义：归一化港名相同的港分布在 ≥2 个国家时，返回每组国家各一个（供爹地一键选）
+function sameNameAmbiguity(wn, primary, extra) {
+  const pool = extra && extra.length ? extra : PORTS.filter((p) => pNorm(p.n) === wn);
+  const byCountry = new Map();
+  if (primary && !byCountry.has(primary.c)) byCountry.set(primary.c, primary);
+  for (const p of pool) if (!byCountry.has(p.c)) byCountry.set(p.c, p);
+  return byCountry.size >= 2 ? [...byCountry.values()].slice(0, 4) : null;
+}
+
 function matchPort(q) {
   const raw = (q || '').trim();
   const s = raw.toLowerCase();
@@ -85,7 +92,7 @@ function matchPort(q) {
   const akaHit = (AK.aka || {})[wn];
   if (akaHit) {
     const p = PORTS.find((x) => x.l === akaHit);
-    if (p) return { p, how: 'alias', short: wn.length <= 4 };
+    if (p) return { p, how: 'alias', short: wn.length <= 4, ambiguous: sameNameAmbiguity(wn, p) };
   }
   // ② 词典：精确 → 前缀 → 包含（≥5 字符）
   const cands = [];
@@ -134,7 +141,8 @@ function matchPort(q) {
     if (pa !== pb) return pb - pa;
     return pScore(b, wn) - pScore(a, wn);
   });
-  return { p: cands[0], how, short: s.replace(/[^a-z0-9]/g, '').length <= 4 };
+  // ④ 歧义：命中**多个国家**的同名港时才需要用户出手（爹地 10-09：平时要 autocorrect，别让他挑）
+  return { p: cands[0], how, short: s.replace(/[^a-z0-9]/g, '').length <= 4, ambiguous: sameNameAmbiguity(wn, cands[0], cands) };
 }
 
 function onPortInput(inputId) {
@@ -165,19 +173,33 @@ function renderPortHint(inputId, hintId) {
     : '';
   // 输入本身就是港名（归一化后相同）时，不要说"按常用名/缩写匹配" —— 完整地名被这么描述会显得名录不靠谱
   const sameAsName = pNorm(m.p.n) === pNorm(raw);
+  // 同名港（多国家）：**先给出 autocorrect 的结论**，再附一行"想改就点"的选项
+  const chipsHTML = (m.ambiguous && m.ambiguous.length >= 2)
+    ? `<div class="ctryrow">` + m.ambiguous.map((p) =>
+        `<button type="button" class="ctrypick${p.l === m.p.l ? ' on' : ''}" data-pick="${p.l}" ` +
+        `title="按 ${p.n}（${p.l}）查询">${p.c || '??'} · ${p.n}</button>`).join('') + `</div>`
+    : '';
+  const bindChips = () => {
+    el.querySelectorAll('.ctrypick').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const hit = PORTS.find((x) => x.l === btn.dataset.pick);
+        if (hit) { document.getElementById(inputId).value = `${hit.n} (${hit.l})`; renderPortHint(inputId, hintId); }
+      });
+    });
+  };
+  const tail = near.length ? `<br><span class="near">同港区：${near.join(' / ')}</span>` : '';
+  const ambNote = chipsHTML ? `<br><span class="near">同名港还有 ${m.ambiguous.length - 1} 个（点一下可改）：</span>` : '';
   if (m.how === 'alias' && !sameAsName) {
-    el.innerHTML = `✅ 识别为 <b>${m.p.n}</b> (${loc})　<span class="near">按常用名/缩写「${raw}」匹配</span>` +
-      (near.length ? `<br><span class="near">同港区：${near.join(' / ')}</span>` : '') + shortWarn;
-    el.className = 'porthint ok' + (m.short ? ' warn' : '');
+    el.innerHTML = `✅ 会按 <b>${m.p.n}</b> · ${loc} 查询　<span class="near">（按常用名「${raw}」识别）</span>` + tail + shortWarn + ambNote + chipsHTML;
+    el.className = 'porthint ok' + (m.short || chipsHTML ? ' warn' : '');
   } else if (m.how === 'alias' || m.how === 'exact') {
-    el.innerHTML = `✅ 识别为 <b>${m.p.n}</b> (${loc})` +
-      (near.length ? `<br><span class="near">同港区：${near.join(' / ')}</span>` : '');
-    el.className = 'porthint ok';
+    el.innerHTML = `✅ 会按 <b>${m.p.n}</b> · ${loc} 查询` + tail + ambNote + chipsHTML;
+    el.className = 'porthint ok' + (chipsHTML ? ' warn' : '');
   } else {
-    el.innerHTML = `⚠️ 近似匹配 <b>${m.p.n}</b> (${loc})　` +
-      `<span class="near">不是精确名称，请确认是不是这个港（输入越完整越准）</span>`;
+    el.innerHTML = `⚠️ 没有完全同名的港，按 <b>${m.p.n}</b> · ${loc} 查询　<span class="near">（如果不是它，请把港名写完整）</span>` + ambNote + chipsHTML;
     el.className = 'porthint warn';
   }
+  if (chipsHTML) bindChips();
 }
 
 // ---------- 状态文案 ----------

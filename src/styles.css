@@ -533,3 +533,10 @@ html[data-platform="win"] *::after {
   -webkit-backdrop-filter: none !important;
 }
 html[data-platform="win"] body::before { display: none !important; }
+
+/* 同名港的"点一个国家"按钮（爹地 10-09：平时 autocorrect，只有重名才让他挑） */
+.porthint .ctryrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.porthint .ctrypick { font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--border, rgba(128,128,128,.35)); background: var(--card, transparent); color: inherit; }
+.porthint .ctrypick:hover { border-color: var(--accent); color: var(--accent); }
+.porthint .ctrypick.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }

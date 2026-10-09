@@ -16,6 +16,7 @@ import { dateFormats } from './lib/utils.mjs';
 import { dismissCookies, isBlockPage, waitThroughChallenge, pickOption, portPick, typeAndPickCandidate } from './lib/utils.mjs';
 import { withTimeout, setValue, setInputByValueShape, clickByText, fillAutocomplete } from './lib/dom.mjs';
 import { resolvePort } from './lib/portsolve.mjs';
+import { siblingPorts } from './portdb.mjs';
 
 // ---------- 启动守卫（Windows 盘符根路径）----------
 // 爹地 9-30 实测：App 装在 D:\ 根目录时，出现驱动器相对路径（"D:" 没有反斜杠），
@@ -191,11 +192,20 @@ const cap1 = (x) => { const s = String(x || '').trim(); return s ? s.charAt(0).t
 function portVariants(resolved, raw) {
   const out = [];
   const push = (x) => { const y = cap1(x); if (y && !out.includes(y)) out.push(y); };
-  push(resolved?.text);
-  push(resolved?.name);
+  push(resolved?.text);                       // 该船司自己的别名（最准）
+  push(resolved?.name);                       // 词典港名
   if (resolved?.name && resolved?.locode) push(`${resolved.name} (${resolved.locode})`);
-  push(raw);
-  return out.slice(0, 4);
+  // 同城/同组港名（各家船司叫法不同，天津 = Tianjin / Tianjin Xingang…）：只加 2 个，避免拖慢
+  for (const sib of siblingPorts(resolved, 2)) push(sib.name);
+  push(raw);                                  // 用户原词
+  return out.slice(0, 6);
+}
+// 可接受的港口码集合：本港 + 同组港（船司把天津叫 Xingang 时，回读码是 CNTXG 也要认）
+function portCodes(resolved) {
+  const out = [];
+  if (resolved?.locode) out.push(resolved.locode);
+  for (const sib of siblingPorts(resolved, 4)) if (sib.locode && !out.includes(sib.locode)) out.push(sib.locode);
+  return out;
 }
 
 const q = new Proxy(qBase, {
@@ -204,6 +214,8 @@ const q = new Proxy(qBase, {
     if (k === 'destText') return t._d?.text ?? destination;
     if (k === 'originVariants') return portVariants(t._o, origin);
     if (k === 'destVariants') return portVariants(t._d, destination);
+    if (k === 'originCodes') return portCodes(t._o);
+    if (k === 'destCodes') return portCodes(t._d);
     return t[k];
   },
 });
@@ -234,6 +246,8 @@ export async function runCarrier(ctx, carrier) {
         if (k === 'destText') return t._d?.text ?? destination;
         if (k === 'originVariants') return portVariants(t._o, origin);
         if (k === 'destVariants') return portVariants(t._d, destination);
+        if (k === 'originCodes') return portCodes(t._o);
+        if (k === 'destCodes') return portCodes(t._d);
         return t[k];
       },
     });
