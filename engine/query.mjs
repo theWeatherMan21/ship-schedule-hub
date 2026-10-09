@@ -614,7 +614,16 @@ try {
         // 错峰启动：全家并发（9-24 爹地要求全部同时），只留 0.8~1.6s×j 的小错峰
         // 让浏览器开页动作错开，页面加载本身完全并行
         if (j > 0) await jitterGap(800 * j, 1600 * j);
-        return runCarrier(ctx, c).catch((e) => ({ carrier: c.id, name: c.name, status: 'failed', level: 3, msg: String(e).slice(0, 160), shots: [] }));
+        return runCarrier(ctx, c).catch(async (e) => {
+          const msg = String(e && e.message ? e.message : e);
+          // ★ 10-09：网络类抖动（代理节点抽风/切节点时）自动重试一次 —— 否则一条 ERR_CONNECTION_CLOSED 就让整家白查。
+          // 爹地的 Clash 节点今天实测多次掉线；这种错误跟船司无关，值一次重试。
+          if (/ERR_CONNECTION_CLOSED|ERR_NETWORK_CHANGED|ERR_INTERNET_DISCONNECTED|ERR_CONNECTION_RESET|ERR_TIMED_OUT|net::ERR_/i.test(msg)) {
+            await new Promise((r) => setTimeout(r, 2500));
+            try { return await runCarrier(ctx, c); } catch { /* 还是不行：如实报失败 */ }
+          }
+          return { carrier: c.id, name: c.name, status: 'failed', level: 3, msg: msg.slice(0, 160), shots: [] };
+        });
       })()));
       for (const d of done) { results.push(d); ndjson.write(JSON.stringify({ type: 'carrier-status', ...d }) + '\n'); }
       if (recordXhr) {
