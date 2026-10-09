@@ -1,7 +1,9 @@
+// ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
+//   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 // Hapag 有头表单探测：过 CF 后页面长什么样、表单在哪（婉宜 9-23）
 import { launch, sleep } from '../engine/browser.mjs';
 
-const ctx = await launch({ headless: false });
+const ctx = await launch({ headless: true });
 const page = await ctx.newPage();
 const URL = 'https://www.hapag-lloyd.com/en/online-business/schedules/schedules-by-geography.html';
 await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});

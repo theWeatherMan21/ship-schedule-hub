@@ -1,8 +1,10 @@
+// ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
+//   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 // HMM 诊断 8：T/S 结果是否被折叠——看 XHR/表格 DOM（可能渲染但 innerText 抓不到）
 import { launch, sleep } from '../engine/browser.mjs';
 import fs from 'node:fs';
 
-const ctx = await launch({ headless: false });
+const ctx = await launch({ headless: true });
 const page = await ctx.newPage();
 await page.goto('https://www.hmm21.com/', { waitUntil: 'domcontentloaded', timeout: 45000 });
 await sleep(5000);

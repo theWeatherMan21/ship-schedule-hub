@@ -1,3 +1,5 @@
+// ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
+//   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 // Hapag 有头实测：真浏览器窗口能否过 CF？过了之后 cookie 能否让无头也通？（婉宜 9-23）
 import { launch, sleep } from '../engine/browser.mjs';
 
@@ -5,7 +7,7 @@ const URL = 'https://www.hapag-lloyd.com/en/online-business/schedules/schedules-
 
 // ① 有头打开（真指纹）——看 CF 是否放行
 console.log('=== ① 有头模式 ===');
-const ctx1 = await launch({ headless: false });
+const ctx1 = await launch({ headless: true });
 const p1 = await ctx1.newPage();
 await p1.goto(URL, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch((e) => console.log('goto:', e.message.slice(0, 60)));
 for (let i = 1; i <= 6; i++) {

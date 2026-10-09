@@ -1,7 +1,9 @@
+// ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
+//   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 // 最小化稳定性测试：窗口会不会自己恢复可见？（决定「完美」是否成立，婉宜 9-23）
 import { launch, quietWindow, sleep, windowBounds } from '../engine/browser.mjs';
 
-const ctx = await launch({ headless: false });
+const ctx = await launch({ headless: true });
 const q0 = await quietWindow(ctx, 'minimized');
 console.log('t=0 最小化:', q0.windowState);
 

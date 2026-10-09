@@ -1,3 +1,5 @@
+// ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
+//   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 // 窗口可见性诊断：CDP 读真实窗口 bounds（客观数字证据），测 4 种策略
 import { chromium } from '../engine/node_modules/playwright-core/index.mjs';
 
@@ -16,7 +18,7 @@ for (const [label, args] of [
   ['pos=-10000', ['--window-position=-10000,-10000']],
 ]) {
   const ctx = await chromium.launchPersistentContext(PROFILE, {
-    channel: 'chrome', headless: false, viewport: null,
+    channel: 'chrome', headless: true, viewport: null,
     args: [...args, '--window-size=1440,900', '--disable-blink-features=AutomationControlled'],
     ignoreDefaultArgs: ['--enable-automation'],
   });

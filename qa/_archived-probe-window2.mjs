@@ -1,9 +1,11 @@
+// ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
+//   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 // 找「不打扰爸爸」的最优窗口策略：负坐标强移 vs 极小尺寸 vs 最小化
 import { chromium } from '../engine/node_modules/playwright-core/index.mjs';
 
 const PROFILE = '/Users/russospencer/Documents/trae_projects/ShipScheduleHub/browser-profile';
 const ctx = await chromium.launchPersistentContext(PROFILE, {
-  channel: 'chrome', headless: false, viewport: null,
+  channel: 'chrome', headless: true, viewport: null,
   args: ['--window-position=-2400,-2400', '--window-size=1440,900', '--disable-blink-features=AutomationControlled'],
   ignoreDefaultArgs: ['--enable-automation'],
 });

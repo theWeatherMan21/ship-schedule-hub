@@ -189,6 +189,12 @@ const skipDate = !args.date;
 const qBase = { date: qDate, skipDate, raw: { origin, destination, date: isoDate } };
 // 同一港口的多写法（给「候选点选」用）：船司词 → 纯港名 → Name (LOCODE) → 用户原词
 const cap1 = (x) => { const s = String(x || '').trim(); return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; };
+// 数组左移 n 位（n 可正可负）—— 用于"换下一种写法重试"
+function rotate(n, arr) {
+  if (!Array.isArray(arr) || arr.length < 2) return arr;
+  const k = ((Number(n || 0) % arr.length) + arr.length) % arr.length;
+  return k ? arr.slice(k).concat(arr.slice(0, k)) : arr;
+}
 function portVariants(resolved, raw) {
   const out = [];
   const push = (x) => { const y = cap1(x); if (y && !out.includes(y)) out.push(y); };
@@ -220,10 +226,11 @@ const q = new Proxy(qBase, {
   get(t, k) {
     if (k === 'originText') return t._o?.text ?? origin;
     if (k === 'destText') return t._d?.text ?? destination;
-    if (k === 'originVariants') return portVariants(t._o, origin);
-    if (k === 'destVariants') return portVariants(t._d, destination);
-    if (k === 'originCodes') return portCodes(t._o);
-    if (k === 'destCodes') return portCodes(t._d);
+    // _variantShift：配方报"无结果"时，引擎换下一种港名写法重查（rotate 一位）
+    if (k === 'originVariants') return rotate(t._variantShift, portVariants(t._o, origin));
+    if (k === 'destVariants') return rotate(t._variantShift, portVariants(t._d, destination));
+    if (k === 'originCodes') return rotate(t._variantShift, portCodes(t._o));
+    if (k === 'destCodes') return rotate(t._variantShift, portCodes(t._d));
     return t[k];
   },
 });
@@ -252,10 +259,11 @@ export async function runCarrier(ctx, carrier) {
       get(t, k) {
         if (k === 'originText') return t._o?.text ?? origin;
         if (k === 'destText') return t._d?.text ?? destination;
-        if (k === 'originVariants') return portVariants(t._o, origin);
-        if (k === 'destVariants') return portVariants(t._d, destination);
-        if (k === 'originCodes') return portCodes(t._o);
-        if (k === 'destCodes') return portCodes(t._d);
+        // _variantShift：配方报"无结果"时，引擎换下一种港名写法重查（rotate 一位）
+        if (k === 'originVariants') return rotate(t._variantShift, portVariants(t._o, origin));
+        if (k === 'destVariants') return rotate(t._variantShift, portVariants(t._d, destination));
+        if (k === 'originCodes') return rotate(t._variantShift, portCodes(t._o));
+        if (k === 'destCodes') return rotate(t._variantShift, portCodes(t._d));
         return t[k];
       },
     });
@@ -336,6 +344,15 @@ export async function runCarrier(ctx, carrier) {
             res.status = 'done';
             res.level = 1;
             res.schedules = r.schedules;
+            break;
+          }
+          // ★ 10-09 教训（爹地实证"明明能查到"）：配方报"无方案/无结果"时，**先怀疑自己递的港名**，
+          //   换下一种写法重查一次，别直接把锅甩给官网（天津在马士基库叫 Xingang(Tianjin)、长荣库叫 Xingang）。
+          if (k < attempts && /no solution|no schedule[s]? available|no data|暂无|无方案|无此线|no result/i.test(res.msg)) {
+            qLocal._variantShift = (qLocal._variantShift || 0) + 1;
+            domErr = null;
+            await sleep(1500);
+            continue;
           }
           break;
         } catch (e) {

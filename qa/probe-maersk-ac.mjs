@@ -1,6 +1,8 @@
+// ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
+//   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 
 import { chromium } from '../engine/node_modules/playwright-core/index.mjs';
-const ctx = await chromium.launchPersistentContext('/tmp/mk-probe-profile', { executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: false, viewport: { width: 1440, height: 900 }, args: ['--disable-blink-features=AutomationControlled'], ignoreDefaultArgs: ['--enable-automation'] });
+const ctx = await chromium.launchPersistentContext('/tmp/mk-probe-profile', { executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true, viewport: { width: 1440, height: 900 }, args: ['--disable-blink-features=AutomationControlled'], ignoreDefaultArgs: ['--enable-automation'] });
 const page = await ctx.newPage();
 await page.goto('https://www.maersk.com/schedules/pointToPoint', { waitUntil: 'domcontentloaded', timeout: 70000 });
 await page.waitForTimeout(9000);

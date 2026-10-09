@@ -1,3 +1,5 @@
+// ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
+//   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 // 有头 + 屏幕外探测：确认 MSC / Maersk / ZIM 的船期页与表单（上一轮全 headless，结论作废）
 import { chromium } from '../engine/node_modules/playwright-core/index.mjs';
 import fs from 'node:fs';
@@ -12,7 +14,7 @@ const TARGETS = process.argv.slice(2).length ? JSON.parse(process.argv[2]) : [
 
 const ctx = await chromium.launchPersistentContext(PROFILE, {
   channel: 'chrome',
-  headless: false,
+  headless: true,
   args: ['--window-position=-2400,-2400', '--window-size=1440,900', '--disable-blink-features=AutomationControlled'],
   ignoreDefaultArgs: ['--enable-automation'],
   viewport: null,

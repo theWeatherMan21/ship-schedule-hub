@@ -1,9 +1,11 @@
+// ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
+//   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 // ZIM 诊断 3：schedule-by-port 端口搜索（Turkey/Istanbul），看是否有 P2P 搜索入口
 import { launch, sleep } from '../engine/browser.mjs';
 import { dismissCookies } from '../engine/lib/utils.mjs';
 import fs from 'node:fs';
 
-const ctx = await launch({ headless: false });
+const ctx = await launch({ headless: true });
 const page = await ctx.newPage();
 // 先访问 trades 页找 Turkey 港口链接（Asia-Europe 视图）
 await page.goto('https://www.zim.com/schedules/trades', { waitUntil: 'domcontentloaded', timeout: 45000 });

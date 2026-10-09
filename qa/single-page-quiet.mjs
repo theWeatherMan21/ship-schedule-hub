@@ -1,7 +1,9 @@
+// ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
+//   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 // 单页复用模式：最小化后只用 goto（不 newPage）能否保持不可见？（婉宜 9-23）
 import { launch, quietWindow, sleep, windowBounds } from '../engine/browser.mjs';
 
-const ctx = await launch({ headless: false });
+const ctx = await launch({ headless: true });
 // 复用首个页面（launchPersistentContext 自带 about:blank 页）
 const page = ctx.pages()[0] || (await ctx.newPage());
 const q0 = await quietWindow(ctx, 'minimized');
