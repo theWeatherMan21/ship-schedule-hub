@@ -299,12 +299,16 @@ async function invoke(cmd, args) {
 
 let lastQuery = { origin: '', destination: '' };
 
-// 维运网兜底链接：用系统浏览器打开（婉宜 9-24）
+// 兜底链接：用系统浏览器打开。
+// 2026-10-09 更正（爹地截图为准）：维运网**船期查询本身是好的** ✓ 废掉的是我用的 /NewRoute 深链
+// （它会跳回首页、且自动化环境下看不到查询框）。改为打开**维运网首页**（正常浏览器里就是船期查询入口）；
+// ⚠️ 教训：站点给"自动化浏览器"看的样子常和给你看的不一样 → 这类判断请以爹地的浏览器所见为准，别自己硬猜。
 document.addEventListener('click', async (ev) => {
   const a = ev.target.closest('a[data-wy]');
   if (!a) return;
   ev.preventDefault();
-  try { const { invoke } = await import('@tauri-apps/api/core'); await invoke('open_external', { url: 'https://www.weiyun001.com/NewRoute' }); }
+  const url = 'https://www.weiyun001.com/';   // 首页即船期查询入口（实测：正常浏览器下可直接查）
+  try { const { invoke } = await import('@tauri-apps/api/core'); await invoke('open_external', { url }); }
   catch (e) { console.warn('open_external', e); }
 });
 
