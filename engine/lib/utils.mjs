@@ -117,6 +117,11 @@ export async function isBlockPage(page) {
     bodyLen = await sample();
   }
   if (bodyLen < 40 && !/example/i.test(title)) return true; // 几乎空 body
+  // 官网的「限流 / 异常访问」页（body 不空，但必须认清是拦截，别显示成「查不到」）——
+  // 实测 HMM: Thank you for using HMM e-service. Your access to this site has been limited
+  // due to abnormal connection. <Reference Code: ...>  = IP 级限流（多为短时间查太多次招来）
+  const bodyText = await page.evaluate(() => (document.body?.innerText || '').slice(0, 800)).catch(() => '');
+  if (/access to this site has been limited|abnormal connection|too many requests|rate limit|429 too many|service (is )?unavailable|异常访问/i.test(bodyText)) return true;
   return false;
 }
 
