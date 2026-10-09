@@ -122,7 +122,7 @@ export default {
         : (m ? `，Shortest Transit ${m[1]} 天` : '，结果页路由确认'));
     if (schedules.length) return { msg, schedules };
     // 结果页明确回"无方案/无结果"时如实转达（别显示成"已填表"让人以为是我们的问题）
-    const none = /no solution has been found|not able to propose solutions|no schedule[s]? (?:has|have|were|was) (?:been )?found|no data|暂无/i.exec(String(mt || ''));
+    const none = /no solution has been found|not able to propose solutions|no schedule[s]? (?:has|have|were|was) (?:been )?found|no data|暂无/i.exec(String(text || ''));
     if (none) return { msg: `已查询：官网回「${none[0]}」——这条线中远暂无方案` };
     return { msg };
   },
