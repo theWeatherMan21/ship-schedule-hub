@@ -16,7 +16,9 @@ def load(p):
 A, Aa = load(sys.argv[1]); B, Ba = load(sys.argv[2])
 print('  %-10s %-16s %-16s %s' % ('船司', '改前(填成/条)', '改后(填成/条)', '变化'))
 for c in sorted(set(A) | set(B)):
-    a = A.get(c, ('-', 0)); b = B.get(c, ('-', 0))
+    a = A.get(c); b = B.get(c)
+    if a is None: print('  %-10s %-16s %-16s %s' % (c, '(旧跑未跑到)', '%s/%d' % b, '— 无基线')); continue
+    if b is None: print('  %-10s %-16s %-16s %s' % (c, '%s/%d' % a, '(新跑未跑到)', '—')); continue
     fa, fb = Aa.get(c, ''), Ba.get(c, '')
     mark = ''
     if b[1] > a[1]: mark = '↑ 变好'
