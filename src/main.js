@@ -423,7 +423,15 @@ function setRow(carrierId, patch) {
     const list = g.querySelector('.clist');
     // 船期一律按**开船日（ETD）升序** —— 各家接口返回的顺序不一致（阳明曾按天数排），
     // 爹地 10-09 报「顺序错误」。兼容多种日期写法：2026-10-27 / 2026/10/27 / 10.27 / OCT-27-2026。
-    if (list) list.innerHTML = patch.schedules.slice().sort((a, b) => etdKey(a.etd) - etdKey(b.etd) || (a.transitDays || 0) - (b.transitDays || 0))
+    // 去重（10-09 实测出现"11.21 TBN GA647W 63天"整行重复）：同组港码/多条取数路会带回重叠行
+    const _seen = new Set();
+    const _rows = [];
+    for (const r of (patch.schedules || [])) {
+      const k = `${r.vessel || ''}|${r.voyage || ''}|${r.etd || ''}`.toLowerCase().replace(/\s+/g, '');
+      if (_seen.has(k)) continue;
+      _seen.add(k); _rows.push(r);
+    }
+    if (list) list.innerHTML = _rows.slice().sort((a, b) => etdKey(a.etd) - etdKey(b.etd) || (a.transitDays || 0) - (b.transitDays || 0))
       .map((r) => scheduleRowHTML(r, accent)).join('');
   }
   // 无船期 → 维运网兜底链接（爹地 9-24）
@@ -712,7 +720,11 @@ async function listenEngineEvents() {
       if (m) {
         stderrTail.push(m);
         if (stderrTail.length > 8) stderrTail.shift();
-        const fatal = /Error|error:|Cannot find|MODULE_NOT_FOUND|not found|EACCES|EPERM|ENOENT|throw/i.test(m);
+        // ⚠️ 10-09 修：原判据太松 —— `[fastpath] yangming status=200 isArray=false err= …`
+        // 这类**信息行**被判成致命错误，界面弹出黄色横幅把引擎原始输出糊在爹地脸上（他当成"报错了"）。
+        // 规则：先排除明显的信息/调试行，只认真正的错误签名。
+        const benign = /ExperimentalWarning|node --trace-warnings|\[fastpath\]|\[chrome\]|\[query\]|\[hmm\]|\[evergreen\]|\[cma\]|status=\d{3}|isArray=|^\s*\(node:/i.test(m);
+        const fatal = !benign && /(^|\W)(Error|MODULE_NOT_FOUND|ENOENT|EACCES|EPERM)\b|Cannot find module|is not defined|SyntaxError|TypeError|ReferenceError|throw new/i.test(m);
         if (fatal) showEngineError(m);
         renderDiagnostics();
       }
