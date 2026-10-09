@@ -199,22 +199,32 @@ async function yangming(origin, dest, dateWin) {
 //      42 天 8 条；而 >42 天（8/10 周）接口直接返回 0 条 —— 所以 42 是上限，不要再加。
 //      与官网深链 nextWeekValue=14 的差别就在这里：官网默认只给 2 周，所以官网上也显得少。
 async function one(origin, dest, dateWin) {
-  const d = (s) => `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
   const base = dateWin.start;
   const t = new Date(`${base.slice(0, 4)}-${base.slice(4, 6)}-${base.slice(6, 8)}T00:00:00Z`);
-  const from = new Date(t); const to = new Date(t.getTime() + 42 * 864e5); // 42 天=上限（>42 返回 0 条）
-  const url = 'https://ecomm.one-line.com/api/v1/schedule/point-to-point'
-    + `?porCode=${origin}&delCode=${dest}&rcvTermCode=Y&deTermCode=Y&tsFlag=`
-    + `&fromDate=${from.toISOString().slice(0, 10)}&toDate=${to.toISOString().slice(0, 10)}`
-    + '&cargoNature=GP&searchType=List&sourcePage=schedule';
-  // 偶发 miss（并发/限速抖动）→ 重试一次再放弃（9-29 实测：与 maersk 同批跑时偶发一次空）
-  let r = await getJSON(url);
-  if (r.status !== 200 || !r.json) r = await getJSON(url);
-  if (r.status !== 200 || !r.json || !Array.isArray(r.json.scheduleLines)) {
-    console.error(`[fastpath] one status=${r.status} err=${r.error || ''} body=${(r.text || '').slice(0, 120)}`);
-    return null;
+  // ★ 10-09：单窗口上限 42 天（>42 接口返 0）→ 不足 5 条时补第二段窗口（爹地要求每家 ≥5 条）
+  const q = async (offset) => {
+    const from = new Date(t.getTime() + offset * 864e5);
+    const to = new Date(t.getTime() + (offset + 42) * 864e5);
+    const url = 'https://ecomm.one-line.com/api/v1/schedule/point-to-point'
+      + `?porCode=${origin}&delCode=${dest}&rcvTermCode=Y&deTermCode=Y&tsFlag=`
+      + `&fromDate=${from.toISOString().slice(0, 10)}&toDate=${to.toISOString().slice(0, 10)}`
+      + '&cargoNature=GP&searchType=List&sourcePage=schedule';
+    // 偶发 miss（并发/限速抖动）→ 重试一次再放弃
+    let r = await getJSON(url);
+    if (r.status !== 200 || !r.json) r = await getJSON(url);
+    if (r.status !== 200 || !r.json || !Array.isArray(r.json.scheduleLines)) {
+      console.error(`[fastpath] one status=${r.status} err=${r.error || ''} body=${(r.text || '').slice(0, 120)}`);
+      return null;
+    }
+    return r.json.scheduleLines;
+  };
+  let lines = await q(0);
+  if (lines && oneRowsFromLines(lines).length < 5) {
+    const l2 = await q(42);
+    if (l2 && l2.length) lines = lines.concat(l2);
   }
-  const rows = oneRowsFromLines(r.json.scheduleLines);
+  if (!lines) return null;
+  const rows = oneRowsFromLines(lines);
   if (!rows.length) return null;
   return { rows, note: 'API 直查 ' + rows.length + ' 条' };
 }
