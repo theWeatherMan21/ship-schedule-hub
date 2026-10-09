@@ -237,7 +237,9 @@ const q = new Proxy(qBase, {
 // ---------- 限流冷却（爹地 10-09 议题：别让"短时间查太多次"变成"永远查不到"）----------
 // 被官网限流/拦截过的船司，进入冷却期：期内直接跳过、不碰它的站（越撞限制越久），
 // 界面如实显示「⏳ 官网限流冷却中（约 N 分钟后自动恢复）」。清空：删 data/cooldown.json 或 SSH_COOLDOWN_MS=0。
-const COOLDOWN_MS = Number(process.env.SSH_COOLDOWN_MS === undefined ? 30 * 60 * 1000 : process.env.SSH_COOLDOWN_MS);
+// 爹地 10-09 决定：**不要冷却** —— 我要看到每家都去查，别把船司跳过去。
+// 需要时可用 SSH_COOLDOWN_MS=1800000 手动打开。
+const COOLDOWN_MS = Number(process.env.SSH_COOLDOWN_MS === undefined ? 0 : process.env.SSH_COOLDOWN_MS);
 const cooldownFile = path.join((await import('./browser.mjs')).DATA_DIR, 'cooldown.json');
 const readCooldown = () => { try { return JSON.parse(fs.readFileSync(cooldownFile, 'utf8')) || {}; } catch { return {}; } };
 const writeCooldown = (o) => { try { fs.mkdirSync(path.dirname(cooldownFile), { recursive: true }); fs.writeFileSync(cooldownFile, JSON.stringify(o)); } catch { /* 忽略 */ } };
@@ -354,8 +356,8 @@ export async function runCarrier(ctx, carrier) {
       const attempts = 2;
       for (let k = 1; k <= attempts; k++) {
         try {
-          // 接口已明确无此线的，页面兜底只给 25s 确认窗口，别让爹地干等
-          const tmo = apiEmptyHint[carrier.id] ? Math.min(carrier.timeoutMs || perCarrier, 25000) : (carrier.timeoutMs || perCarrier);
+          // 爹地 10-09：短超时撤销 —— 一律给足 60 秒（早放弃反而像"查不到"）
+          const tmo = Math.min(carrier.timeoutMs || perCarrier, 60000);
           const r = await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), tmo, `配方超时(${tmo}ms)`);
           res.status = 'prefilled';
           res.level = 2;
@@ -395,7 +397,7 @@ export async function runCarrier(ctx, carrier) {
         }
       }
     } else if (carrier.kind === 'open') {
-      try { await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), Math.min(perCarrier, 25000), '兜底超时'); }
+      try { await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), Math.min(perCarrier, 60000), '兜底超时'); }
       catch (e) { domErr = String(e.message || e).split('\n')[0]; }
       blocked = await isBlockPage(page);
     }

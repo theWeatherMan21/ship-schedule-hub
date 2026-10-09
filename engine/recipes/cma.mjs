@@ -10,7 +10,7 @@ export default {
   name: 'CMA CGM 达飞',
   code: 'CMDU',
   kind: 'dom',
-  timeoutMs: 90000,   // 达飞官网搜索一次常要 50-60s（实测），别用全局 60s 截断真结果
+  timeoutMs: 60000,   // 达飞官网搜索一次常要 50-60s（实测），别用全局 60s 截断真结果
   entry: 'https://www.cma-cgm.com/ebusiness/schedules',
   urls: ['https://www.cma-cgm.com/ebusiness/schedules', 'https://www.cma-cgm.com/'],
   fallbackNote: 'CMA 频率限制/403 时仅打开页面；表单链路已验证（Kendo 行点击法）',
