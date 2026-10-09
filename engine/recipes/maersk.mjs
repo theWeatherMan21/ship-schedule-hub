@@ -66,9 +66,28 @@ export default {
     const mkMsg = (rows, how) => `${how}：${q.originText} → ${q.destText}` +
       (rows.length ? `，${rows.length} 条：` + rows.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays}天`).join(' ｜ ') : '');
 
-    // ---- ① 页内 API 直取（最快，无需导航）----
-    let resolved = null;
-    try { resolved = await maerskResolve(page, oName, dName, q._o?.locode, q._d?.locode); } catch { /* 走下一档 */ }
+    let resolved = null;   // 先声明（dWords 会用到）
+    // ---- 港名写法序列（同一城市在马士基库里可能是不同条目：Tianjin vs Xingang(Tianjin)）----
+    // 爹地 10-09 实证：Xingang (Tianjin) → Haifa 官网有 2 条；我们只递 Tianjin 就回 No schedules available。
+    // 「同一实体的等价写法必须应用到每条取数路径」（API 直达 / 深链 / 表单）—— 只改一条 = 用户回"依旧有问题"。
+    const pureWord = (r) => {
+      const t = String(r?.text || '');
+      if (/\(/.test(t)) return t.split('(')[0].trim();
+      const w = String(r?.word || '');
+      return r?.name || (t && t.split(/\s+/).length <= 3 ? t : w) || t;
+    };
+    const uniqWords = (arr) => arr.map((x) => String(x || '').trim()).filter((x, i, a) => x && a.indexOf(x) === i);
+    const oWords = uniqWords([
+      pureWord(q._o) || oName,                                        // 纯地名（天津 = Tianjin）
+      ...(q.originVariants || []).filter((x) => !/[()]/.test(x)),      // 马士基不认 "Tianjin (CNTNJ)" 这类写法，去掉
+    ]).slice(0, 4);
+    const dWords = uniqWords([dName, ...(q.destVariants || []), ...((resolved && resolved.dList) ? resolved.dList.map((x) => x.word) : [])]).slice(0, 5);
+    // ---- ① 页内 API 直取 + ② 深链（最快，无需导航）：按起运港写法逐个试 ----
+    for (const oWordTry of oWords) {
+      let rv = null;
+      try { rv = await maerskResolve(page, oWordTry, dName, q._o?.locode, q._d?.locode); } catch { /* 下一种写法 */ }
+      if (rv && !rv.error && rv.dList && rv.dList.length) { resolved = rv; break; }
+    }
     if (resolved && !resolved.error) {
       const tried = [...resolved.tried];
       for (const d of resolved.dList) {
@@ -95,45 +114,67 @@ export default {
       }
     }
 
-    // ---- ③ 表单点选兜底（老路径：纯地名打字 → CY 候选 → 回读校验）----
-    // 目的地仍按「能出船期的服务港」优先：词典城市名 + 同城别名（istanbul → ambarli）
-    const pureWord = (r) => {
-      const t = String(r?.text || '');
-      if (/\(/.test(t)) return t.split('(')[0].trim();
-      const w = String(r?.word || '');
-      return r?.name || (t && t.split(/\s+/).length <= 3 ? t : w) || t;
-    };
-    const oWord = pureWord(q._o) || oName;
-    const dWords = [dName, ...(resolved && resolved.dList ? resolved.dList.map((x) => x.word) : [])].filter(Boolean);
+    // ⚠️ 10-09 修：原来用 getByRole('option') 抓**全页面**的候选 —— 马士基页面上别的下拉
+    //   （Containers / Boxes & Pallets / Departing…）也挂在同一 role 上，且列表里排在最前；
+    //   老代码「匹配不中就点第 0 个」= 点到了集装箱类型 → 起运港没填对 → 官网回 No schedules available。
+    //   现在：① 只在**该字段自己展开的下拉**里找；② 过滤掉非港口项；③ 必须与所打词相关；
+    //   ④ 命中不了就返回 null（换下一种写法），**绝不盲点**；⑤ 用真实鼠标点（DOM click 不触发它的选择回调）。
     const pickMaersk = async (field, word, which) => {
       await field.click({ timeout: 8000 }).catch(() => {});
       await field.fill('').catch(() => {});
       await field.type(word, { delay: 80, timeout: 10000 }).catch(() => { try { field.pressSequentially(word, { delay: 80 }); } catch { /* no-op */ } });
-      const cands = page.getByRole('option', { name: /.+/ });
-      for (let i = 0; i < 20; i++) {
+      const key = String(word).toLowerCase().replace(/[^a-z]/g, '').slice(0, 5);
+      // ⚠️ 关键：马士基的候选**没有显式 role 属性**（DOM 里 querySelectorAll('[role=option]') 抓不到），
+      //   必须用 Playwright 的 ARIA 查找 getByRole('option')（读的是无障碍树）。10-09 实测踩过。
+      //   另：页面上别的下拉（Containers / Boxes & Pallets / Departing…）也在这个 role 里且排最前 ——
+      //   老代码"匹配不中就点第 0 个"正是点到了集装箱类型 → 起运港没填对 → 官网回 No schedules available。
+      const cands = page.getByRole('option');
+      for (let i = 0; i < 7; i++) {
         await H.sleep(1000);
         const n = await cands.count().catch(() => 0);
-        if (n <= 0) continue;
-        const texts = [];
-        for (let k = 0; k < Math.min(n, 12); k++) {
-          let s = ''; try { s = await cands.nth(k).ariaSnapshot(); } catch { /* no-op */ }
-          texts.push((s || '').replace(/\s+/g, ' ').trim());
+        if (!n) continue;
+        const items = [];
+        for (let k = 0; k < Math.min(n, 22); k++) {
+          const c = cands.nth(k);
+          // ⚠️ 别用 innerText：马士基的自定义组件（Shadow DOM）上 innerText 返回空串 ——
+          //   技能里记过这条，10-09 又踩一次。用 textContent 读，空了再退 ariaSnapshot。
+          let t = ((await c.textContent().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
+          if (!t) t = ((await c.ariaSnapshot().catch(() => '')) || '').replace(/\s+/g, ' ').trim();
+          if (!t || t.length > 90) continue;
+          if (/^(containers|boxes & pallets|boxes|departing( by)?|arriving( by)?|20'|40'|45'|dry|reefer|export|import|english|notifications)$/i.test(t)) continue;
+          if (!/\b(CY|SD)\b/i.test(t) && !/\(.+\)/.test(t)) continue;          // 港口候选必带 (城市) 或 CY/SD
+          if (key && !t.toLowerCase().replace(/[^a-z]/g, '').includes(key)) continue;
+          const bb = await c.boundingBox().catch(() => null);
+          if (!bb || bb.width < 40 || bb.height < 6) continue;
+          items.push({ t, cy: /\bCY\b/i.test(t), sd: /\bSD\b/i.test(t), idx: k, x: bb.x + Math.min(60, bb.width / 2), y: bb.y + bb.height / 2 });
         }
-        if (texts.every((t) => !t || /loading/i.test(t))) continue;
-        let idx = texts.findIndex((t) => H.portPick(t, q, which));
-        if (idx < 0) idx = texts.findIndex((t) => /\bCY\b/.test(t));
-        if (idx < 0) idx = 0;
-        await cands.nth(idx).click({ timeout: 5000 }).catch(() => {});
-        await H.sleep(1000);
-        return texts[idx];
+        if (process.env.SSH_DEBUG_PICK) console.error('[maersk][pick] word=' + word + ' 总选项=' + n + ' 过滤后=' + items.length + ' ' + JSON.stringify(items.map((o) => o.t).slice(0, 6)));
+        if (!items.length) continue;
+        let best = null, bestScore = -1;
+        for (const o of items) {
+          let sc = 0;
+          try { if (H.portPick(o.t, q, which)) sc += 10; } catch { /* no-op */ }
+          if (o.cy) sc += 3;
+          if (!o.sd) sc += 1;
+          if (sc > bestScore) { bestScore = sc; best = o; }
+        }
+        if (!best || bestScore <= 0) continue;
+        await page.mouse.move(best.x, best.y);
+        await page.mouse.click(best.x, best.y);      // 真实鼠标（DOM click 不触发选择回调）
+        await H.sleep(1200);
+        return best.t;
       }
       return null;
     };
     const from = page.getByRole('combobox', { name: /from \(city, country\/region\)/i }).first();
     const fromOk = await from.waitFor({ state: 'visible', timeout: 20000 }).then(() => true).catch(() => false);
     if (!fromOk) throw new Error(`深链无结果且表单未出现（${(resolved && resolved.error) || 'geo?'}）`);
-    const pO = await pickMaersk(from, oWord, 'origin');
-    if (!pO) throw new Error(`起运港候选未出（${oWord}）`);
+    let pO = null, usedWord = '';
+    for (const w of oWords) {                       // 起运港也逐个试写法（原来只试一种就放弃）
+      pO = await pickMaersk(from, w, 'origin');
+      if (pO) { usedWord = w; break; }
+    }
+    if (!pO) throw new Error(`起运港候选未出（${oWords.join('/')}）`);
     await H.sleep(600);
     const to = page.getByRole('combobox', { name: /to \(city, country\/region\)/i }).first();
     let pD = null;
@@ -151,10 +192,23 @@ export default {
     const search = page.getByRole('button', { name: /^\s*search\s*$/i }).first();
     if (!(await search.isVisible().catch(() => false))) throw new Error('找不到 Search 按钮');
     await search.click({ timeout: 8000 });
-    const text = await pollText();
-    const rows = parseCards(text);
-    if (rows.length) return { msg: mkMsg(rows, '表单搜索（兜底路径）'), schedules: rows };
-    if (/no schedules available/i.test(text)) throw new Error('表单搜索：官网回「No schedules available」');
+    let text = await pollText();
+    let rows = parseCards(text);
+    // 官网回「No schedules available」时**先怀疑自己递的港名**（爹地 10-09 实证：Xingang(Tianjin) 明明有 2 条），
+    // 换下一种写法重填重查一次，别直接把锅甩给官网。
+    if (!rows.length && /no schedules available/i.test(text)) {
+      for (const w of oWords.filter((x) => x !== usedWord)) {
+        const p2 = await pickMaersk(from, w, 'origin').catch(() => null);
+        if (!p2) continue;
+        await search.click({ timeout: 8000 }).catch(() => {});
+        text = await pollText();
+        rows = parseCards(text);
+        if (rows.length) { usedWord = w; break; }
+        if (!/no schedules available/i.test(text)) break;
+      }
+    }
+    if (rows.length) return { msg: mkMsg(rows, `表单搜索（兜底路径·${usedWord}）`), schedules: rows };
+    if (/no schedules available/i.test(text)) throw new Error(`表单搜索：官网回「No schedules available」（已试写法 ${oWords.join('/')}）`);
     throw new Error(`搜索后未见结果回显（len=${text.length}）`);
   },
 };
