@@ -756,3 +756,9 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 - 修复：Portland→USPDX（原澳大利亚）、Alexandria→EGALY（原美国小镇）、**SHA→上海（原静默查沙迦）**、Genoa/Chittagong/Pusan/Port-of-Spain 从查不到变命中
 - 新增两个可复跑测试：`qa/port-compat.mjs`（130 例全过）、`qa/port-hint-verify.mjs`（界面提示 11 例全过）
 - 详见 docs/port-recognition.md
+
+## 芝麻仓（不在关键路径、排队等）
+- 变体顺序优化：把「同组港名的短尾」（如 Xingang）提到第 3 位（现在排第 4，60 秒预算常试不到）——等 sweep 结论后改。
+
+- 候选轮询默认 30 次 → 拟降到 14 次（每个写法省 ~20 秒，让 60 秒预算内能试完更多写法）。**等本轮 sweep 跑完再改**。
+- 版本号：本轮修复验证通过后升 1.1.2（便于区分「哪版在测」）。

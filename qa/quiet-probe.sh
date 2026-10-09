@@ -6,7 +6,13 @@
 # ③ 确需有头（破 Cloudflare 类）时用 qa/headed-minimized-probe.mjs 那套：CDP 最小化 + 回读 AXMinimized 验证
 set -u
 cd "$(dirname "$0")/.." || exit 1
-ONSCREEN="$HOME/.hermes/cache/scratch/onscreen"
+ONSCREEN="$HOME/bin/onscreen"
+# ⚠️ scratch 目录 24h 会被清理 → 助手曾悄悄消失、静默检查变成"永远通过"（最危险的失败）。
+#    助手不在就尝试就地编译；编不出来就**报错退出**，绝不默默放行。
+if [ ! -x "$ONSCREEN" ]; then
+  bash "$(dirname "$0")/build-onscreen.sh" >/dev/null 2>&1 || true
+fi
+if [ ! -x "$ONSCREEN" ]; then echo "✗ 静默取证助手缺失（$ONSCREEN），拒绝在无法验证静默的情况下运行"; exit 4; fi
 probe="$1"; shift || true
 [ -f "$probe" ] || { echo "找不到探针：$probe"; exit 2; }
 count_win() { "$ONSCREEN" 2>/dev/null | python3 -c "import sys,json
