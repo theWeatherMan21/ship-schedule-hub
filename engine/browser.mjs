@@ -86,6 +86,27 @@ async function chromeOpts(extra = {}) {
   return pick ? { executablePath: pick.path, ...extra } : { channel: 'chrome', ...extra };
 }
 
+
+// ★ 10-09 爹地指正：真指纹模式（有头）虽然窗口最小化了，但 **Chrome 会出现在 DOCK / Cmd-Tab** ——
+//   窗口检查（onscreen）看不到这一层。这里按 pid 精确隐藏「我们 profile 的那个 Chrome」，
+//   绝不碰爹地自己的 Chrome。osascript 用 System Events 的 unix id 定位，多实例不会误伤。
+function hideChromeFromDock(userDataDir) {
+  try {
+    const out = execSync('ps -eo pid,command', { encoding: 'utf8', timeout: 5000 });
+    const pids = out.split('\n')
+      .filter((l) => l.includes('Google Chrome.app/Contents/MacOS/Google Chrome') && !l.includes('Helper') && l.includes(userDataDir))
+      .map((l) => l.trim().split(/\s+/)[0])
+      .filter(Boolean);
+    for (const pid of pids) {
+      try {
+        execSync(`osascript -e 'tell application "System Events" to set visible of (first application process whose unix id ${pid}) to false'`, { stdio: 'ignore', timeout: 5000 });
+      } catch { /* 单实例失败不影响其余 */ }
+    }
+    if (pids.length) console.error('[chrome] 已从 Dock 隐藏（pid ' + pids.join(',') + '）');
+    return pids.length;
+  } catch { return 0; }
+}
+
 export async function launch({ headless = 'auto' } = {}) {
   fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
   // headless 语义（2026-09-21 起）：
@@ -235,7 +256,7 @@ export async function launchHeadedQuiet() {
     ctx = r.ctx;
     try { ctx.setDefaultTimeout(15000); } catch { /* older core */ }
     const w = await quietWindow(ctx, 'minimized');
-    if (w && w.windowState === 'minimized') return { ctx, mode: 'headed-minimized', window: w };
+    if (w && w.windowState === 'minimized') { try { hideChromeFromDock(PROFILE_DIR); } catch { /* 忽略 */ } return { ctx, mode: 'headed-minimized', window: w }; }
     // 最小化没生效 —— 立刻关掉，别让窗口留在屏幕上
     await ctx.close().catch(() => {});
     ctx = null;
