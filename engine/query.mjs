@@ -348,7 +348,9 @@ export async function runCarrier(ctx, carrier) {
           }
           // ★ 10-09 教训（爹地实证"明明能查到"）：配方报"无方案/无结果"时，**先怀疑自己递的港名**，
           //   换下一种写法重查一次，别直接把锅甩给官网（天津在马士基库叫 Xingang(Tianjin)、长荣库叫 Xingang）。
-          if (k < attempts && /no solution|no schedule[s]? available|no data|暂无|无方案|无此线|no result/i.test(res.msg)) {
+          // 只要**没拿到结构化船期**就换下一种写法再试（不再挑文案：CMA 那次报的是"已预填…"，
+          // 文案不匹配就漏掉了重试 —— 判据应该是「有没有拿到行」，不是「消息怎么写」）
+          if (k < attempts && !(res.schedules && res.schedules.length)) {
             qLocal._variantShift = (qLocal._variantShift || 0) + 1;
             domErr = null;
             await sleep(1500);
