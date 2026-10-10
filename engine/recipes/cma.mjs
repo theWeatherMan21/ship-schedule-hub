@@ -20,8 +20,16 @@ export default {
     await H.dismissCookies(page);
     if (await H.isBlockPage(page)) await H.waitThroughChallenge(page, 12000);
     if (await H.isBlockPage(page)) throw new Error('403（profile 冷却或履历失效），仅开页兜底');
-    // ★ 10-09：DataDome 设备检查（captcha-delivery.com 的 interstitial）要如实说，别长成"查无结果"
-    const dd = await page.evaluate(() => /captcha-delivery|datadome/i.test(document.documentElement.innerHTML.slice(0, 6000))).catch(() => false);
+    // ★ 10-09：DataDome 设备检查要如实说，别长成"查无结果"。
+    // ⚠️ 10-10 误报修正：CMA 正常页面本身就带 <script src="https://js.datadome.co/tags.js">（监控标签），
+    //    之前用"前6000字符出现 datadome 字样"当拦截 → 全部正常页面被误判"被拦"（冤枉了一天）。
+    //    真拦截信号 = URL/iframe 落在 captcha-delivery.com 且搜索表单不存在。
+    const dd = await page.evaluate(() => {
+      const href = /captcha-delivery/i.test(location.href);
+      const ifr = [...document.querySelectorAll('iframe')].some((f) => /captcha-delivery/i.test(f.src || ''));
+      const hasForm = !!document.querySelector('#AutoCompletePOL');
+      return !hasForm && (href || ifr);
+    }).catch(() => false);
     if (dd) throw new Error('被 DataDome 人机验证拦住（非"无船期"）：有时段性，稍后重查或换时段就好');
 
     const box = page.getByRole('combobox', { name: /port, city, country name or code/i }).first();
