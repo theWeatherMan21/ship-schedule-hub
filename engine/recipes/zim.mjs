@@ -75,7 +75,7 @@ export default {
     const txt = await page.evaluate(() => document.body.innerText).catch(() => '');
     const hasResult = /vessel|voyage|transit|sailing|schedule detail|departure/i.test(txt);
     if (okO && okD && !blocked && (landed || hasResult)) {
-      return { msg: `已填 ${q.originText} → ${q.destText} 并点搜索${landed ? '，结果页已打开' : ''}` };
+      return { msg: `Filled ${q.originText} → ${q.destText}, searched${landed ? ', results page opened' : ''}` };
     }
     throw new Error(this.fallbackNote + detail);
   },

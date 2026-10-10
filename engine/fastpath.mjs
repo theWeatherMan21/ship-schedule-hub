@@ -296,7 +296,7 @@ export async function tryFastPath(carrierId, originLocode, destLocode, isoDate) 
 //      - dataSourceId 是页面 [data-setting-id] 的 GUID，每站固定
 //   ② 头: x-requested-with: XMLHttpRequest（缺它 → 200 但返回空字符串 ""！）
 //   ③ 必须在 MSC 自己的页面上下文里 fetch（带它的 cookie）
-export async function mscInPage(page, originLocode, destLocode, isoDate) {
+export async function mscInPage(page, originLocode, destLocode, isoDate, originName, destName) {
   if (!mscPortTable) {
     // 优先 db/ports.db（部署态打包在 Resources/db/），docs/*.json 是开发态备份
     try {
@@ -309,9 +309,22 @@ export async function mscInPage(page, originLocode, destLocode, isoDate) {
     }
     if (mscPortTable && mscPortTable.length) console.error(`[fastpath] MSC 港口表 ${mscPortTable.length} 港已加载`);
   }
-  const F = mscPortTable.find((p) => p.LocationCode === String(originLocode || '').toUpperCase());
-  const T = mscPortTable.find((p) => p.LocationCode === String(destLocode || '').toUpperCase());
-  if (!F || !T) return null;                       // MSC 没挂靠的港 → 交给浏览器
+  // ★ 10-09 修（爹地："qingdao 怎么会是 CNQIN 不是 CNTAO"）：各船司的码头码并不统一 ——
+  //   MSC 自己表里青岛是 CNTAO，马士基却是 CNQIN。原实现拿我们的码去配它的表 → 配不上就整家放弃。
+  //   现在：先按码匹，配不到就**按港名匹**（名字是通用语言），再配不到才交给浏览器。
+  const norm = (x) => String(x || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const findPort = (locode, name) => {
+    const byCode = mscPortTable.find((p) => p.LocationCode === String(locode || '').toUpperCase());
+    if (byCode) return byCode;
+    const n = norm(name);
+    if (!n || n.length < 4) return null;
+    return mscPortTable.find((p) => norm(p.LocationName) === n)
+        || mscPortTable.find((p) => norm(p.LocationName).startsWith(n) && Math.abs(norm(p.LocationName).length - n.length) <= 6)
+        || null;
+  };
+  const F = findPort(originLocode, originName);
+  const T = findPort(destLocode, destName);
+  if (!F || !T) return null;                       // MSC 真没挂靠这个港 → 交给浏览器
   const win = dateWindow(isoDate);
   const r = await page.evaluate(async ({ fromPortId, toPortId, fromDate, dataSourceId }) => {
     try {

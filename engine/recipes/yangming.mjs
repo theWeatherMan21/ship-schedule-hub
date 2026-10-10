@@ -49,6 +49,6 @@ export default {
     await page.locator('body').click({ position: { x: 5, y: 5 } }).catch(() => {});
     await H.clickByText(page, /^\s*search\s*$/i);
     await H.sleep(4000);
-    return { msg: `已填 ${(q.originVariants || cap(q.originText))} → ${(q.destVariants || cap(q.destText))}${q.skipDate ? '（日期用网站默认）' : `（起运 ${q.date.slashes}）`}并点搜索` };
+    return { msg: `Filled ${(q.originVariants || cap(q.originText))} → ${(q.destVariants || cap(q.destText))}${q.skipDate ? ' (site default date)' : ` (from ${q.date.slashes})`}, searched` };
   },
 };

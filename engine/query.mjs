@@ -111,6 +111,7 @@ function parseArgs(argv) {
   }
   return a;
 }
+const ROOT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const args = parseArgs(process.argv.slice(2));
 const origin = args.origin || 'Shanghai';
 const destination = args.destination || 'Rotterdam';
@@ -216,9 +217,37 @@ function portVariants(resolved, raw) {
   return out.slice(0, 9);
 }
 // 可接受的港口码集合：本港 + 同组港（船司把天津叫 Xingang 时，回读码是 CNTXG 也要认）
+// ★ 10-09（爹地："qingdao 怎么会是 CNQIN 不是 CNTAO"）：船司码头码 ≠ 联合国码。
+//   MSC/ONE 的青岛是 CNTAO、联合国的 CNQIN 拿过去=0 条；ZIM 的汉堡是 GEHAM≠DEHAM。
+//   表 carrier_codes 存"船司自己的码"（种子全部有实测证据），取数时优先用它。
+let __carrierCodeCache = null;
+export async function preloadCarrierCodes() {
+  try {
+    const { createRequire } = await import('node:module');
+    const req = createRequire(import.meta.url);
+    const { DatabaseSync } = req('node:sqlite');
+    const db = new DatabaseSync(path.join(ROOT_DIR, '../db/ports.db'), { readOnly: true });
+    __carrierCodeCache = {};
+    for (const r of db.prepare('SELECT carrier, unlocode, their_code FROM carrier_codes').all()) {
+      __carrierCodeCache[r.carrier + '|' + r.unlocode] = r.their_code;
+    }
+    db.close();
+    console.error('[ports] 船司专属码头码 ' + Object.keys(__carrierCodeCache).length + ' 条已加载');
+  } catch (e) { console.error('[ports] 码头码表加载失败: ' + String(e).slice(0, 80)); __carrierCodeCache = {}; }
+}
+function carrierCode(carrier, unlocode) {
+  if (!__carrierCodeCache) return '';
+  return __carrierCodeCache[carrier + '|' + unlocode] || '';
+}
+await preloadCarrierCodes();   // ★ 10-09：船司专属码头码表（启动即加载，须在 let 定义之后）
+
 function portCodes(resolved) {
   const out = [];
-  if (resolved?.locode) out.push(resolved.locode);
+  try {
+    const cc = resolved?.carrier && resolved?.locode ? carrierCode(resolved.carrier, resolved.locode) : '';
+    if (cc) out.push(cc);                                  // 船司自己的码最优先
+  } catch { /* 忽略 */ }
+  if (resolved?.locode && !out.includes(resolved.locode)) out.push(resolved.locode);
   for (const sib of siblingPorts(resolved, 4)) if (sib.locode && !out.includes(sib.locode)) out.push(sib.locode);
   return out;
 }
@@ -273,6 +302,7 @@ export async function runCarrier(ctx, carrier) {
     //    9-30 实测事故：HMM 读到 Evergreen 的 "ningbo china cnngb" → 候选点不中、整家失败。
     const oRes = await resolvePort(carrier.id, origin);
     const dRes = await resolvePort(carrier.id, destination);
+    oRes.carrier = carrier.id; dRes.carrier = carrier.id;   // ★ 10-09：供 portCodes 查船司专属码头码
     const qLocal = new Proxy({ ...qBase, _o: oRes, _d: dRes }, {
       get(t, k) {
         if (k === 'originText') return t._o?.text ?? origin;
@@ -319,7 +349,8 @@ export async function runCarrier(ctx, carrier) {
     const coscoApi = (pg, o, d, iso) => coscoInPage(pg, o, d, iso, oRes?.name, dRes?.name); // 9-30：港名兜底（PLGDN 等 CITY 表外的港）
     // ★ 10-09：ZIM 传港名兜底 —— 它的码常与联合国码不同（汉堡 GEHAM ≠ DEHAM），按码解析不到时用名字
     const zimApi = (pg, o, d, iso) => zimInPage(pg, o, d, iso, oRes?.name, dRes?.name);
-    const inPageApi = carrier.id === 'msc' ? mscInPage : carrier.id === 'cosco' ? coscoApi : carrier.id === 'hapag' ? hapagInPage : carrier.id === 'zim' ? zimApi : carrier.id === 'maersk' ? maerskApi : null;
+    const mscApi = (pg, o, d, iso) => mscInPage(pg, o, d, iso, oRes?.name, dRes?.name);   // ★ 10-09：港名兜底（MSC 码 ≠ 联合国码，如 CNTAO≠CNQIN）
+    const inPageApi = carrier.id === 'msc' ? mscApi : carrier.id === 'cosco' ? coscoApi : carrier.id === 'hapag' ? hapagInPage : carrier.id === 'zim' ? zimApi : carrier.id === 'maersk' ? maerskApi : null;
     // ★ 10-09 轻量页提速（爹地问"不是都用 api 吗"）：站内接口只需要**同源上下文**，
     //   不需要把整个 SPA 加载完。实测 hapag：完整页 40s+ → 轻量 404 页 4.3s，接口照样 200。
     //   只对**实测过**的家启用（MSC 在轻量页会被 WAF 挡回 HTML，故不启用）。
@@ -530,6 +561,7 @@ const portResolutions = await Promise.all(selected.map(async (c) => {
 }));
 // 并发打 fastpath（互不依赖；每家有超时保护，总耗时≈最慢一家）
 await Promise.all(portResolutions.map(async ({ c, o, d }) => {
+  o.carrier = c.id; d.carrier = c.id;   // ★ 10-09：供 portCodes 查船司专属码头码（阳明/ONE 的青岛=CNTAO）
   const fr = await tryFastPath(c.id, portCodes(o), portCodes(d), isoDate);   // 传同组港码（天津 CNTNJ/CNTXG）
   if (fr && fr.apiEmpty && !(fr.rows || []).length) {
     // 接口明确无此线 → 页面兜底只给"确认一下"的时间，不陪着死等（省爹地的时间）

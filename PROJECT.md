@@ -801,3 +801,7 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 
 - 候选轮询默认 30 次 → 拟降到 14 次（每个写法省 ~20 秒，让 60 秒预算内能试完更多写法）。**等本轮 sweep 跑完再改**。
 - 版本号：本轮修复验证通过后升 1.1.2（便于区分「哪版在测」）。
+
+## 10-09/10 船司码头码 ≠ 联合国码（爹地实锤，本日最大修复）
+爹地问："qingdao 怎么会是 CNQIN 不是 CNTAO？" —— 两队都对：联合国码 CNQIN，**但各家船司自己用 CNTAO**（MSC 官方表 `('QINGDAO','CNTAO')`、ONE 直测 CNQIN→0/CNTAO→7、阳明 CNQIN→0/CNTAO→11）。旧实现拿联合国码直发各船司接口 → 青岛这类港全部静默"无服务" → 观感="很多家 API 坏了"。
+**修法**：`db/ports.db` 新表 `carrier_codes(carrier,unlocode,their_code,source)`（种子全带实测证据）；`query.mjs::portCodes()` 优先船司自己的码；MSC 适配器加港名兜底（`findPort` 码→名）；fastpath 预通道补 `o.carrier/d.carrier` 标记。**实测**：MSC 青岛→格但斯克 11s/12 条、ONE 3 条、阳明 青岛→汉堡 1.4s/10 条（修前 0）。
