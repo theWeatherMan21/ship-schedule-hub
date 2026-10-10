@@ -27,7 +27,8 @@ let AK = { aka: {}, prefer: {}, major: {}, msc: [], signal: {} };
 // 而 release 的前端资源是压缩内嵌的、strings 也验不出来（婉宜 9-30 差点又靠 strings 下结论）。
 // 直接 import：词典跟其它 UI 代码走同一条打包路径，UI 能显示它就一定在。
 import('./port-aka.json').then((m) => { AK = m.default || m; }).catch(() => {});
-import('./port-aka.json').then((m) => { AK = m.default || m; }).catch(() => {});
+window.__DISP = {};
+import('./display-codes.json').then((m) => { window.__DISP = m.default || m; }).catch(() => {});
 import('./ports.json')
   .then((m) => m.default || m)
   .then((d) => {
@@ -54,7 +55,7 @@ function refreshPortList(q) {
       .slice().sort((a, b) => pScore(b, s) - pScore(a, s)).slice(0, 8);
   }
   if (akaPort && !list.some((p) => p.l === akaPort.l)) list = [akaPort, ...list.slice(0, 7)];
-  dl.innerHTML = list.map((p) => `<option value="${p.n}">${p.l}${p.c ? ' · ' + p.c : ''}</option>`).join('');
+  dl.innerHTML = list.map((p) => `<option value="${p.n}">${(window.__DISP && window.__DISP[p.l]) || p.l}${p.c ? ' · ' + p.c : ''}</option>`).join('');
 }
 
 // 归一化：大小写/空格/连字符/点号一律忽略（Port-of-Spain = port of spain = portofspain）
@@ -167,7 +168,8 @@ function renderPortHint(inputId, hintId) {
     return;
   }
   const near = (m.p.near || []).map((x) => x.n).slice(0, 6);
-  const loc = `${m.p.l}${m.p.c ? ' · ' + m.p.c : ''}`;
+  const lc = (window.__DISP && window.__DISP[m.p.l]) || m.p.l;   // ★ 10-10：显示行业口径码（青岛→CNTAO），内部仍用联合国码+按船司自动转换
+  const loc = `${lc}${m.p.c ? ' · ' + m.p.c : ''}`;
   const shortWarn = m.short
     ? '<br><span class="near">⚠️ Short-code match — if wrong, type the full port name</span>'
     : '';
@@ -177,7 +179,7 @@ function renderPortHint(inputId, hintId) {
   const chipsHTML = (m.ambiguous && m.ambiguous.length >= 2)
     ? `<div class="ctryrow">` + m.ambiguous.map((p) =>
         `<button type="button" class="ctrypick${p.l === m.p.l ? ' on' : ''}" data-pick="${p.l}" ` +
-        `title="Querying as ${p.n} (${p.l})">${p.c || '??'} · ${p.n}</button>`).join('') + `</div>`
+        `title="Querying as ${p.n} (${(window.__DISP && window.__DISP[p.l]) || p.l})">${p.c || '??'} · ${p.n}</button>`).join('') + `</div>`
     : '';
   const bindChips = () => {
     el.querySelectorAll('.ctrypick').forEach((btn) => {

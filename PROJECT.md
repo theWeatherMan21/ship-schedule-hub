@@ -805,3 +805,8 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 ## 10-09/10 船司码头码 ≠ 联合国码（爹地实锤，本日最大修复）
 爹地问："qingdao 怎么会是 CNQIN 不是 CNTAO？" —— 两队都对：联合国码 CNQIN，**但各家船司自己用 CNTAO**（MSC 官方表 `('QINGDAO','CNTAO')`、ONE 直测 CNQIN→0/CNTAO→7、阳明 CNQIN→0/CNTAO→11）。旧实现拿联合国码直发各船司接口 → 青岛这类港全部静默"无服务" → 观感="很多家 API 坏了"。
 **修法**：`db/ports.db` 新表 `carrier_codes(carrier,unlocode,their_code,source)`（种子全带实测证据）；`query.mjs::portCodes()` 优先船司自己的码；MSC 适配器加港名兜底（`findPort` 码→名）；fastpath 预通道补 `o.carrier/d.carrier` 标记。**实测**：MSC 青岛→格但斯克 11s/12 条、ONE 3 条、阳明 青岛→汉堡 1.4s/10 条（修前 0）。
+
+## 10-10 名录彻查（Exa 权威源 + 船司实测）—— 码头码体系全解
+**真相**：联合国 2025 新码表把 CNSHA/CNTAO/CNNGB/CNXMN 归为「机场」，港口用新码（CNSHG/CNQDG/CNNBG/CNXMG…）；**但全行业（船司系统、订舱、提单惯例）走老码** ✗。我们词典 = 联合国口径 → 拿新码直发船司 = 静默"无服务" ✗。
+**实测矩阵**（ONE 直测）：上海 CNSHG=21/CNSHA=5/CNSGH=0 ✗；宁波 CNNGB=18/CNNBG=0 ✗；青岛 CNTAO=11/CNQIN=0 ✗；天津 CNTXG=12/CNTNJ=0 ✗；深圳 CNSZX=17/CNSZP=0 ✗；厦门 CNXMN=14/CNXMG=0 ✗；南沙 CNNSA=21 ✓；盐田 CNYTN ✓。MSC 官方表同口径（QINGDAO→CNTAO、SHANGHAI→CNSHA…19 条自动映射入库）。
+**修法**：① carrier_codes 映射表（msc 全量自动 + one/ym 实测；船司码最优先取数）② MSC/适配器港名兜底 ③ 显示层 display-codes.json（界面显示行业码 CNTAO，内部保持双轨）④ 老码输入识别（cntao/cnsha/cnszx/cnxmn/cndlc → 正常解析）。**待办**：阳明限流冷却后补测其余港。
