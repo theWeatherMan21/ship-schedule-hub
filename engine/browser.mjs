@@ -250,7 +250,9 @@ export async function launchHeadedQuiet() {
     const r = await launchCtxWithLockFallback({
       ...(await chromeOpts()),
       headless: false,
-      args: launchArgs(),
+      // ★ 10-09 爹地点透（"软件自己开个有头自己解决"）：最小化窗口默认被节流 → 验证码组件永远挂不上。
+      //   这三个开关禁用后台/遮挡/渲染节流 → 最小化也能正常渲染与跑定时器，程序自己就能解验证码。
+      args: [...launchArgs(), '--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding'],
       ignoreDefaultArgs: ['--enable-automation'],
     });
     ctx = r.ctx;
