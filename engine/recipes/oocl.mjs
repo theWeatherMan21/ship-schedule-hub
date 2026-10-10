@@ -122,11 +122,22 @@ export default {
         }
         if (rows.length >= 12) break;
       }
-      return { n: (document.body.innerText.match(/Search Result: (\d+)/) || [])[1], rows };
-    }).catch(() => ({ n: 0, rows: [] }));
+      const bodyTxt = document.body.innerText || '';
+      return {
+        n: (bodyTxt.match(/Search Result: (\d+)/) || [])[1],
+        // ★ 10-10：OOCL 滑块验证码失败时页面无结果也无计数——之前笼统报"解析失败"，误导。
+        captcha: /captcha|verification|slider|drag the|拼图|请完成/i.test(bodyTxt) || !!document.querySelector('[class*="captcha"],[id*="captcha"]'),
+        rows,
+      };
+    }).catch(() => ({ n: '', rows: [], captcha: false }));
 
     if (!rows.rows || !rows.rows.length) {
-      const total = rows.n ? `Search Result: ${rows.n}（解析失败）` : '结果为空';
+      // ★ 10-10 如实分级（爹地："零点几也是失败要诚实"）：验证码拦 ≠ 解析失败 ≠ 无服务
+      let total;
+      if (rows.captcha) total = 'Blocked by human verification (intermittent — auto-retried; try again later)';
+      else if (rows.n === '0') total = 'Search Result: 0 (site reports no service on this route)';
+      else if (rows.n) total = `Search Result: ${rows.n} (rows not parsed)`;
+      else total = 'Results page did not render';
       return { msg: `Filled ${oPicked.split(',')[0]} → ${dPicked.split(',')[0]}, searched; ${total}` };
     }
     const MON = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };

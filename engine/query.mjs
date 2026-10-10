@@ -397,7 +397,7 @@ export async function runCarrier(ctx, carrier) {
     if (!blocked && carrier.kind === 'dom') {
       // 抖动重试：候选下拉/SPA 渲染是时序敏感的，失败多为瞬时（同代码单跑 OK、并发随机挂）。
       // 失败后重开入口页再试一次，把随机失败抹平（婉宜 9-22）。
-      const attempts = 2;
+      const attempts = carrier.id === 'oocl' ? 3 : 2;   // ★ 10-10：OOCL 验证码=抽签，多给一次机会（~60s 内）
       for (let k = 1; k <= attempts; k++) {
         try {
           // 爹地 10-09：短超时撤销 —— 一律给足 60 秒（早放弃反而像"查不到"）

@@ -819,3 +819,11 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 - MCP 商业服务（trackingmcp/schedulesmcp 等）：托管收费，无源码；可作对拍基准。
 - **官方旁路**：中远 Open API（cop-cos/COP，免费试运行，1000次/天）；DCSA T&T 标准（9 家船司成员，正式接口）；Routescanner（聚合平台）。
 **真正抄到的**：`data/smdg-terminal-codes.csv` —— SMDG（UN/CEFACT 官方子名单）码头终端代码表：UNLOCODE ↔ Alternative UNLOCODE（官方认定 CNQIN↔CNQDG、CNSGH↔CNSHG、CNTNJ↔CNTXG、CNXAM↔CNXMG）+ 每个码头的终端代码/运营公司/坐标。用途：终端级后续功能 + 码表核对。
+
+## 10-10 二轮实测修复（爹地三连截图：OOCL/阳明/HMM 报空）
+- **阳明 天津 = CNXGG**（它自己 GetLocations 接口："XINGANG, TJ (CNXGG)"）——之前七个码全试过就是没试这个。CNXGG→ILASH=5 条、→DEHAM=13 条。已种映射（CNTNJ/CNTXG/CNTNG→CNXGG）。
+- **OOCL** 实为好家：验证码=抽签，ε 次重试后常过（42s/12 条）。失败时不再装"0 条"——如实报 "Blocked by human verification"；重试 2→3 次。
+- **HMM** 直连会被给"门户壳"（无表单）→ 加"先回首页热身再进"；实测站点自己确认 天津→Ashdod=0（非我方 bug）。
+- **qa/run-engine-isolated.sh** 修：显式 SSH_PROFILE_DIR 优先（原来永远覆盖成新档，导致调试全部失准）。
+- 自测工具新招：**带 App 档案的克隆**（cp -Rc 秒拷）跑调试 = 复现真 cookie 环境。
+- 终验 天津→阿什杜德：**7家出船 68 条**（ym 3/one 6/msc 7/maersk 9/zim 11/evergreen 20/oocl 12）；cma+hapag=IP 限（自愈）、cosco=站方无此线、hmm=拦（凉后自解）。

@@ -18,7 +18,18 @@ export default {
     if (await H.isBlockPage(page)) await H.waitThroughChallenge(page, 12000);
     if (await H.isBlockPage(page)) throw new Error('被拦截，仅开页兜底');
 
+    // ★ 10-10：直连 ScheduleMain.do 有时只给"门户壳"（无表单）——先回首页热身再重进；
+    //   配合档案里的站点 cookie 生效（实测：首页→船期页 → 表单立即出现）。
     const o = page.locator('#srchPointFrom');
+    let ok = await o.isVisible({ timeout: 4000 }).catch(() => false);
+    if (!ok) {
+      await page.goto('https://www.hmm21.com/', { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+      await H.sleep(2500);
+      await page.goto('https://www.hmm21.com/e-service/general/schedule/ScheduleMain.do', { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {});
+      await H.sleep(2500);
+      ok = await o.isVisible({ timeout: 6000 }).catch(() => false);
+    }
+    if (!ok) throw new Error('HMM 船期表单未出现（站点给门户壳/被限流）——稍后重查');
     await o.waitFor({ state: 'visible', timeout: 20000 });
 
     // HMM 候选：可见 li 中含 [LOCODE] 的行（精确 locode 匹配，防 Nowy Dwor Gdanski 误中 Gdansk——9-24 实测）
