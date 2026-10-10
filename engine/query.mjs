@@ -465,7 +465,7 @@ export async function runCarrier(ctx, carrier) {
       res.status = 'opened';                    // 保底价值：页面已打开
       res.level = 3;
       res.msg = blocked
-        ? `反爬拦截（HTTP ${res.httpStatus || '?'}），已打开页面兜底`
+        ? `Anti-bot block (HTTP ${res.httpStatus || '?'}), page opened`
         : (domErr || carrier.fallbackNote || 'Page opened only');
     }
   } catch (e) {
