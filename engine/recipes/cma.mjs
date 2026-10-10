@@ -131,11 +131,11 @@ export default {
     const none = noneRe.exec(sched);
     const m = sched.match(/\d+\s*Days/i);
     const bare = (x) => String(x || '').replace(/\s*\([A-Z]{4,5}\)\s*$/, '').trim();  // 文案里别再重复一次 (ILASH)
-    const msg = `已预填 ${bare(q.originText)}(${q._o?.locode}) → ${bare(q.destText)}(${destLocode}) 并点搜索` +
-      (schedules.length ? `，${schedules.length} 条船期：` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays}天${r.direct ? ' 直达' : ' 转' + r.via}`).join(' ｜ ')
+    const msg = `Prefilled ${bare(q.originText)}(${q._o?.locode}) → ${bare(q.destText)}(${destLocode}), searched` +
+      (schedules.length ? `, ${schedules.length} schedules: ` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays} days ${r.direct ? 'Direct' : 'via ' + r.via}`).join(' | ')
         : (m ? `，结果页见 Transit ${m[0]}` : ''));
     if (schedules.length) return { msg, schedules };
-    if (none) return { msg: `已查询：官网回「${none[0]}」——这条线达飞暂无方案` };
+    if (none) return { msg: `Queried: site said \"${none[0]}\" — no service on this route` };
     return { msg };
   },
 };

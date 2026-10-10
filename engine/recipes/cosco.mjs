@@ -117,13 +117,13 @@ export default {
       }
     } catch { /* 抽取失败 → 保持 prefilled */ }
 
-    const msg = `已填 ${q.originText} → ${q.destText} 并点搜索` +
-      (schedules.length ? `，${schedules.length} 条船期：` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays}天${r.direct ? ' 直达' : ' 转' + r.via}`).join(' ｜ ')
-        : (m ? `，Shortest Transit ${m[1]} 天` : '，结果页路由确认'));
+    const msg = `Filled ${q.originText} → ${q.destText}, searched` +
+      (schedules.length ? `, ${schedules.length} schedules: ` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays} days ${r.direct ? 'Direct' : 'via ' + r.via}`).join(' | ')
+        : (m ? `, Shortest Transit ${m[1]} days` : ', results route confirmed'));
     if (schedules.length) return { msg, schedules };
     // 结果页明确回"无方案/无结果"时如实转达（别显示成"已填表"让人以为是我们的问题）
     const none = /no solution has been found|not able to propose solutions|no schedule[s]? (?:has|have|were|was) (?:been )?found|no data|暂无/i.exec(String(text || ''));
-    if (none) return { msg: `已查询：官网回「${none[0]}」——这条线中远暂无方案` };
+    if (none) return { msg: `Queried: site said \"${none[0]}\" — no service on this route` };
     return { msg };
   },
 };

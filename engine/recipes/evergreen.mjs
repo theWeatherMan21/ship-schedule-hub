@@ -191,9 +191,9 @@ export default {
       } catch { /* 航程明细拿不到不影响主流程 */ }
     }
 
-    const msg = `已填 ${q.originText} → ${q.destText} 并搜索` +
-      (schedules.length ? `，${schedules.length} 条船期：` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays}天`).join(' ｜ ') : '');
+    const msg = `Filled ${q.originText} → ${q.destText}, searched` +
+      (schedules.length ? `, ${schedules.length} schedules: ` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays} days`).join(' | ') : '');
     if (schedules.length) return { msg, schedules };
-    return { msg: `已填 ${q.originText} → ${q.destText} 并搜索（结果页无结构化船期行）` };
+    return { msg: `Filled ${q.originText} → ${q.destText}, searched (no structured schedule rows on results page)` };
   },
 };

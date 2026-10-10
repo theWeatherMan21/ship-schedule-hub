@@ -181,8 +181,8 @@ async function yangming(origin, dest, dateWin) {
       detail: yangmingDetail(x),      // 逐段航程 + CY 截关
     };
   });
-  if (!rows.length) return { rows, note: '窗口内无船期' };
-  return { rows, note: `API 直查 ${rows.length} 条` };
+  if (!rows.length) return { rows, note: 'No schedules in window' };
+  return { rows, note: `API: ${rows.length} schedules` };
 }
 
 // ---------- ONE（第一档：node 直连，9-29 实测）----------
@@ -226,7 +226,7 @@ async function one(origin, dest, dateWin) {
   if (!lines) return null;
   const rows = oneRowsFromLines(lines);
   if (!rows.length) return null;
-  return { rows, note: 'API 直查 ' + rows.length + ' 条' };
+  return { rows, note: 'API: ' + rows.length + ' schedules' };
 }
 
 // scheduleLines → 统一行（配方兜底也复用这条映射，避免两处口径漂移）
@@ -281,7 +281,7 @@ export async function tryFastPath(carrierId, originLocode, destLocode, isoDate) 
     }
     // 所有码都试过、接口都通了，但**确实没船期** —— 把这个信息带出去，
     // 让上层别再无谓地死等页面兜底（阳明 天津→海法 实测：接口 0 条，白等 60s）
-    return { carrier: carrierId, rows: [], apiEmpty: true, ms: Date.now() - t0, note: '接口查无此线' };
+    return { carrier: carrierId, rows: [], apiEmpty: true, ms: Date.now() - t0, note: 'No service on this route (API)' };
   } catch (e) {
     console.error(`[fastpath] ${carrierId} 异常: ${String(e && e.stack ? e.stack.split('\n')[0] : e).slice(0, 150)}`);
     return null; // fastpath 永不抛错：失败就回退浏览器
@@ -358,7 +358,7 @@ for (const x of r.Data) {
   if (rows.length >= 12) break;
 }
 if (!rows.length) return null;
-return { rows, note: 'API 直查 ' + rows.length + ' 条' };
+return { rows, note: 'API: ' + rows.length + ' schedules' };
 }
 
 // ── 详情归一化（婉宜 9-30：ONE / 阳明 / COSCO / ZIM 的原始响应里本来就带这些，之前全丢了）──
@@ -405,7 +405,7 @@ function oneDetail(ln) {
     service: (legs[0] && legs[0].service) || sail.serviceLaneName || '',
     routing: js.length > 1 ? 'Via' : 'Direct',
     legs,
-    cutoffs: { 'CY 截关': ln.cct || '', '文件截止': ln.dct || '', '内陆截关': ln.inlandCct || '' },
+    cutoffs: { 'CY cut-off': ln.cct || '', 'Doc cut-off': ln.dct || '', 'Inland cut-off': ln.inlandCct || '' },
   });
 }
 
@@ -430,7 +430,7 @@ function yangmingDetail(x) {
     service: (legs[0] && legs[0].service) || '',
     routing: (Number(x.transshipment) || legs.length > 1) ? 'Via' : 'Direct',
     legs,
-    cutoffs: { 'CY 截关': x.cutoffCY || '', '提单指示': x.cutoffSI || '', 'VGM 截止': x.cutoffVGM || '' },
+    cutoffs: { 'CY cut-off': x.cutoffCY || '', '提单指示': x.cutoffSI || '', 'VGM 截止': x.cutoffVGM || '' },
   });
 }
 
@@ -511,7 +511,7 @@ function mscDetail(x, leg) {
     calls: (l.PortCalls || []).map((pc) => `${pc.PortName || ''}${pc.PortCode ? '(' + pc.PortCode + ')' : ''}`).filter(Boolean),
   }));
   const cut = [
-    ['CY 截关', c.ContainerYardCutOffDate],
+    ['CY cut-off', c.ContainerYardCutOffDate],
     ['VGM 截止', c.VerifiedGrossMassCutOffDate],
     ['提单指示', c.ShippingInstructionsCutOffDate],
     ['危险品', c.DangerousCargoCutOffDate],
@@ -591,12 +591,12 @@ export async function coscoInPage(page, originLocode, destLocode, isoDate, oName
     return {
       ...rest,
       transitDays: daysBetween(t.etd, t.eta),
-      detail: mkDetail({ routing: _legs.length > 1 ? 'Via' : 'Direct', legs: dedupeLegs(_legs), cutoffs: { 'CY 截关': t.cutoffCY || '' } }),
+      detail: mkDetail({ routing: _legs.length > 1 ? 'Via' : 'Direct', legs: dedupeLegs(_legs), cutoffs: { 'CY cut-off': t.cutoffCY || '' } }),
     };
   });
   if (!rows.length) return null;
   rows.sort((a, b) => (a.etd > b.etd ? 1 : -1));
-  return { rows: rows.slice(0, 12), note: 'API 直查 ' + rows.length + ' 条' };
+  return { rows: rows.slice(0, 12), note: 'API: ' + rows.length + ' schedules' };
 }
 
 function daysBetween(a, b) {
@@ -649,7 +649,7 @@ export async function hapagInPage(page, originLocode, destLocode, isoDate) {
     };
   }).filter((r2) => r2.etd);
   if (!rows.length) return null;
-  return { rows, note: 'API 直查 ' + rows.length + ' 条' };
+  return { rows, note: 'API: ' + rows.length + ' schedules' };
 }
 
 const ZIM_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -746,7 +746,7 @@ export async function zimInPage(page, originLocode, destLocode, isoDate, originN
     };
   }).filter(Boolean);
   if (!rows.length) return null;
-  return { rows, note: `接口直查 ${rows.length} 条（ZIM 码 ${r.from.code} → ${r.to.code}）` };
+  return { rows, note: `API: ${rows.length} schedules (ZIM codes ${r.from.code} → ${r.to.code})` };
 }
 
 // ---------- Maersk（第二档：页面内 fetch）----------
@@ -950,7 +950,7 @@ export async function maerskInPage(page, originLocode, destLocode, isoDate, oNam
       }
     }
     if (!rows.length) continue;
-    return { rows, note: `API 直查 ${rows.length} 条（${res.o.cityName}(${res.o.rkst}) → ${d.cityName}(${d.rkst})，试过 ${tried.join(',')}）` };
+    return { rows, note: `API: ${rows.length} schedules (${res.o.cityName}(${res.o.rkst}) → ${d.cityName}(${d.rkst}), tried ${tried.join(',')})` };
   }
   console.error(`[fastpath] maersk 无船期: ${tried.join(',')}`);
   return null;

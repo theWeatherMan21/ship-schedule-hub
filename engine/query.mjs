@@ -139,7 +139,7 @@ if (args.carriers === undefined || args.carriers === null) {
   if (dups.length) console.error(`[query] 忽略重复的船司：${[...new Set(dups)].join(',')}`);
   const unknown = ids.filter((id) => !CARRIERS.some((c) => c.id === id));
   if (unknown.length) {
-    console.error(JSON.stringify({ type: 'engine-error', msg: `未知船司：${unknown.join(', ')}。可用：${CARRIERS.map((c) => c.id).join(', ')}` }));
+    console.error(JSON.stringify({ type: 'engine-error', msg: `Unknown carrier(s): ${unknown.join(', ')}. Available: ${CARRIERS.map((c) => c.id).join(', ')}` }));
     process.exit(2);
   }
 }
@@ -150,7 +150,7 @@ const batchSize = Number(args.batch || 1);
 // 垃圾输入会一路走到港口解析（甚至静默查成别的港口）。这里 fail fast，给一句可读的错。
 for (const [k, v] of [['origin', args.origin], ['destination', args.destination]]) {
   if (typeof v !== 'string' || v.trim().length < 2) {
-    console.error(JSON.stringify({ type: 'engine-error', msg: `参数 --${k} 非法（收到 ${JSON.stringify(v)}）：必须是非空港口名` }));
+    console.error(JSON.stringify({ type: 'engine-error', msg: `Invalid --${k} (got ${JSON.stringify(v)}): must be a non-empty port name` }));
     process.exit(2);
   }
 }
@@ -170,7 +170,7 @@ for (const [k, v] of [['origin', args.origin], ['destination', args.destination]
       bad = dt.getUTCFullYear() !== y || dt.getUTCMonth() !== mo - 1 || dt.getUTCDate() !== d;
     }
     if (bad) {
-      console.error(JSON.stringify({ type: 'engine-error', msg: `参数 --date 非法（收到 ${JSON.stringify(s)}）：请用 YYYY-MM-DD 且是真实存在的日期，或留空用网站默认当天` }));
+      console.error(JSON.stringify({ type: 'engine-error', msg: `Invalid --date (got ${JSON.stringify(s)}): use a real date YYYY-MM-DD, or leave empty for site default` }));
       process.exit(2);
     }
   }
@@ -250,7 +250,7 @@ const selected = selectedAll.filter((c) => {
   const until = Number(_cd[c.id] || 0);
   if (until <= Date.now()) return true;
   const mins = Math.max(1, Math.ceil((until - Date.now()) / 60000));
-  emitCarrier(c.id, 'opened', { name: c.name, level: 3, msg: `⏳ 官网限流冷却中（约 ${mins} 分钟后自动恢复）—— 这期间不去打扰它，免得限制延长` });
+  emitCarrier(c.id, 'opened', { name: c.name, level: 3, msg: `⏳ Site rate-limit cooldown (~${mins} min to auto-recover) — skipping to avoid extending it` });
   return false;
 });
 
@@ -304,12 +304,12 @@ export async function runCarrier(ctx, carrier) {
     if (blocked && COOLDOWN_MS > 0) {
       const m = readCooldown(); m[carrier.id] = Date.now() + COOLDOWN_MS;
       try { writeCooldown(m); } catch { /* 忽略 */ }
-      res.msg = `被官网拦截/限流（已进入 ${Math.round(COOLDOWN_MS / 60000)} 分钟冷却，期间不再打扰它）` + (res.msg ? `：${res.msg}` : '');
+      res.msg = `Blocked/rate-limited by site (in ${Math.round(COOLDOWN_MS / 60000)}-min cooldown, skipping it for now)` + (res.msg ? `：${res.msg}` : '');
     }
 
     if (!page || (lastErr && !status)) {
       res.status = 'failed';
-      res.msg = `打不开页面：${lastErr || '未知网络错误'}`;
+      res.msg = `Page failed to load: ${lastErr || 'unknown network error'}`;
       return res;
     }
 
@@ -343,7 +343,7 @@ export async function runCarrier(ctx, carrier) {
             const r = await withTimeout(inPageApi(page, oc, dc, isoDate), 90000, 'inpage api').catch(() => null);
             if (r && r.rows && r.rows.length) {
               const same = oc === oCodes[0] && dc === dCodes[0];
-              fp = same ? r : { ...r, note: `${r.note}（同组港码 ${oc}→${dc}）` };
+              fp = same ? r : { ...r, note: `${r.note} (sibling port code ${oc}→${dc})` };
               break outer;
             }
           }
@@ -351,7 +351,7 @@ export async function runCarrier(ctx, carrier) {
         if (fp && fp.rows && fp.rows.length) {
           res.status = 'done';
           res.level = 1;
-          res.msg = `${fp.note}：` + fp.rows.slice(0, 3).map((r) => `${r.vessel} ETD ${r.etd} → ${r.eta} ${r.transitDays}天${r.direct ? ' 直达' : ' 转' + r.via}`).join(' ｜ ');
+          res.msg = `${fp.note}: ` + fp.rows.slice(0, 3).map((r) => `${r.vessel} ETD ${r.etd} → ${r.eta} ${r.transitDays} days${r.direct ? ' Direct' : ' via ' + r.via}`).join(' | ');
           res.schedules = fp.rows;
           res.fastpath = true;
           res.ms = Date.now() - t0;
@@ -371,10 +371,10 @@ export async function runCarrier(ctx, carrier) {
         try {
           // 爹地 10-09：短超时撤销 —— 一律给足 60 秒（早放弃反而像"查不到"）
           const tmo = Math.min(carrier.timeoutMs || perCarrier, 60000);
-          const r = await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), tmo, `配方超时(${tmo}ms)`);
+          const r = await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), tmo, `Recipe timeout (${tmo}ms)`);
           res.status = 'prefilled';
           res.level = 2;
-          res.msg = (r && r.msg) || '已预填并搜索';
+          res.msg = (r && r.msg) || 'Prefilled and searched';
           // 9-24：配方若从结果页抽出结构化船期 → 升级为 done + schedules（前端行内展示，同 fastpath 口径）
           if (r && Array.isArray(r.schedules) && r.schedules.length) {
             res.status = 'done';
@@ -410,7 +410,7 @@ export async function runCarrier(ctx, carrier) {
         }
       }
     } else if (carrier.kind === 'open') {
-      try { await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), Math.min(perCarrier, 60000), '兜底超时'); }
+      try { await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), Math.min(perCarrier, 60000), 'Fallback timeout'); }
       catch (e) { domErr = String(e.message || e).split('\n')[0]; }
       blocked = await isBlockPage(page);
     }
@@ -435,7 +435,7 @@ export async function runCarrier(ctx, carrier) {
       res.level = 3;
       res.msg = blocked
         ? `反爬拦截（HTTP ${res.httpStatus || '?'}），已打开页面兜底`
-        : (domErr || carrier.fallbackNote || '仅打开页面');
+        : (domErr || carrier.fallbackNote || 'Page opened only');
     }
   } catch (e) {
     res.status = 'failed';
@@ -465,8 +465,8 @@ ndjson.write(JSON.stringify({ type: 'engine-started', origin, destination, date:
 
 // 红线：没有选中任何船司 → 立刻退出，绝不去启动浏览器（否则会弹一个空白窗口，爹地 9-23 报过）
 if (selected.length === 0) {
-  emit('engine-error', { msg: '没有选中任何船司（carriers 为空），已跳过——请在左侧勾选船司' });
-  ndjson.write(JSON.stringify({ type: 'engine-error', msg: '没有选中任何船司（carriers 为空），已跳过——请在左侧勾选船司' }) + '\n');
+  emit('engine-error', { msg: 'No carriers selected — check some on the left' });
+  ndjson.write(JSON.stringify({ type: 'engine-error', msg: 'No carriers selected — check some on the left' }) + '\n');
   ndjson.end();
   emit('engine-exit', { total: 0, prefilled: 0, opened: 0, failed: 0 });
   process.exit(0);
@@ -491,9 +491,9 @@ if (CACHE_TTL_MS > 0 && !args['no-cache']) {
     const age = Date.now() - Number(c.ts || 0);
     if (age >= 0 && age < CACHE_TTL_MS && Array.isArray(c.results) && c.results.length) {
       const mins = Math.max(0, Math.round(age / 60000));
-      const ago = age < 90000 ? '刚刚' : `${mins} 分钟前`;
+      const ago = age < 90000 ? '刚刚' : `${mins} min ago`;
       for (const r of c.results) {
-        const payload = { ...r, cached: true, msg: `⚡ 缓存（${ago}的结果，20 分钟内有效）${r.msg ? '：' + r.msg : ''}` };
+        const payload = { ...r, cached: true, msg: `⚡ cached (result from ${ago}, valid 20 min) ${r.msg ? '：' + r.msg : ''}` };
         emitCarrier(r.carrier, r.status, { name: r.name, level: r.level, msg: payload.msg, url: r.url, httpStatus: r.httpStatus, ms: r.ms, schedules: r.schedules, cached: true });
         results.push(payload);
       }
@@ -534,14 +534,14 @@ await Promise.all(portResolutions.map(async ({ c, o, d }) => {
   if (fr && fr.apiEmpty && !(fr.rows || []).length) {
     // 接口明确无此线 → 页面兜底只给"确认一下"的时间，不陪着死等（省爹地的时间）
     apiEmptyHint[c.id] = true;
-    emitCarrier(c.id, 'running', { name: c.name, msg: '接口查无此线，页面兜底确认中…' });
+    emitCarrier(c.id, 'running', { name: c.name, msg: 'API: no service on this route; confirming via page...' });
   }
   if (fr && fr.rows && fr.rows.length) {
     fastResults.set(c.id, fr);
     emitCarrier(c.id, 'done', {
       name: c.name, level: 1,
-      msg: `${fr.note}：` + fr.rows.slice(0, 3).map((r) =>
-        `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays}天${r.via ? ' 转' + r.via : ' 直达'}`).join(' ｜ '),
+      msg: `${fr.note}: ` + fr.rows.slice(0, 3).map((r) =>
+        `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays} days${r.via ? ' via ' + r.via : ' Direct'}`).join(' | '),
       ms: fr.ms, fastpath: true, schedules: fr.rows,
     });
   } else {

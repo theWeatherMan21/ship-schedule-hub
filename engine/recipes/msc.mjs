@@ -44,6 +44,6 @@ export default {
     }
     if (!clicked) throw new Error('找不到可见的 Search 按钮');
     await H.sleep(4000);
-    return { msg: `已预填 ${q.originText} → ${q.destText}${q.skipDate ? '（日期用网站默认）' : ` @ ${q.date.dd_mm_yyyy}`} 并点搜索` };
+    return { msg: `Prefilled ${q.originText} → ${q.destText}${q.skipDate ? ' (site default date)' : ` @ ${q.date.dd_mm_yyyy}`}, searched` };
   },
 };

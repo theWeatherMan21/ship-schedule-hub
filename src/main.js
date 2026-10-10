@@ -2,17 +2,17 @@ import './styles.css';
 
 // ---------- 船司清单（与 engine/recipes/registry 保持一致）----------
 const CARRIERS = [
-  { id: 'msc',       name: 'MSC 地中海航运',       url: 'https://www.msc.com/en/schedules' },
-  { id: 'maersk',    name: 'Maersk 马士基',        url: 'https://www.maersk.com/schedules/pointToPoint' },
-  { id: 'cma',       name: 'CMA CGM 达飞',        url: 'https://www.cma-cgm.com/ebusiness/schedules' },
-  { id: 'cosco',     name: 'COSCO 中远海运',      url: 'https://elines.coscoshipping.com/' },
-  { id: 'hapag',     name: 'Hapag-Lloyd 赫伯罗特', url: 'https://www.hapag-lloyd.com/en/online-business/schedule/vessel-schedule.html' },
-  { id: 'one',       name: 'ONE 海洋网联',        url: 'https://ecomm.one-line.com/one-ecom/schedule' },
-  { id: 'evergreen', name: 'Evergreen 长荣', url: 'https://www.shipmentlink.com/' },
-  { id: 'yangming',  name: 'Yang Ming 阳明',      url: 'https://www.yangming.com/' },
+  { id: 'msc',       name: 'MSC',       url: 'https://www.msc.com/en/schedules' },
+  { id: 'maersk',    name: 'Maersk',        url: 'https://www.maersk.com/schedules/pointToPoint' },
+  { id: 'cma',       name: 'CMA CGM',        url: 'https://www.cma-cgm.com/ebusiness/schedules' },
+  { id: 'cosco',     name: 'COSCO',      url: 'https://elines.coscoshipping.com/' },
+  { id: 'hapag',     name: 'Hapag-Lloyd', url: 'https://www.hapag-lloyd.com/en/online-business/schedule/vessel-schedule.html' },
+  { id: 'one',       name: 'ONE',        url: 'https://ecomm.one-line.com/one-ecom/schedule' },
+  { id: 'evergreen', name: 'Evergreen', url: 'https://www.shipmentlink.com/' },
+  { id: 'yangming',  name: 'Yang Ming',      url: 'https://www.yangming.com/' },
   { id: 'hmm',       name: 'HMM',                 url: 'https://www.hmm21.com/' },
-  { id: 'zim',       name: 'ZIM 以星',            url: 'https://www.zim.com/' },
-  { id: 'oocl',      name: 'OOCL 东方海外',       url: 'https://www.oocl.com/' },
+  { id: 'zim',       name: 'ZIM',            url: 'https://www.zim.com/' },
+  { id: 'oocl',      name: 'OOCL',       url: 'https://www.oocl.com/' },
 ];
 
 // ---------- 港口词典：输入智能识别 + 同港区提示（爹地 9-23 需求）----------
@@ -159,7 +159,7 @@ function renderPortHint(inputId, hintId) {
   if (!m) {
     if (raw.length >= 3) {
       // 明确告诉用户词典里没有：避免他以为识别成功了
-      el.innerHTML = `⚠️ 词典里没有「${raw}」—— 会按原词交给各船司网站（可能查不到，建议用英文港名）`;
+      el.innerHTML = `⚠️ Not in dictionary: "${raw}" — sent as-is to each carrier (may return nothing; English port names recommended)`;
       el.className = 'porthint warn';
     } else {
       el.textContent = ''; el.className = 'porthint';
@@ -169,7 +169,7 @@ function renderPortHint(inputId, hintId) {
   const near = (m.p.near || []).map((x) => x.n).slice(0, 6);
   const loc = `${m.p.l}${m.p.c ? ' · ' + m.p.c : ''}`;
   const shortWarn = m.short
-    ? '<br><span class="near">⚠️ 这是短代码匹配 —— 如果不是这个港，请把港名写完整</span>'
+    ? '<br><span class="near">⚠️ Short-code match — if wrong, type the full port name</span>'
     : '';
   // 输入本身就是港名（归一化后相同）时，不要说"按常用名/缩写匹配" —— 完整地名被这么描述会显得名录不靠谱
   const sameAsName = pNorm(m.p.n) === pNorm(raw);
@@ -177,7 +177,7 @@ function renderPortHint(inputId, hintId) {
   const chipsHTML = (m.ambiguous && m.ambiguous.length >= 2)
     ? `<div class="ctryrow">` + m.ambiguous.map((p) =>
         `<button type="button" class="ctrypick${p.l === m.p.l ? ' on' : ''}" data-pick="${p.l}" ` +
-        `title="按 ${p.n}（${p.l}）查询">${p.c || '??'} · ${p.n}</button>`).join('') + `</div>`
+        `title="Querying as ${p.n} (${p.l})">${p.c || '??'} · ${p.n}</button>`).join('') + `</div>`
     : '';
   const bindChips = () => {
     el.querySelectorAll('.ctrypick').forEach((btn) => {
@@ -187,16 +187,16 @@ function renderPortHint(inputId, hintId) {
       });
     });
   };
-  const tail = near.length ? `<br><span class="near">同港区：${near.join(' / ')}</span>` : '';
-  const ambNote = chipsHTML ? `<br><span class="near">同名港还有 ${m.ambiguous.length - 1} 个（点一下可改）：</span>` : '';
+  const tail = near.length ? `<br><span class="near">Same area: ${near.join(' / ')}</span>` : '';
+  const ambNote = chipsHTML ? `<br><span class="near">${m.ambiguous.length - 1} more with the same name (click to change):</span>` : '';
   if (m.how === 'alias' && !sameAsName) {
-    el.innerHTML = `✅ 会按 <b>${m.p.n}</b> · ${loc} 查询　<span class="near">（按常用名「${raw}」识别）</span>` + tail + shortWarn + ambNote + chipsHTML;
+    el.innerHTML = `✅ Query as <b>${m.p.n}</b> · ${loc}　<span class="near">(matched common name "${raw}")</span>` + tail + shortWarn + ambNote + chipsHTML;
     el.className = 'porthint ok' + (m.short || chipsHTML ? ' warn' : '');
   } else if (m.how === 'alias' || m.how === 'exact') {
-    el.innerHTML = `✅ 会按 <b>${m.p.n}</b> · ${loc} 查询` + tail + ambNote + chipsHTML;
+    el.innerHTML = `✅ Query as <b>${m.p.n}</b> · ${loc}` + tail + ambNote + chipsHTML;
     el.className = 'porthint ok' + (chipsHTML ? ' warn' : '');
   } else {
-    el.innerHTML = `⚠️ 没有完全同名的港，按 <b>${m.p.n}</b> · ${loc} 查询　<span class="near">（如果不是它，请把港名写完整）</span>` + ambNote + chipsHTML;
+    el.innerHTML = `⚠️ No exact name match; query as <b>${m.p.n}</b> · ${loc}　<span class="near">(if not, type the full port name)</span>` + ambNote + chipsHTML;
     el.className = 'porthint warn';
   }
   if (chipsHTML) bindChips();
@@ -204,11 +204,11 @@ function renderPortHint(inputId, hintId) {
 
 // ---------- 状态文案 ----------
 const BADGE = {
-  pending:  { text: '待查询', cls: 'pending' },
-  running:  { text: '查询中…', cls: 'running' },
-  prefilled: { text: '已填表·无结构化结果', cls: 'fallback' },
-  done:     { text: '✓ 已查到', cls: 'ok' },
-  opened:   { text: '仅打开页面', cls: 'fallback' },
+  pending:  { text: 'Pending', cls: 'pending' },
+  running:  { text: 'Querying…', cls: 'running' },
+  prefilled: { text: 'Prefilled · no rows', cls: 'fallback' },
+  done:     { text: '✓ Found', cls: 'ok' },
+  opened:   { text: 'Page opened only', cls: 'fallback' },
   failed:   { text: '失败', cls: 'fail' },
 };
 
@@ -237,23 +237,23 @@ app.innerHTML = `
   <section class="formbar">
     <div class="field">
       <label>起运港</label>
-      <input id="origin" list="portsList" placeholder="例如 Ningbo / Shanghai / Qingdao" />
+      <input id="origin" list="portsList" placeholder="e.g. Ningbo / Shanghai / Qingdao" />
       <div id="originHint" class="porthint"></div>
     </div>
     <div class="field">
       <label>目的港</label>
-      <input id="destination" list="portsList" placeholder="例如 Istanbul / Rotterdam" />
+      <input id="destination" list="portsList" placeholder="e.g. Istanbul / Rotterdam" />
       <div id="destinationHint" class="porthint"></div>
     </div>
     <datalist id="portsList"></datalist>
     <div class="field"><label>日期（YYYY-MM-DD，留空 = 当天）</label><input id="date" placeholder="留空 = 用网站默认（通常当天）" /><div id="dateHint" class="porthint"></div></div>
-    <button id="btnGo" class="btn-primary">并发查询</button>
+    <button id="btnGo" class="btn-primary">Query</button>
     <button id="btnStop" class="btn-ghost" title="停止当前查询（已打开页面保留）">停止</button>
   </section>
 
   <section class="main">
     <aside class="carriers">
-      <div class="head">船司 <button id="selAll">全选/清空</button></div>
+      <div class="head">Carriers <button id="selAll">全选/清空</button></div>
       <div id="carrierList"></div>
     </aside>
     <section class="statuswrap">
@@ -326,7 +326,7 @@ function splitDate(v) {
 function fmtMD(v) { const t = splitDate(v); return t ? `${t.m}.${String(t.d).padStart(2, '0')}` : String(v || '?').slice(0, 10); }
 function fmtWD(v) { const t = splitDate(v); return t ? WD[new Date(t.y, t.m - 1, t.d).getDay()] : ''; }
 
-// 一条船期 = 时间轴中的一行；带 detail 时整行可点，展开看「航程 + 截单时间」（婉宜 9-30）
+// 一条船期 = 时间轴中的一行；带 detail 时整行可点，展开看「航程 + Cut-off times」（婉宜 9-30）
 // 开船日 → 可比较的时间戳（认不出就给 Infinity，排到最后但不报错）
 function etdKey(s) {
   const t = String(s || '').trim();
@@ -345,12 +345,12 @@ function etdKey(s) {
 function scheduleRowHTML(r, accent) {
   const q = lastQuery || { origin: '', destination: '' };
   const pill = r.direct
-    ? '<span class="pill direct">直达</span>'
+    ? '<span class="pill direct">Direct</span>'
     : `<span class="pill trans">转${r.via ? ' ' + r.via : ''}</span>`;
   const det = r.detail || null;
   const cuts = det ? Object.entries(det.cutoffs || {}) : [];
   const hasDet = !!(det && ((det.legs || []).length || cuts.length));
-  const row = `<div class="trow${hasDet ? ' clickable' : ''}"${hasDet ? ' title="点一下看航程与截单时间"' : ''}>
+  const row = `<div class="trow${hasDet ? ' clickable' : ''}"${hasDet ? ' title="点一下看航程与Cut-off times"' : ''}>
     <div class="when"><div class="md">${fmtMD(r.etd)}</div><div class="wd">${fmtWD(r.etd)}</div></div>
     <div class="rail"><span class="node"></span></div>
     <div class="body">
@@ -362,19 +362,19 @@ function scheduleRowHTML(r, accent) {
   return `<div class="trow-wrap${hasDet ? ' expandable' : ''}">${row}${hasDet ? `<div class="tdetail">${detailHTML(det)}</div>` : ''}</div>`;
 }
 
-// 详情体：上部航程（分段/码头/船信息/挂靠港），下部截单时间（官网原值，不做任何推断）
+// 详情体：上部航程（分段/码头/船信息/挂靠港），下部Cut-off times（官网原值，不做任何推断）
 function detailHTML(det) {
   const legs = (det.legs || []).map((l) => {
     const from = `${l.from || '?'}${l.fromTerminal ? ` <span class="term">${l.fromTerminal}</span>` : ''}`;
     const to = `${l.to || '?'}${l.toTerminal ? ` <span class="term">${l.toTerminal}</span>` : ''}`;
     // 船信息：不再带 service / CO₂（标题行已有，避免同一屏重复两次）
-    const ship = [l.vessel, l.imo ? `IMO ${l.imo}` : '', l.built ? `${l.built} 年造` : '', l.flag]
+    const ship = [l.vessel, l.imo ? `IMO ${l.imo}` : '', l.built ? `${l.built} built` : '', l.flag]
       .filter(Boolean).join(' · ');
     return `<div class="dleg">
       <div class="dline">${from} <span class="arw">→</span> ${to}</div>
-      <div class="dtimes">${l.etd || ''} → ${l.eta || ''}${(l.seq || 1) > 1 ? ` · 第 ${l.seq} 段` : ''}</div>
+      <div class="dtimes">${l.etd || ''} → ${l.eta || ''}${(l.seq || 1) > 1 ? ` · leg ${l.seq}` : ''}</div>
       ${ship ? `<div class="dvessel">${ship}</div>` : ''}
-      ${(l.calls || []).length ? `<div class="dcalls">挂靠：${l.calls.join(' · ')}</div>` : ''}
+      ${(l.calls || []).length ? `<div class="dcalls">Calls: ${l.calls.join(' · ')}</div>` : ''}
     </div>`;
   }).join('');
   const cutRows = Object.entries(det.cutoffs || {})
@@ -382,12 +382,12 @@ function detailHTML(det) {
   const head = ['航程', det.service, det.routing, det.co2 ? `CO₂ ${det.co2}` : ''].filter(Boolean).join(' · ');
   return `
     ${legs ? `<div class="dsec"><div class="dtitle">${head}</div><div class="dlegs">${legs}</div></div>` : ''}
-    ${cutRows ? `<div class="dsec"><div class="dtitle">截单时间<span class="dnote">（官网原值）</span></div><div class="dcuts">${cutRows}</div></div>` : ''}`;
+    ${cutRows ? `<div class="dsec"><div class="dtitle">Cut-off times<span class="dnote">(site values)</span></div><div class="dcuts">${cutRows}</div></div>` : ''}`;
 }
 function badgeFor(patch) {
   if (patch.status === 'done') {
     const n = (patch.schedules || []).length;
-    return patch.cached ? { text: `⚡ 缓存 ${n} 条`, cls: 'cache' } : { text: `✓ 已查到 ${n} 条`, cls: 'ok' };
+    return patch.cached ? { text: `⚡ cached ${n} 条`, cls: 'cache' } : { text: `✓ ${n} 条`, cls: 'ok' };
   }
   return BADGE[patch.status] || BADGE.pending;
 }
@@ -442,7 +442,7 @@ function setRow(carrierId, patch) {
     const box = existing || document.createElement('div');
     if (!existing) { box.className = 'cnone'; g.appendChild(box); }
     const q = lastQuery || { origin: '', destination: '' };
-    box.innerHTML = `<a href="#" class="wy-link" data-wy="1">🔍 维运网查「${q.origin} → ${q.destination}」</a>`;
+    box.innerHTML = `<a href="#" class="wy-link" data-wy="1">🔍 Weiyun: "${q.origin} → ${q.destination}"</a>`;
   } else if (existing) {
     existing.remove();
   }
@@ -481,7 +481,7 @@ function renderInitialStatus(selected) {
     g.className = 'cgroup';
     g.style.setProperty('--accent', accent);
     g.innerHTML = `
-      <div class="chead" role="button" tabindex="0" title="点这里折叠 / 展开这一家">
+      <div class="chead" role="button" tabindex="0" title="Click to collapse / expand this carrier">
         <span class="cbar" style="background:${accent}"></span>
         <span class="chev" aria-hidden="true"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M2 4.2 L6 8.2 L10 4.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         <span class="cname">${c.name}</span>
@@ -532,7 +532,7 @@ function collectQuery() {
     const dh = document.getElementById('dateHint');
     if (dh) {
       if (bad === 'date') {
-        dh.innerHTML = '⚠️ 日期要写真实存在的日期（YYYY-MM-DD），例：2026-10-12；留空 = 用网站默认当天';
+        dh.innerHTML = '⚠️ Use a real date (YYYY-MM-DD), e.g. 2026-10-12; leave empty = site default (today)';
         dh.className = 'porthint warn';
       } else { dh.textContent = ''; dh.className = 'porthint'; }
     }
@@ -543,7 +543,7 @@ function collectQuery() {
   if (dh0) { dh0.textContent = ''; dh0.className = 'porthint'; }
   ['origin', 'destination', 'date'].forEach((id) => document.getElementById(id).classList.remove('invalid'));
   const selected = [...listEl.querySelectorAll('input:checked')].map((b) => b.dataset.id);
-  if (!selected.length) { alert('至少勾选一家船司'); return null; }
+  if (!selected.length) { alert('Select at least one carrier'); return null; }
   return { origin, destination, date, selected };
 }
 
@@ -584,7 +584,7 @@ document.getElementById('btnGo').onclick = async () => {
     const alreadyStopping = !!pendingRestart;
     pendingRestart = q;
     const box = document.getElementById('summary');
-    if (box) box.textContent = '⏹ 正在停止上一次查询，随后自动开始新查询…';
+    if (box) box.textContent = '⏹ Stopping previous query, then starting the new one…';
     updateGoBtn();
     if (alreadyStopping) return;
     await invoke('stop_query', {}).catch(() => {});
@@ -605,7 +605,7 @@ function updateGoBtn() {
   const running = engineRunning || !!pendingRestart;
   // 运行中【不禁用】：再点一次 = 换条件重查（自动停掉旧的）。禁用会让人以为卡住了。
   btn.disabled = false;
-  btn.textContent = running ? '重新查询（先停当前）' : '并发查询';
+  btn.textContent = running ? 'Re-query (stops current)' : '并发查询';
   btn.classList.toggle('btn-restart', running);
   const stopBtn = document.getElementById('btnStop');
   if (stopBtn) stopBtn.disabled = !engineRunning && !pendingRestart;
@@ -709,7 +709,7 @@ async function listenEngineEvents() {
     } else if (ev.type === 'engine-error') {
       // 引擎崩了必须让爹地看见原因，而不是停在「未查询」（婉宜 9-23）
       const box = document.getElementById('summary');
-      if (box) box.textContent = '⚠️ 引擎出错：' + String(ev.msg || '').slice(0, 200);
+      if (box) box.textContent = '⚠️ Engine error: ' + String(ev.msg || '').slice(0, 200);
       setEngineDot('off');
       engineRunning = false;
       updateGoBtn();
@@ -748,8 +748,8 @@ async function listenEngineEvents() {
       if (!produced) {
         const tail = stderrTail.slice(-2).join(' ⏎ ');
         showEngineError(tail
-          ? `查询结束但没有任何结果　引擎输出：${tail.slice(0, 200)}`
-          : '查询结束但没有任何结果（点上方「诊断」查看 node / 引擎路径）');
+          ? `Query finished with no results. Engine output: ${tail.slice(0, 200)}`
+          : 'Query finished with no results (open Diagnostics above to check node/engine paths)');
       }
       renderDiagnostics();
     }
@@ -775,14 +775,14 @@ function refreshSummary() {
     else opened++;   // prefilled / opened 都算「没拿到结构化船期」
   }
   const parts = [];
-  if (done) parts.push(`✓ ${done} 家有船期`);
-  if (rows) parts.push(`${rows} 条船期`);
-  if (opened) parts.push(`${opened} 家待人工`);
-  if (failed) parts.push(`✕ ${failed} 家失败`);
-  if (running) parts.push(`⏳ ${running} 家查询中`);
-  if (pending) parts.push(`· ${pending} 家待查`);
+  if (done) parts.push(`✓ ${done} with schedules`);
+  if (rows) parts.push(`${rows} schedules`);
+  if (opened) parts.push(`${opened} need manual`);
+  if (failed) parts.push(`✕ ${failed} failed`);
+  if (running) parts.push(`⏳ ${running} querying`);
+  if (pending) parts.push(`· ${pending} pending`);
   const box = document.getElementById('summary');
-  if (box) box.textContent = `${groups.length} 家 · ` + parts.join('　');
+  if (box) box.textContent = `${groups.length} carriers · ` + parts.join('　');
 }
 
 document.getElementById('btnStop').onclick = async () => {

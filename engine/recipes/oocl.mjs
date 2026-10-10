@@ -127,7 +127,7 @@ export default {
 
     if (!rows.rows || !rows.rows.length) {
       const total = rows.n ? `Search Result: ${rows.n}（解析失败）` : '结果为空';
-      return { msg: `已填 ${oPicked.split(',')[0]} → ${dPicked.split(',')[0]} 并点搜索；${total}` };
+      return { msg: `Filled ${oPicked.split(',')[0]} → ${dPicked.split(',')[0]}, searched; ${total}` };
     }
     const MON = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
     // 年份推断：页面只给「10 Dec (Thu)」没有年份。原来写死「今年」，一旦窗口跨年
@@ -156,6 +156,6 @@ export default {
           : undefined,
       };
     }).sort((a, b) => (a.etd > b.etd ? 1 : -1));
-    return { status: 'done', schedules, msg: `已查到 ${schedules.length} 条：` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ${r.etd} → ${r.eta} ${r.transitDays}天`).join(' ｜ ') };
+    return { status: 'done', schedules, msg: `Found ${schedules.length} schedules: ` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ${r.etd} → ${r.eta} ${r.transitDays} days`).join(' | ') };
   },
 };

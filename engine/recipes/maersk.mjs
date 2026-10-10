@@ -63,8 +63,8 @@ export default {
       }
       return text;
     };
-    const mkMsg = (rows, how) => `${how}：${q.originText} → ${q.destText}` +
-      (rows.length ? `，${rows.length} 条：` + rows.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays}天`).join(' ｜ ') : '');
+    const mkMsg = (rows, how) => `${how}: ${q.originText} → ${q.destText}` +
+      (rows.length ? `, ${rows.length} schedules: ` + rows.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays} days`).join(' | ') : '');
 
     let resolved = null;   // 先声明（dWords 会用到）
     // ---- 港名写法序列（同一城市在马士基库里可能是不同条目：Tianjin vs Xingang(Tianjin)）----
@@ -102,7 +102,7 @@ export default {
         try { qr = await maerskQuery(page, resolved.o.geo, d.geo, earliest, latest); } catch { /* 下一候选 */ }
         if (!qr || qr.status !== 200 || !qr.routings || !qr.routings.length) { tried.push(`${d.rkst}:HTTP${qr ? qr.status : '?'}`); continue; }
         const rows = maerskRowsFromRoutings(qr.routings);
-        if (rows.length) return { msg: mkMsg(rows, `API 直取（${resolved.o.cityName} → ${d.cityName}）`), schedules: rows };
+        if (rows.length) return { msg: mkMsg(rows, `API (${resolved.o.cityName} → ${d.cityName})`), schedules: rows };
         tried.push(`${d.rkst}:0条`);
       }
 
@@ -117,7 +117,7 @@ export default {
         await page.goto(deep, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
         const text = await pollText();
         const rows = parseCards(text);
-        if (rows.length) return { msg: mkMsg(rows, `深链结果页（${resolved.o.cityName} → ${d.cityName}）`), schedules: rows };
+        if (rows.length) return { msg: mkMsg(rows, `Deep link (${resolved.o.cityName} → ${d.cityName})`), schedules: rows };
       }
     }
 
@@ -214,7 +214,7 @@ export default {
         if (!/no schedules available/i.test(text)) break;
       }
     }
-    if (rows.length) return { msg: mkMsg(rows, `表单搜索（兜底路径·${usedWord}）`), schedules: rows };
+    if (rows.length) return { msg: mkMsg(rows, `form search (fallback · ${usedWord})`), schedules: rows };
     if (/no schedules available/i.test(text)) throw new Error(`表单搜索：官网回「No schedules available」（已试写法 ${oWords.join('/')}）`);
     throw new Error(`搜索后未见结果回显（len=${text.length}）`);
   },

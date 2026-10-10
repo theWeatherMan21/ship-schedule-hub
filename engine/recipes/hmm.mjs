@@ -154,9 +154,9 @@ export default {
       for (const s of schedules) { if (!s.direct && !s.via) s.via = 'T/S'; }
     } catch { /* 抽取失败 → 保持 prefilled */ }
 
-    const msg = `已填 ${q.originText} → ${q.destText}，Search Results (${m[1]})` +
-      (schedules.length ? `：` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays}天${r.direct ? ' 直达' : ' 转' + r.via}`).join(' ｜ ') : '');
+    const msg = `Filled ${q.originText} → ${q.destText}, Search Results (${m[1]})` +
+      (schedules.length ? `: ` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays} days ${r.direct ? 'Direct' : 'via ' + r.via}`).join(' | ') : '');
     if (schedules.length) return { msg, schedules };
-    return { msg: `已填 ${q.originText} → ${q.destText}，Search Results (${m[1]})（结果页无结构化船期行）` };
+    return { msg: `Filled ${q.originText} → ${q.destText}, Search Results (${m[1]}) (no structured schedule rows)` };
   },
 };

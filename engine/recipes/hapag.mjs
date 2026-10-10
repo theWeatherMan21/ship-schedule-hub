@@ -66,6 +66,6 @@ export default {
     const btn = page.getByRole('button', { name: /^\s*search\s*$/i }).first();
     await btn.click({ timeout: 8000 }).catch(() => {});
     await H.sleep(4000);
-    return { msg: `已填 ${q.originText} → ${q.destText}${q.skipDate ? '（日期用网站默认）' : ''} 并点搜索` };
+    return { msg: `Filled ${q.originText} → ${q.destText}${q.skipDate ? ' (site default date)' : ''}, searched` };
   },
 };

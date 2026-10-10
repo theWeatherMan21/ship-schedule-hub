@@ -52,8 +52,8 @@ export default {
     const dLoc = String(q._d?.locode || '').toUpperCase();
     const iso = String(q.raw?.date || new Date().toISOString().slice(0, 10));
     const toIso = (s) => new Date(new Date(`${s}T00:00:00Z`).getTime() + 14 * 864e5).toISOString().slice(0, 10);
-    const mkMsg = (rows, how) => `${how}：${q.originText} → ${q.destText}` +
-      (rows.length ? `，${rows.length} 条：` + rows.slice(0, 3).map((r2) => `${r2.vessel} ${r2.voyage} ETD ${r2.etd} → ${r2.eta} ${r2.transitDays}天${r2.direct ? ' 直达' : ' 转' + r2.via}`).join(' ｜ ') : '（结果页无结构化船期行）');
+    const mkMsg = (rows, how) => `${how}: ${q.originText} → ${q.destText}` +
+      (rows.length ? `, ${rows.length} schedules: ` + rows.slice(0, 3).map((r2) => `${r2.vessel} ${r2.voyage} ETD ${r2.etd} → ${r2.eta} ${r2.transitDays} days ${r2.direct ? 'Direct' : 'via ' + r2.via}`).join(' | ') : '(no structured schedule rows)');
 
     // 站内船期 API（同域，页内 fetch；公开无鉴权）
     const fetchApi = (oc, dc) => page.evaluate(async ({ o, d, from, to }) => {
@@ -90,7 +90,7 @@ export default {
     // suggest 挂了也别停：退回词典 code/name
     const oP = pickPt(sug.o, oLoc, oWord) || (oLoc ? { code: oLoc, name: String(q._o?.name || oWord).toUpperCase() } : null);
     const dP = pickPt(sug.d, dLoc, dWord) || (dLoc ? { code: dLoc, name: String(q._d?.name || dWord).toUpperCase() } : null);
-    if (!oP || !dP) return { msg: `已打开 ONE 船期页（suggest 未命中：o=${JSON.stringify(sug.o).slice(0, 60)} d=${JSON.stringify(sug.d).slice(0, 60)}）` };
+    if (!oP || !dP) return { msg: `ONE schedule page opened (suggest miss: o=${JSON.stringify(sug.o).slice(0, 60)} d=${JSON.stringify(sug.d).slice(0, 60)})` };
 
     // ---- ③ 带名深链（只带 LOCODE 会停在壳页，必须带 oriLocNmParam/destLocNmParam）----
     const deep = 'https://www.one-line.com/one-ecom/schedule/point-to-point-schedule?' + new URLSearchParams({
@@ -137,8 +137,8 @@ export default {
     }
 
     const mT = text.match(/total (\d+) results?/i);
-    if (rows.length) return { msg: mkMsg(rows, `深链结果页${mT ? `（Total ${mT[1]} results）` : ''}`), schedules: rows };
+    if (rows.length) return { msg: mkMsg(rows, `deep link${mT ? ` (Total ${mT[1]} results)` : ''}`), schedules: rows };
     // 抽不到结果 = 保持兜底 prefilled（不抛未捕获异常；官网确实无结果时注明）
-    return { msg: `${mkMsg([], `深链结果页${mT ? `（Total ${mT[1]} results）` : ''}`)}${/no results? found/i.test(text) ? '｜官网回无结果' : ''}` };
+    return { msg: `${mkMsg([], `deep link${mT ? ` (Total ${mT[1]} results)` : ''}`)}${/no results? found/i.test(text) ? ' | no results per site' : ''}` };
   },
 };
