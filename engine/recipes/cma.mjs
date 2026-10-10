@@ -5,6 +5,8 @@
 //   候选有干扰组头（"Place names including…"）和几十个 Door 小地名，必须 LOCODE+Port 精确点行
 //   目的港 Istanbul 系实际集装箱港：istanbul, ambarli port e. side(TRAVC) Port（PORT-ALIASES 主表已记）
 // 已知边界：CMA 有 IP 级频率限制（连续高频全链会话后 ERR_CONNECTION_CLOSED/403 冷却），失败=开页兜底。
+// 2026-10-09：首页/搜索页被 DataDome 设备检查拦时（captcha-delivery.com 弹挑战），
+// 界面要如实说"被反爬拦"，别让它长成"查无结果"（爹地今天把 0 条误读成功能坏了）。
 export default {
   id: 'cma',
   name: 'CMA CGM 达飞',
@@ -18,6 +20,9 @@ export default {
     await H.dismissCookies(page);
     if (await H.isBlockPage(page)) await H.waitThroughChallenge(page, 12000);
     if (await H.isBlockPage(page)) throw new Error('403（profile 冷却或履历失效），仅开页兜底');
+    // ★ 10-09：DataDome 设备检查（captcha-delivery.com 的 interstitial）要如实说，别长成"查无结果"
+    const dd = await page.evaluate(() => /captcha-delivery|datadome/i.test(document.documentElement.innerHTML.slice(0, 6000))).catch(() => false);
+    if (dd) throw new Error('被 DataDome 人机验证拦住（非"无船期"）：有时段性，稍后重查或换时段就好');
 
     const box = page.getByRole('combobox', { name: /port, city, country name or code/i }).first();
     await box.waitFor({ state: 'visible', timeout: 20000 });
