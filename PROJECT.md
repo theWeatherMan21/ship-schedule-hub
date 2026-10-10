@@ -827,3 +827,12 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 - **qa/run-engine-isolated.sh** 修：显式 SSH_PROFILE_DIR 优先（原来永远覆盖成新档，导致调试全部失准）。
 - 自测工具新招：**带 App 档案的克隆**（cp -Rc 秒拷）跑调试 = 复现真 cookie 环境。
 - 终验 天津→阿什杜德：**7家出船 68 条**（ym 3/one 6/msc 7/maersk 9/zim 11/evergreen 20/oocl 12）；cma+hapag=IP 限（自愈）、cosco=站方无此线、hmm=拦（凉后自解）。
+
+## 10-10 零配额验证法（爹地：'有没有更聪明的办法验证，又不影响结果'）
+**旧法之弊**：跑航线验证=烧船司配额+伤 IP 声誉（当天达飞/Hapag 被拦的帮凶）。
+**新法三层**：
+1. **自证免验**：船司自己的词表/官方表直接采信（YM GetLocations、MSC 官方表、ZIM Locations）——不再逐条跑航线。
+2. **不抢占**：未自证候选（跨司推测）排在我们自家码**后面**，只作兜底 → 出船行为零改变。
+3. **验证随使用**：真实查询中赢家码自动记入 `DATA_DIR/learned-codes.json`，下次置顶。实测：降级青岛映射 → 跑查询 → 自动 [learn] yangming|CNQIN→CNTAO 并保持出 10 条。
+**信任分级**：source 含 直测/实测/官方表/官方词表 = verified（优先）；其余 = 兜底。迁移：48 条映射（YM 词表深挖 +9，ONE 兜底 +3）。
+另外：**MSC 的 ERR_CONNECTION_CLOSED 实为 Clash 节点死（香港01）**——切香港02 后 17 条正常。网络自愈走 clash 技能脚本 + 手动切节点（自动选择切换 HTTP 400 曾失败，手动 PUT 直接切成功）。

@@ -1,0 +1,272 @@
+{
+ "AEAUH": {
+  "name": "Abu Dhabi",
+  "ym": "",
+  "ymName": "",
+  "via": ""
+ },
+ "BEANR": {
+  "name": "Antwerpen",
+  "ym": "BEANR",
+  "ymName": "ANTWERPEN (BEANR)",
+  "via": "Antwerpen"
+ },
+ "CNDAL": {
+  "name": "Dalian",
+  "ym": "CNDLC",
+  "ymName": "DALIAN, LN (CNDLC)",
+  "via": "Dalian"
+ },
+ "CNDCB": {
+  "name": "DA CHAN BAY",
+  "ym": "",
+  "ymName": "",
+  "via": ""
+ },
+ "CNDGN": {
+  "name": "Donggang",
+  "ym": "",
+  "ymName": "",
+  "via": ""
+ },
+ "CNFZH": {
+  "name": "Fuzhou",
+  "ym": "CNFOC",
+  "ymName": "FUZHOU, FJ (CNFOC)",
+  "via": "Fuzhou"
+ },
+ "CNGZG": {
+  "name": "Guangzhou Pt",
+  "ym": "CNCAN",
+  "ymName": "GUANGZHOU, GD (CNCAN)",
+  "via": "Guangzhou"
+ },
+ "CNLYG": {
+  "name": "Lianyungang",
+  "ym": "CNLYG",
+  "ymName": "LIANYUNGANG, JS (CNLYG)",
+  "via": "Lianyungang"
+ },
+ "CNNGB": {
+  "name": "Ningbo",
+  "ym": "CNNGB",
+  "ymName": "NINGBO, ZJ (CNNGB)",
+  "via": "Ningbo"
+ },
+ "CNQIN": {
+  "name": "Qingdao",
+  "ym": "CNTAO",
+  "ymName": "QINGDAO, SD (CNTAO)",
+  "via": "Qingdao"
+ },
+ "CNQZH": {
+  "name": "Qinzhou",
+  "ym": "CNQZH",
+  "ymName": "QINZHOU, GX (CNQZH)",
+  "via": "Qinzhou"
+ },
+ "CNRZH": {
+  "name": "Rizhao",
+  "ym": "CNRZH",
+  "ymName": "RIZHAO, SD (CNRZH)",
+  "via": "Rizhao"
+ },
+ "CNSHG": {
+  "name": "Shanghai Pt",
+  "ym": "CNSHA",
+  "ymName": "SHANGHAI, SH (CNSHA)",
+  "via": "Shanghai"
+ },
+ "CNSHK": {
+  "name": "Shekou Pt",
+  "ym": "CNSHK",
+  "ymName": "SHEKOU, GD (CNSHK)",
+  "via": "Shekou"
+ },
+ "CNSNZ": {
+  "name": "Shenzhen",
+  "ym": "CNSZP",
+  "ymName": "SHENZHEN, GD (CNSZP)",
+  "via": "Shenzhen"
+ },
+ "CNTNJ": {
+  "name": "Tianjin",
+  "ym": "",
+  "ymName": "",
+  "via": ""
+ },
+ "CNXAM": {
+  "name": "Xiamen",
+  "ym": "CNXMN",
+  "ymName": "XIAMEN, FJ (CNXMN)",
+  "via": "Xiamen"
+ },
+ "CNYAT": {
+  "name": "Yantai",
+  "ym": "CNYNT",
+  "ymName": "YANTAI, SD (CNYNT)",
+  "via": "Yantai"
+ },
+ "CNYIK": {
+  "name": "Yinkou",
+  "ym": "CNYIK",
+  "ymName": "YINGKOU, LN (CNYIK)",
+  "via": "yingkou"
+ },
+ "DEBRV": {
+  "name": "Bremerhaven",
+  "ym": "DEBRV",
+  "ymName": "BREMERHAVEN (DEBRV)",
+  "via": "Bremerhaven"
+ },
+ "DEHAM": {
+  "name": "Hamburg",
+  "ym": "DEHAM",
+  "ymName": "HAMBURG (DEHAM)",
+  "via": "Hamburg"
+ },
+ "EGPSD": {
+  "name": "Port Said",
+  "ym": "EGPSD",
+  "ymName": "PORT SAID (EGPSD)",
+  "via": "Port Said"
+ },
+ "ESALG": {
+  "name": "Algeciras",
+  "ym": "ESALG",
+  "ymName": "ALGECIRAS (ESALG)",
+  "via": "Algeciras"
+ },
+ "ESVLC": {
+  "name": "Valencia",
+  "ym": "ESVLC",
+  "ymName": "VALENCIA (ESVLC)",
+  "via": "Valencia"
+ },
+ "GRPIR": {
+  "name": "Piraeus",
+  "ym": "GRPIR",
+  "ymName": "PIRAEUS (GRPIR)",
+  "via": "Piraeus"
+ },
+ "IDJKT": {
+  "name": "Jakarta, Java",
+  "ym": "",
+  "ymName": "",
+  "via": ""
+ },
+ "IDSUB": {
+  "name": "Surabaya",
+  "ym": "IDSUB",
+  "ymName": "SURABAYA (IDSUB)",
+  "via": "Surabaya"
+ },
+ "INMUN": {
+  "name": "Mundra",
+  "ym": "INMUN",
+  "ymName": "MUNDRA (INMUN)",
+  "via": "Mundra"
+ },
+ "INNSA": {
+  "name": "Nhava Sheva (Jawaharlal Nehru)",
+  "ym": "",
+  "ymName": "",
+  "via": ""
+ },
+ "JPTYO": {
+  "name": "Tokyo",
+  "ym": "JPTYO",
+  "ymName": "TOKYO (JPTYO)",
+  "via": "Tokyo"
+ },
+ "KRPUS": {
+  "name": "Busan",
+  "ym": "KRPUS",
+  "ymName": "PUSAN (KRPUS)",
+  "via": "pusan"
+ },
+ "MAPTM": {
+  "name": "Tanger Med",
+  "ym": "MATNG",
+  "ymName": "TANGIER (MATNG)",
+  "via": "tangier"
+ },
+ "MYPKG": {
+  "name": "Port Klang (Pelabuhan Klang)",
+  "ym": "",
+  "ymName": "",
+  "via": ""
+ },
+ "MYTPP": {
+  "name": "Tanjung Pelepas",
+  "ym": "",
+  "ymName": "",
+  "via": ""
+ },
+ "NLRTM": {
+  "name": "Rotterdam",
+  "ym": "NLRTM",
+  "ymName": "ROTTERDAM (NLRTM)",
+  "via": "Rotterdam"
+ },
+ "PAONX": {
+  "name": "Colon",
+  "ym": "PACFZ",
+  "ymName": "COLON FREE ZONE (PACFZ)",
+  "via": "Colon"
+ },
+ "PHMNL": {
+  "name": "Manila",
+  "ym": "PHMNN",
+  "ymName": "MANILA (NORTH HARBOUR) (PHMNN)",
+  "via": "Manila"
+ },
+ "SAJED": {
+  "name": "Jeddah",
+  "ym": "",
+  "ymName": "",
+  "via": ""
+ },
+ "SGSIN": {
+  "name": "Singapore",
+  "ym": "SGSIN",
+  "ymName": "SINGAPORE (SGSIN)",
+  "via": "Singapore"
+ },
+ "THLCH": {
+  "name": "Laem Chabang",
+  "ym": "THLCB",
+  "ymName": "LAEM CHABANG (THLCB)",
+  "via": "Laem Chabang"
+ },
+ "TWKHH": {
+  "name": "Kaohsiung",
+  "ym": "TWKHH",
+  "ymName": "KAOHSIUNG (TWKHH)",
+  "via": "Kaohsiung"
+ },
+ "USHOU": {
+  "name": "Houston",
+  "ym": "USHQN",
+  "ymName": "HOUSTON, MO (USHQN)",
+  "via": "Houston"
+ },
+ "USNYC": {
+  "name": "New York",
+  "ym": "USNYQ",
+  "ymName": "NEW YORK MILLS, MN (USNYQ)",
+  "via": "New York"
+ },
+ "USSAV": {
+  "name": "Savannah",
+  "ym": "USSAV",
+  "ymName": "SAVANNAH, GA (USSAV)",
+  "via": "Savannah"
+ },
+ "VNSGN": {
+  "name": "Ho Chi Minh City",
+  "ym": "VNIHV",
+  "ymName": "HO CHI MINH CITY(VICT) (VNIHV)",
+  "via": "Ho Chi Minh City"
+ }
+}

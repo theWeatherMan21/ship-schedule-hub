@@ -16,3 +16,4 @@ __pycache__/
 .venv/
 venv/
 engine/node-bin/
+.qa-data/

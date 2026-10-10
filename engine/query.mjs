@@ -221,6 +221,20 @@ function portVariants(resolved, raw) {
 //   MSC/ONE 的青岛是 CNTAO、联合国的 CNQIN 拿过去=0 条；ZIM 的汉堡是 GEHAM≠DEHAM。
 //   表 carrier_codes 存"船司自己的码"（种子全部有实测证据），取数时优先用它。
 let __carrierCodeCache = null;
+const __LEARNED_FILE = path.join((await import('./browser.mjs')).DATA_DIR, 'learned-codes.json');
+// ★ 10-10：把"真实出船验证过"的码写进学习档（下次该码置顶；零额外探测请求）
+function learnCarrierCode(carrier, unlocode, code) {
+  try {
+    if (!carrier || !unlocode || !code) return;
+    let j = {};
+    try { j = JSON.parse(fs.readFileSync(__LEARNED_FILE, 'utf8')) || {}; } catch { /* 首次 */ }
+    const k = carrier + '|' + unlocode;
+    if (j[k] === code) return;
+    j[k] = code;
+    fs.writeFileSync(__LEARNED_FILE, JSON.stringify(j, null, 1));
+    console.error('[learn] ' + k + ' → ' + code + '（已记入，下次优先）');
+  } catch (e) { console.error('[learn] 写入失败: ' + String(e).slice(0, 80)); }
+}
 export async function preloadCarrierCodes() {
   try {
     const { createRequire } = await import('node:module');
@@ -228,26 +242,41 @@ export async function preloadCarrierCodes() {
     const { DatabaseSync } = req('node:sqlite');
     const db = new DatabaseSync(path.join(ROOT_DIR, '../db/ports.db'), { readOnly: true });
     __carrierCodeCache = {};
-    for (const r of db.prepare('SELECT carrier, unlocode, their_code FROM carrier_codes').all()) {
-      __carrierCodeCache[r.carrier + '|' + r.unlocode] = r.their_code;
+    for (const r of db.prepare('SELECT carrier, unlocode, their_code, source FROM carrier_codes').all()) {
+      // ★ 10-10 信任分级（零配额验证法）：船司自己的表/实测 = verified（优先试）；
+      //   跨司推测 = 不抢占（排我们自家码后面，只在它失败时才兜底）
+      const src = String(r.source || '');
+      const verified = /直测|实测|官方表|官方词表/.test(src);
+      __carrierCodeCache[r.carrier + '|' + r.unlocode] = { code: r.their_code, verified, src };
     }
     db.close();
+    // ★ 10-10：运行期学习层——真实查询里证明能出船的码（零额外请求的"验证随使用"）
+    try {
+      const learned = JSON.parse(fs.readFileSync(__LEARNED_FILE, 'utf8')) || {};
+      let n2 = 0;
+      for (const [k, code] of Object.entries(learned)) {
+        if (k.includes('|') && code) { __carrierCodeCache[k] = { code, verified: true, src: 'learned' }; n2++; }
+      }
+      if (n2) console.error('[ports] 运行期学习码 ' + n2 + ' 条（已置顶）');
+    } catch { /* 无学习文件 = 正常 */ }
     console.error('[ports] 船司专属码头码 ' + Object.keys(__carrierCodeCache).length + ' 条已加载');
   } catch (e) { console.error('[ports] 码头码表加载失败: ' + String(e).slice(0, 80)); __carrierCodeCache = {}; }
 }
 function carrierCode(carrier, unlocode) {
-  if (!__carrierCodeCache) return '';
-  return __carrierCodeCache[carrier + '|' + unlocode] || '';
+  if (!__carrierCodeCache) return null;
+  return __carrierCodeCache[carrier + '|' + unlocode] || null;
 }
 await preloadCarrierCodes();   // ★ 10-09：船司专属码头码表（启动即加载，须在 let 定义之后）
 
 function portCodes(resolved) {
   const out = [];
+  let info = null;
   try {
-    const cc = resolved?.carrier && resolved?.locode ? carrierCode(resolved.carrier, resolved.locode) : '';
-    if (cc) out.push(cc);                                  // 船司自己的码最优先
+    info = resolved?.carrier && resolved?.locode ? carrierCode(resolved.carrier, resolved.locode) : null;
   } catch { /* 忽略 */ }
-  if (resolved?.locode && !out.includes(resolved.locode)) out.push(resolved.locode);
+  if (info && info.verified && info.code) out.push(info.code);          // ① 已自证的船司码：优先（省请求）
+  if (resolved?.locode && !out.includes(resolved.locode)) out.push(resolved.locode);   // ② 我们自家的码：常规
+  if (info && !info.verified && info.code && !out.includes(info.code)) out.push(info.code);   // ③ 未自证候选：不抢占，只兜底
   for (const sib of siblingPorts(resolved, 4)) if (sib.locode && !out.includes(sib.locode)) out.push(sib.locode);
   return out;
 }
@@ -562,7 +591,13 @@ const portResolutions = await Promise.all(selected.map(async (c) => {
 // 并发打 fastpath（互不依赖；每家有超时保护，总耗时≈最慢一家）
 await Promise.all(portResolutions.map(async ({ c, o, d }) => {
   o.carrier = c.id; d.carrier = c.id;   // ★ 10-09：供 portCodes 查船司专属码头码（阳明/ONE 的青岛=CNTAO）
-  const fr = await tryFastPath(c.id, portCodes(o), portCodes(d), isoDate);   // 传同组港码（天津 CNTNJ/CNTXG）
+  const oCodes = portCodes(o), dCodes = portCodes(d);
+  const fr = await tryFastPath(c.id, oCodes, dCodes, isoDate);   // 传同组港码（天津 CNTNJ/CNTXG）
+  // ★ 10-10：验证随使用——出船用的若不是第一候选，把赢家记入学习档（下次优先；零额外探测）
+  if (fr && fr.rows && fr.rows.length) {
+    if (fr.usedO && fr.usedO !== oCodes[0] && fr.usedO !== o.locode) learnCarrierCode(c.id, o.locode, fr.usedO);
+    if (fr.usedD && fr.usedD !== dCodes[0] && fr.usedD !== d.locode) learnCarrierCode(c.id, d.locode, fr.usedD);
+  }
   if (fr && fr.apiEmpty && !(fr.rows || []).length) {
     // 接口明确无此线 → 页面兜底只给"确认一下"的时间，不陪着死等（省爹地的时间）
     apiEmptyHint[c.id] = true;
