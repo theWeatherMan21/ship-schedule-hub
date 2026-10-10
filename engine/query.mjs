@@ -221,6 +221,7 @@ function portVariants(resolved, raw) {
 //   MSC/ONE 的青岛是 CNTAO、联合国的 CNQIN 拿过去=0 条；ZIM 的汉堡是 GEHAM≠DEHAM。
 //   表 carrier_codes 存"船司自己的码"（种子全部有实测证据），取数时优先用它。
 let __carrierCodeCache = null;
+let __portCodeAliases = {};
 const __LEARNED_FILE = path.join((await import('./browser.mjs')).DATA_DIR, 'learned-codes.json');
 // ★ 10-10：把"真实出船验证过"的码写进学习档（下次该码置顶；零额外探测请求）
 function learnCarrierCode(carrier, unlocode, code) {
@@ -249,6 +250,18 @@ export async function preloadCarrierCodes() {
       const verified = /直测|实测|官方表|官方词表/.test(src);
       __carrierCodeCache[r.carrier + '|' + r.unlocode] = { code: r.their_code, verified, src };
     }
+    // ★ 10-10：码形态别名（识别用 aka 里长得像 LOCODE 的，如 cntao/cnsnh/cnxmn）→ 候选表扩展
+    //   ⚠️ 必须在 db.close() 之前查询——首版放错位置（关库后查询）被 catch 静默吞掉（张无忌的教训：空结果先怀疑管道）
+    try {
+      __portCodeAliases = {};
+      for (const r of db.prepare("SELECT alias, locode FROM aliases WHERE alias GLOB '[a-zA-Z][a-zA-Z][a-zA-Z0-9][a-zA-Z0-9][a-zA-Z0-9]'").all()) {
+        const code = String(r.alias || '').toUpperCase();
+        if (!/^[A-Z]{2}[A-Z0-9]{3}$/.test(code)) continue;
+        (__portCodeAliases[r.locode] = __portCodeAliases[r.locode] || []).push(code);
+      }
+      const nAlias = Object.values(__portCodeAliases).reduce((a, l) => a + l.length, 0);
+      console.error('[ports] 码形态别名 ' + nAlias + ' 条（' + Object.keys(__portCodeAliases).length + ' 港）已加载');
+    } catch { __portCodeAliases = {}; }
     db.close();
     // ★ 10-10：运行期学习层——真实查询里证明能出船的码（零额外请求的"验证随使用"）
     try {
@@ -277,6 +290,12 @@ function portCodes(resolved) {
   if (info && info.verified && info.code) out.push(info.code);          // ① 已自证的船司码：优先（省请求）
   if (resolved?.locode && !out.includes(resolved.locode)) out.push(resolved.locode);   // ② 我们自家的码：常规
   if (info && !info.verified && info.code && !out.includes(info.code)) out.push(info.code);   // ③ 未自证候选：不抢占，只兜底
+  // ★ 10-10：已知的"码形态别名"（cntao→CNQIN、cnsnh→CNSHG、cnxmn→CNXAM…）也进候选表——
+  //   船司页面上的候选码常是这族（如长荣页面写 [CNXMN]，拿 CNXAM 匹配全灭 → "候选未出"）。
+  try {
+    const aliasCodes = resolved?.locode ? __portCodeAliases[resolved.locode] : null;
+    for (const c of aliasCodes || []) if (!out.includes(c)) out.push(c);
+  } catch { /* 忽略 */ }
   for (const sib of siblingPorts(resolved, 4)) if (sib.locode && !out.includes(sib.locode)) out.push(sib.locode);
   return out;
 }
@@ -394,13 +413,14 @@ export async function runCarrier(ctx, carrier) {
       try {
         // 同组港码兜底（爹地 10-09 点透）：船司接口认的是**码头码**，天津 = CNTNJ（市）/ CNTXG（新港）。
         // 主码空手就换同组码再试 —— MSC 实测：递 CNTNJ 无结果、递 CNTXG 出 7 条。
-        const oCodes = portCodes(oRes).slice(0, 2);
-        const dCodes = portCodes(dRes).slice(0, 2);
+        const oCodes = portCodes(oRes).slice(0, 3);   // ★ 10-10：与 fastpath 对称（含未自证兜底候选）
+        const dCodes = portCodes(dRes).slice(0, 3);
         let fp = null;
         outer:
         for (const oc of oCodes) {
           for (const dc of dCodes) {
             const r = await withTimeout(inPageApi(page, oc, dc, isoDate), 90000, 'inpage api').catch(() => null);
+            if (r && r.noService) { fp = r; break outer; }   // ★ 10-10：接口明确无此线 → 不再耗页面兜底
             if (r && r.rows && r.rows.length) {
               const same = oc === oCodes[0] && dc === dCodes[0];
               fp = same ? r : { ...r, note: `${r.note} (sibling port code ${oc}→${dc})` };
@@ -416,6 +436,15 @@ export async function runCarrier(ctx, carrier) {
           res.fastpath = true;
           res.ms = Date.now() - t0;
           emitCarrier(carrier.id, 'done', { name: carrier.name, level: 1, msg: res.msg, url: res.url, ms: res.ms, schedules: fp.rows, fastpath: true });
+          return res;
+        }
+        if (fp && fp.noService) {
+          res.status = 'prefilled';
+          res.level = 3;
+          res.msg = 'No service on this route (site API confirmed)';
+          res.ms = Date.now() - t0;
+          res.fastpath = true;   // ★ 10-10：已 emit（finally 别再发一条，防重复）
+          emitCarrier(carrier.id, 'prefilled', { name: carrier.name, level: 3, msg: res.msg, url: res.url, ms: res.ms, schedules: [] });
           return res;
         }
       } catch { /* 走原填表路径 */ }

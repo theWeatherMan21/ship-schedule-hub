@@ -12,7 +12,7 @@ export default {
   entry: 'https://www.hmm21.com/e-service/general/schedule/ScheduleMain.do',
   urls: ['https://www.hmm21.com/e-service/general/schedule/ScheduleMain.do', 'https://www.hmm21.com/'],
   fallbackNote: 'HMM e-service 被拦/候选未出时仅打开页面',
-  timeoutMs: 60000,
+  timeoutMs: 80000,   // ★ 10-10：候选循环缩肥后仍留裕量（原 60s 在慢线必爆）
   async run(page, q, H) {
     await H.dismissCookies(page);
     if (await H.isBlockPage(page)) await H.waitThroughChallenge(page, 12000);
@@ -45,9 +45,9 @@ export default {
       const wantU = wantList[0] || '';
       const readCode = () => page.evaluate((id) => document.getElementById(id)?.value || '', codeId).catch(() => '');
       let picked = null;
-      for (let attempt = 0; attempt < 3 && !picked; attempt++) {
-        for (let i = 0; i < 18; i++) {
-          await H.sleep(900);
+      for (let attempt = 0; attempt < 2 && !picked; attempt++) {
+        for (let i = 0; i < 12; i++) {
+          await H.sleep(750);
           let loc = null;
           let nameMode = false;
           for (const c of wantList) {   // 同组港口码都认（天津可能被写成 CNTXG/Tianjin Xingang）
@@ -120,8 +120,8 @@ export default {
     await page.evaluate(() => { const b = document.getElementById('btnRetrieve'); if (b) b.click(); }).catch(() => {});
     // 等结果：Search Results (N) 出现（XHR 渲染，无整页跳转——9-24 实测）
     let text = '';
-    for (let i = 0; i < 16; i++) {
-      await H.sleep(2500);
+    for (let i = 0; i < 12; i++) {
+      await H.sleep(2000);
       text = await page.evaluate(() => document.body?.innerText || '').catch(() => '');
       if (process.env.SSH_DUMP_DOM === 'hmm') { try { (await import('node:fs')).writeFileSync('/tmp/dom-hmm.txt', text); console.error('[hmm] DOM 已写'); } catch {} }
       if (/search results \(\d+\)/i.test(text)) break;

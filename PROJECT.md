@@ -836,3 +836,13 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 3. **验证随使用**：真实查询中赢家码自动记入 `DATA_DIR/learned-codes.json`，下次置顶。实测：降级青岛映射 → 跑查询 → 自动 [learn] yangming|CNQIN→CNTAO 并保持出 10 条。
 **信任分级**：source 含 直测/实测/官方表/官方词表 = verified（优先）；其余 = 兜底。迁移：48 条映射（YM 词表深挖 +9，ONE 兜底 +3）。
 另外：**MSC 的 ERR_CONNECTION_CLOSED 实为 Clash 节点死（香港01）**——切香港02 后 17 条正常。网络自愈走 clash 技能脚本 + 手动切节点（自动选择切换 HTTP 400 曾失败，手动 PUT 直接切成功）。
+
+## 10-10 三批修复（"万无一失"大排查：5航线×11家=55格）
+**第一轮**（长荣-厦门/以星-上海/厦门/HMM-青岛/厦门/COSCO-天津）：8 个稳定复现问题，全部修复并单科验证：
+- **码形态别名注入候选表**（机制级修复）：识别用 aka（cntao/cnsnh/cnxmn/cnxia/cnxng…311 条/300 港）自动进 portCodes 候选 → 长荣 [CNXMN]、Hapag CNTAO/CNXMN、HMM CNTAO 匹配全通。首版 bug：别名查询放在了 db.close() 之后被静默吞 → 挪到关库前。
+- **ZIM**：名字变体兜底（"Shanghai Pt"→"Shanghai"）；上海=CNSNH;10、厦门=CNXIA;10、天津=CNXNG;10（实测）；NLRTM 双向 Bad Request=不卖（如实报 "No service (site API confirmed)"，不再傻等 DOM）；noService 路径补 fastpath 护栏防重复 emit。
+- **HMM**：候选循环缩肥（3×18×900ms→2×12×750ms）+ 结果等待 40s→24s + timeout 60→80s（原来最坏 48s×2 场必爆）。
+- **COSCO**：天津必须用 'xingang'（'tianjin' 前缀返回 CNTKX/CNTED 干扰项 → 单选必错 → No Data）；实测 天津→阿什杜德 31 条（修前 No Data）。
+- **验证结果**：zim 上海→汉堡 8 ✓/上海→鹿特丹如实无服务 ✓/厦门→汉堡 12 ✓；HMM 青岛→格但斯克 8 ✓/厦门→鹿特丹 8 ✓；长荣 厦门→鹿特丹 20 ✓；COSCO 天津→阿什杜德 31 ✓；Hapag 青岛→格但斯克 12 ✓/厦门→鹿特丹 12 ✓。
+- **达飞**：DataDome 仍按 IP 拦（网络层，非代码）——消息如实。**阳明 青岛→格但斯克 = 真无服务**（三码实测皆 0）。
+- 教训：**同一个 browser-profile 克隆不能并发跑两个测试**（互相踩，报 "browser has been closed"）。

@@ -557,7 +557,7 @@ export async function coscoInPage(page, originLocode, destLocode, isoDate, oName
       const geo = async (kw) => (await (await fetch('/ebbase/public/general/findCityDistrictByPrefix?prefix=' + kw, { headers: { accept: 'application/json' } })).json()).data.content;
       // COSCO 用自己的 LOCODE 体系（Ningbo=CNNBO）：拿全部候选，按后缀匹配
       // COSCO 的 geo 接口只认城市名前缀（不认 LOCODE）；常用中国港口映射，其他用 LOCODE 后 3 位城市名兜底
-      const CITY = { CNNGB: 'ningbo', CNNBO: 'ningbo', CNSHA: 'shanghai', CNTAO: 'qingdao', CNSZX: 'shenzhen', CNSHK: 'shekou', CNYTN: 'yantian', CNNSA: 'nansha', CNNNP: 'nansha', CNTXG: 'tianjin', CNXMN: 'xiamen', CNDLC: 'dalian', TRIST: 'istanbul', NLRTM: 'rotterdam', TRAMR: 'ambarli' };
+      const CITY = { CNNGB: 'ningbo', CNNBO: 'ningbo', CNSHA: 'shanghai', CNTAO: 'qingdao', CNSZX: 'shenzhen', CNSHK: 'shekou', CNYTN: 'yantian', CNNSA: 'nansha', CNNNP: 'nansha', CNTXG: 'xingang', CNTNJ: 'xingang', CNTNG: 'xingang', CNXMN: 'xiamen', CNDLC: 'dalian', TRIST: 'istanbul', NLRTM: 'rotterdam', TRAMR: 'ambarli' };   // ★ 10-10：天津用 'xingang'（'tianjin' 前缀返回一堆干扰项 CNTKX/CNTED…，单选必错）
       // 9-30：locode 无映射时优先用权威港名（如 PLGDN→"Gdansk"），再退 LOCODE 后 3 位 —— 避免 'gdn' 这类无效前缀
       const kw = (locode, name) => CITY[String(locode || '').toUpperCase()] || (name && String(name).toLowerCase()) || String(locode || '').slice(2).toLowerCase();
       const oList = (await geo(kw(fromLocode, oName0))) || [];
@@ -704,7 +704,18 @@ export async function zimInPage(page, originLocode, destLocode, isoDate, originN
       const resolve2 = async (term, name) => {
         const a = await resolve(term);
         if (a) return a;
-        if (name && String(name).toLowerCase() !== String(term).toLowerCase()) return await resolve(name);
+        // ★ 10-10：名字变体兜底 —— "Shanghai Pt"/"Qingdao Pt" 这类带后缀的名字查不到；
+        //   去后缀/取首词再试（实测 "shanghai" → CNSNH;10 ✓）。名字是通用语言。
+        const cands = [];
+        if (name) {
+          const n = String(name).trim();
+          cands.push(n, n.replace(/\s*(pt|port|terminal|new\s*port)\.?\s*$/i, '').trim(), n.split(/[\s,(]+/)[0]);
+        }
+        for (const c of cands) {
+          if (!c || String(c).toLowerCase() === String(term).toLowerCase()) continue;
+          const hit = await resolve(c);
+          if (hit) return hit;
+        }
         return null;
       };
       const oo = await resolve2(o, oName);
@@ -722,9 +733,15 @@ export async function zimInPage(page, originLocode, destLocode, isoDate, originN
       let j = await ask(12);
       if (!j || !Array.isArray(j.midPoints) || !j.midPoints.length) j = await ask(6);
       if (!j) return { error: '接口无响应' };
+      // ★ 10-10：站点明确"不卖这条线"（Bad Request，双向各种码都验过）→ 如实上报，别让上层死等页面兜底
+      if (!j.midPoints || !j.midPoints.length) {
+        if (j && j.isSuccess === false && /bad request/i.test(String(j.message || ''))) return { noService: true, from: oo, to: dd };
+        return { from: oo, to: dd, midPoints: [], isSuccess: j.isSuccess };
+      }
       return { from: oo, to: dd, midPoints: j.midPoints || [], isSuccess: j.isSuccess };
     } catch (e) { return { error: String(e).slice(0, 120) }; }
   }, { o: originLocode, d: destLocode, oName: originName || '', dName: destName || '', from: `${win.start.slice(6, 8)}-${ZIM_MONTHS[+win.start.slice(4, 6) - 1]}-${win.start.slice(0, 4)}` }).catch(() => null);
+  if (r && r.noService) return { noService: true, note: 'No service (ZIM API)' };   // ★ 10-10 直传上层
   if (!r || r.error || !Array.isArray(r.midPoints) || !r.midPoints.length) return null;
   const sea = (legs) => legs.filter((x) => !x.isLandTrans);
   const rows = r.midPoints.slice(0, 12).map((legs) => {
