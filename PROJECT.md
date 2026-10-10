@@ -810,3 +810,12 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 **真相**：联合国 2025 新码表把 CNSHA/CNTAO/CNNGB/CNXMN 归为「机场」，港口用新码（CNSHG/CNQDG/CNNBG/CNXMG…）；**但全行业（船司系统、订舱、提单惯例）走老码** ✗。我们词典 = 联合国口径 → 拿新码直发船司 = 静默"无服务" ✗。
 **实测矩阵**（ONE 直测）：上海 CNSHG=21/CNSHA=5/CNSGH=0 ✗；宁波 CNNGB=18/CNNBG=0 ✗；青岛 CNTAO=11/CNQIN=0 ✗；天津 CNTXG=12/CNTNJ=0 ✗；深圳 CNSZX=17/CNSZP=0 ✗；厦门 CNXMN=14/CNXMG=0 ✗；南沙 CNNSA=21 ✓；盐田 CNYTN ✓。MSC 官方表同口径（QINGDAO→CNTAO、SHANGHAI→CNSHA…19 条自动映射入库）。
 **修法**：① carrier_codes 映射表（msc 全量自动 + one/ym 实测；船司码最优先取数）② MSC/适配器港名兜底 ③ 显示层 display-codes.json（界面显示行业码 CNTAO，内部保持双轨）④ 老码输入识别（cntao/cnsha/cnszx/cnxmn/cndlc → 正常解析）。**待办**：阳明限流冷却后补测其余港。
+
+## 10-10 外部调研（Exa）——「有没有人做过类似工具」
+**结论：没有现成的可直接借的同类。** 存在的都差一层：
+- `neckchi/schedulehub`（Go，聚合13家船司 API）——架构最像，**但仓库已不可见/私有**，且它走的是船司官方合作 API（要密钥）；只能当参照系。
+- 单家 scraper 类：`Quang7hong81/shipping-data`（MSC 站内 API + Maersk + Routescanner，GPL）——MSC 方法与我们同源（现在比它多 dataSourceId+页面上下文）；Routescanner 聚合站可作为未来兜底源备选。
+- CSDN 实践者（Makasa）：COSCO/ZIM/MSK/MSC/ONE/PIL 都通了，**OOCL/CMA/HPL 加密破不了** —— 与我们撞同一堵墙（旁证：这三家就是行业公认的硬骨头）。
+- MCP 商业服务（trackingmcp/schedulesmcp 等）：托管收费，无源码；可作对拍基准。
+- **官方旁路**：中远 Open API（cop-cos/COP，免费试运行，1000次/天）；DCSA T&T 标准（9 家船司成员，正式接口）；Routescanner（聚合平台）。
+**真正抄到的**：`data/smdg-terminal-codes.csv` —— SMDG（UN/CEFACT 官方子名单）码头终端代码表：UNLOCODE ↔ Alternative UNLOCODE（官方认定 CNQIN↔CNQDG、CNSGH↔CNSHG、CNTNJ↔CNTXG、CNXAM↔CNXMG）+ 每个码头的终端代码/运营公司/坐标。用途：终端级后续功能 + 码表核对。
