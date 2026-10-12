@@ -40,7 +40,7 @@ export const CARRIERS = [
     // 181 系列 = MSC 订舱/参考号（无 SCAC 前缀）。实证（2026-10-10 批次 + 10-12 live 复核）：
     // 181AS0266823514M1 经 MSC 查询成功（SHEKOU→ISTANBUL, MSC METTE）；181AY… 同族归入本规则。
     booking: [{ re: /^181[A-Z]{2}[A-Z0-9]{5,}$/, label: '181 系列（MSC 订舱/参考号，真单实证）', score: 0.6 }],
-    tracking: 'planned',
+    tracking: 'live',
   },
   {
     id: 'hapag', name: '赫伯罗特 Hapag-Lloyd',
@@ -55,14 +55,14 @@ export const CARRIERS = [
     container: ['CSNU', 'CBHU', 'CCLU', 'CSLU'],
     // 10 位纯数字 = COSCO BL/订舱形态（官网例 5051645160）。多义（OOCL 同形）→ 只作候选，不自动。
     booking: [{ re: /^\d{10}$/, label: '10 位纯数字（COSCO BL/订舱形态）', score: 0.5 }],
-    tracking: 'planned',
+    tracking: 'live',
   },
   {
     id: 'hmm', name: '现代商船 HMM',
     scac: ['HDMU', 'HMMU'],
     container: ['HDMU', 'HMMU'],
     booking: [],
-    tracking: 'planned',
+    tracking: 'live',
   },
   {
     id: 'one', name: '海洋网联 ONE',
@@ -75,7 +75,7 @@ export const CARRIERS = [
       { re: /^[A-Z]{3}\d{9}$/, label: '3 字母 + 9 位数字（ONE BL 后 12 位形态）', score: 0.6 },
       { re: /^[A-Z]{4}\d{8}$/, label: '4 字母 + 8 位数字（ONE BL / 订舱号形态）', score: 0.6 },
     ],
-    tracking: 'planned',
+    tracking: 'live',
   },
   {
     id: 'zim', name: '以星 ZIM',
@@ -83,7 +83,7 @@ export const CARRIERS = [
     container: ['ZIMU', 'ZCSU', 'ZMOU'],
     // Terminal49：ZIM 订舱/预订号形如 M0123456（M + 数字）。
     booking: [{ re: /^M\d{7,}$/, label: 'M + 数字（ZIM 订舱/预订号形态）', score: 0.3 }],
-    tracking: 'planned',
+    tracking: 'live',
   },
   {
     id: 'cma', name: '达飞 CMA CGM',

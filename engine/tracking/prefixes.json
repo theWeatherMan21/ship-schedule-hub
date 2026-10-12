@@ -44,7 +44,7 @@
     "MSYU",
     "GTIU"
    ],
-   "tracking": "planned",
+   "tracking": "live",
    "booking": [
     {
      "label": "181 系列（MSC 订舱/参考号，真单实证）",
@@ -92,7 +92,7 @@
     "CCLU",
     "CSLU"
    ],
-   "tracking": "planned",
+   "tracking": "live",
    "booking": [
     {
      "label": "10 位纯数字（COSCO BL/订舱形态）",
@@ -112,7 +112,7 @@
     "HDMU",
     "HMMU"
    ],
-   "tracking": "planned",
+   "tracking": "live",
    "booking": []
   },
   {
@@ -129,7 +129,7 @@
     "KKTU",
     "KLFU"
    ],
-   "tracking": "planned",
+   "tracking": "live",
    "booking": [
     {
      "label": "3 字母 + 9 位数字（ONE BL 后 12 位形态）",
@@ -154,7 +154,7 @@
     "ZCSU",
     "ZMOU"
    ],
-   "tracking": "planned",
+   "tracking": "live",
    "booking": [
     {
      "label": "M + 数字（ZIM 订舱/预订号形态）",
