@@ -13,7 +13,7 @@ import { launch, launchHeadedQuiet, quietWindow, windowBounds, openPage, jitterG
 import { CARRIERS, byId } from './registry.mjs';
 import { emit, emitCarrier } from './lib/events.mjs';
 import { dateFormats } from './lib/utils.mjs';
-import { dismissCookies, isBlockPage, waitThroughChallenge, pickOption, portPick, typeAndPickCandidate } from './lib/utils.mjs';
+import { dismissCookies, isBlockPage, waitThroughChallenge, pickOption, portPick, typeAndPickCandidate, clearDataDomeCookies } from './lib/utils.mjs';
 import { withTimeout, setValue, setInputByValueShape, clickByText, fillAutocomplete } from './lib/dom.mjs';
 import { resolvePort } from './lib/portsolve.mjs';
 import { siblingPorts } from './portdb.mjs';
@@ -365,14 +365,32 @@ export async function runCarrier(ctx, carrier) {
     });
     res.ports = { origin: { word: origin, text: oRes.text, locode: oRes.locode || '', source: oRes.source }, dest: { word: destination, text: dRes.text, locode: dRes.locode || '', source: dRes.source } };
     // ① 尝试候选入口（深链接：本项目实测均不支持，故退化为「找到能打开的那个入口」）
-    for (const cand of carrier.urls) {
-      if (page && !reusePage) { await Promise.race([page.close(), sleep(3000)]).catch(() => {}); }
+    // ★ 10-10 达飞 DataDome 收尾（见 utils.clearDataDomeCookies 注释）：
+    //   达飞的 profile 里一旦存了「挑战态」datadome cookie 就自锁 —— 每次都 403 挑战页，
+    //   profile 永远不会自愈（这就是「从早到晚 0 条」的根因）。作废它再访 = 干净首访，实测 3/3 全 200。
+    //   只对达飞生效，其余 11 家零影响。
+    const isDD = carrier.id === 'cma';
+    const ddClear = () => clearDataDomeCookies(ctx, carrier.urls).catch(() => 0);
+    if (isDD) await ddClear();
+    let ddRetried = false;
+    const openOnce = async (cand) => {
       const opened = await openPage(ctx, cand, { reuse: reusePage });
       page = opened.page;
       status = opened.status || status;
       lastErr = opened.error || null;
       await sleep(2500); // JS 壳页（COSCO/ONE）domcontentloaded 后 body 为空，直接判 block 会误拦；等渲染
       blocked = await isBlockPage(page);
+      return opened;
+    };
+    for (const cand of carrier.urls) {
+      if (page && !reusePage) { await Promise.race([page.close(), sleep(3000)]).catch(() => {}); }
+      const opened = await openOnce(cand);
+      // 达飞兜底：清过 cookie 仍被挑战 → 再清一次、原入口重开一次（最多一次，别把频率堆上去）
+      if (blocked && isDD && !ddRetried) {
+        ddRetried = true;
+        await ddClear();
+        await openOnce(cand);
+      }
       if (!blocked && !opened.error) break;
     }
     res.httpStatus = status;

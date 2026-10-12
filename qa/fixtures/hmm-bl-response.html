@@ -1,0 +1,1026 @@
+<div class="tab-outer" id="trackingInfomationDateResultTable" style="margin-top: 0px">
+					<!-- hidden value -->
+					
+						<input type="hidden" id="searchType" value="" />
+						<input type="hidden" id="searchNumber" value="" />
+						<input type="hidden" id="ntnCd" value="" />
+
+						<input type="hidden" id="thisBl" value="SHAF36562700" />
+						<input type="hidden" id="thisCntr" value="CAIU9965351" />
+						<input type="hidden" id="thisBkg" value="SHAF36562700" />
+						<input type="hidden" id="thisBlType" value="Surrender" />
+						<input type="hidden" id="thisOblSrndFlg" value="Y" />
+						<input type="hidden" id="thisBlIssCfmFlg" value="Y" />
+						<input type="hidden" id="thisBlTpCd" value="O" />
+					
+					
+						<div class="tab-inner progressbar">
+							<div class="tab-title-wrap">
+								<div class="tab-title">Shipment Progress</div>
+								<input type="hidden" id="loginFg" value="" />
+								<div class="btn-wrap" id="trckRslBtn">
+									<button type="button" class="btn line medium clsAllowAny" onclick="openTrackMap(&quot;SHAF36562700&quot;, &quot;CAIU9965351&quot;)">See Map</button>
+									<button type="button" class="btn line medium" onclick="openLayerPopup('popup_Rollover_Alert')">Rollover Alert</button>
+									<button type="button" class="btn line medium" onclick="getAuthFlg('BC')">B/L Copy</button>
+									<button type="button" class="btn line medium" onclick="getAuthFlg('AN')">Arrival Notice</button>
+									<button type="button" class="btn line medium" onclick="viewDEMDET()">DEM/DET</button>
+								</div>
+							</div>
+							<!--HP-4260-->
+							<div class="tab-title-wrap" id="cntrFleetStatusArea" style="display: none; position: absolute; padding-top: 10px">
+								
+									<button class="btn status greenline" style="cursor: default">HMM&#39;s Fleet</button>
+								
+							</div>
+							<div class="tab-cont-wrap">
+								<div class="route-wrap">
+									<div class="location">
+										<div>SHANGHAI,CHINA</div>
+										<!--HP-4920-->
+										
+											<div class="text-nowrap" style="font-size: 15px; font-weight: normal">Departure at Origin</div>
+											<div
+												class="text-nowrap red"
+												style="font-size: 15px; font-weight: normal"
+											>2025-04-23 07:12</div>
+										
+									</div>
+									<div class="route-area" data-currentSegmentIdx="2">
+										
+											<div class="progress-bar" style="width: 50.0%; left: 0.0%"></div>
+										
+											<div class="progress-bar" style="width: 50.0%; left: 50.0%"></div>
+										
+										<ul class="route-list">
+											<li class="route-item curr" style="position:absolute; z-index:2000; right: 0;">
+												<!--도착 배 표시-->
+												<div class="curr-transport-icon ship" style="animation: none"></div>
+												<!--이동 증인 배 표시-->
+												
+												<div class="point"></div>
+												<div class="text"></div>
+											</li>
+											<li class="route-item prev">
+												<div class="point"></div>
+											</li>
+											
+											
+												<li class="route-item prev">
+													<div class="point"></div>
+													<div class="text">ALGECIRAS, SPAIN</div>
+												</li>
+												
+												
+												
+											
+											
+											<li class="route-item prev">
+												<div class="point"></div>
+											</li>
+										</ul>
+									</div>
+									<div class="location">
+										<div>CASABLANCA, MOROCCO</div>
+										<!--HP-4920-->
+										
+											<div class="text-nowrap" style="font-size: 15px; font-weight: normal">Arrival at Destination</div>
+											<div
+												class="text-nowrap red"
+												style="font-size: 15px; font-weight: normal"
+											>2025-07-06 17:53</div>
+										
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="tab-inner">
+							<div class="tab-title-wrap">
+								<div class="tab-title">Shipment History</div>
+							</div>
+							<div class="table-scroll">
+								<div class="table-wrap" id="shipmentProgress">
+									<table>
+										<colgroup>
+											<col style="width: 15%" />
+											<col style="width: 10%" />
+											<col style="width: 20%" />
+											<col />
+											<col style="width: 10%" />
+										</colgroup>
+										<thead>
+											<tr>
+												<th>
+													<div class="text">Date</div>
+												</th>
+												<th>
+													<div class="text">Time</div>
+												</th>
+												<th>
+													<div class="text">Location</div>
+												</th>
+												<th>
+													<div class="text">Status Description</div>
+												</th>
+												<th>
+													<div class="text">Mode</div>
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr class="clsExcelExclude">
+												<td colspan="5">
+													<div class="text">
+														<div class="click"><a class="clsShowedMoves" onclick="toggleShipmentHistory(this)">Display Previous Moves</a></div>
+													</div>
+												</td>
+											</tr>
+											<tr class="hidden clsExcelExclude">
+												<td colspan="5">
+													<div style="position: relative; padding: 5px 20px">
+														<div style="position: absolute; left: 100px">
+															<label for="bntSortMoves" style="cursor: pointer; display: flex; align-items: center; gap: 8px">
+																<span class="bold">Show Latest Event</span>
+																<div class="switch-toggle">
+																	<input type="checkbox" id="bntSortMoves" checked onchange="sortMoves()" />
+																	<span class="toggle-button"><span class="toggle-circle"></span></span>
+																</div>
+															</label>
+														</div>
+														<div class="text">
+															<div class="click"><a class="clsHidedMoves" onclick="toggleShipmentHistory(this)">Hide Previous Moves</a></div>
+														</div>
+													</div>
+												</td>
+											</tr>
+											<tr class="clsMoves">
+												<td>
+													<div class="text">2025-07-15</div>
+												</td>
+												<td>
+													<div class="text">14:51</div>
+												</td>
+												<td>
+													<div class="text">CASABLANCA, MOROCCO</div>
+												</td>
+												<td>
+													<div class="text">Import Empty Container Returned</div>
+												</td>
+												<td>
+													<div class="text">Truck</div>
+												</td>
+											</tr>
+											<tr class="clsMoves hidden clsPreviousMoves">
+												<td>
+													<div class="text">2025-07-14</div>
+												</td>
+												<td>
+													<div class="text">21:14</div>
+												</td>
+												<td>
+													<div class="text">CASABLANCA, MOROCCO</div>
+												</td>
+												<td>
+													<div class="text">Import Truck Gate Out from Terminal</div>
+												</td>
+												<td>
+													<div class="text">Truck</div>
+												</td>
+											</tr>
+											<tr class="clsMoves hidden clsPreviousMoves">
+												<td>
+													<div class="text">2025-07-06</div>
+												</td>
+												<td>
+													<div class="text">17:53</div>
+												</td>
+												<td>
+													<div class="text">CASABLANCA, MOROCCO</div>
+												</td>
+												<td>
+													<div class="text">Feeder Discharged at POD</div>
+												</td>
+												<td>
+													<div class="text">Feeder</div>
+												</td>
+											</tr>
+											<tr class="clsMoves hidden clsPreviousMoves">
+												<td>
+													<div class="text">2025-07-02</div>
+												</td>
+												<td>
+													<div class="text">04:42</div>
+												</td>
+												<td>
+													<div class="text">ALGECIRAS, SPAIN</div>
+												</td>
+												<td>
+													<div class="text">Feeder Loading at T/S Port</div>
+												</td>
+												<td>
+													<div class="text">Feeder</div>
+												</td>
+											</tr>
+											<tr class="clsMoves hidden clsPreviousMoves">
+												<td>
+													<div class="text">2025-06-21</div>
+												</td>
+												<td>
+													<div class="text">17:59</div>
+												</td>
+												<td>
+													<div class="text">ALGECIRAS, SPAIN</div>
+												</td>
+												<td>
+													<div class="text">Vessel Discharged at T/S Port</div>
+												</td>
+												<td>
+													<div class="text">HMM ALGECIRAS 0017W</div>
+												</td>
+											</tr>
+											<tr class="clsMoves hidden clsPreviousMoves">
+												<td>
+													<div class="text">2025-06-20</div>
+												</td>
+												<td>
+													<div class="text">22:11</div>
+												</td>
+												<td>
+													<div class="text">ALGECIRAS, SPAIN</div>
+												</td>
+												<td>
+													<div class="text">Vessel Berthing at T/S Port</div>
+												</td>
+												<td>
+													<div class="text">HMM ALGECIRAS 0017W</div>
+												</td>
+											</tr>
+											<tr class="clsMoves hidden clsPreviousMoves">
+												<td>
+													<div class="text">2025-06-20</div>
+												</td>
+												<td>
+													<div class="text">21:11</div>
+												</td>
+												<td>
+													<div class="text">ALGECIRAS, SPAIN</div>
+												</td>
+												<td>
+													<div class="text">Vessel Arrival at T/S Port</div>
+												</td>
+												<td>
+													<div class="text">HMM ALGECIRAS 0017W</div>
+												</td>
+											</tr>
+											<tr class="clsMoves hidden clsPreviousMoves">
+												<td>
+													<div class="text">2025-05-04</div>
+												</td>
+												<td>
+													<div class="text">05:26</div>
+												</td>
+												<td>
+													<div class="text">SHANGHAI,CHINA</div>
+												</td>
+												<td>
+													<div class="text">Vessel Departure from POL</div>
+												</td>
+												<td>
+													<div class="text">HMM ALGECIRAS 0017W</div>
+												</td>
+											</tr>
+											<tr class="clsMoves hidden clsPreviousMoves">
+												<td>
+													<div class="text">2025-05-03</div>
+												</td>
+												<td>
+													<div class="text">15:24</div>
+												</td>
+												<td>
+													<div class="text">SHANGHAI,CHINA</div>
+												</td>
+												<td>
+													<div class="text">Vessel Loading at POL</div>
+												</td>
+												<td>
+													<div class="text">HMM ALGECIRAS 0017W</div>
+												</td>
+											</tr>
+											<tr class="clsMoves hidden clsPreviousMoves">
+												<td>
+													<div class="text">2025-04-30</div>
+												</td>
+												<td>
+													<div class="text">21:54</div>
+												</td>
+												<td>
+													<div class="text">SHANGHAI,CHINA</div>
+												</td>
+												<td>
+													<div class="text">Export Truck Gate In to Terminal</div>
+												</td>
+												<td>
+													<div class="text">Truck</div>
+												</td>
+											</tr>
+											<tr class="clsMoves hidden clsPreviousMoves">
+												<td>
+													<div class="text">2025-04-23</div>
+												</td>
+												<td>
+													<div class="text">07:12</div>
+												</td>
+												<td>
+													<div class="text">SHANGHAI,CHINA</div>
+												</td>
+												<td>
+													<div class="text">Export Empty Container Released</div>
+												</td>
+												<td>
+													<div class="text">Truck</div>
+												</td>
+											</tr>
+										</tbody>
+										
+									</table>
+								</div>
+							</div>
+							<div style="display: flex; justify-content: space-between; padding: 0 20px">
+								<div class="text-list" id="trckRslDate"></div>
+								<div class="tab-title-wrap">
+									<div class="tab-title"></div>
+									<div class="btn-wrap">
+										<button type="button" class="btn func excel" onclick="excelDownload('#shipmentProgress', '.clsExcelExclude', 'Shipment History')">Excel</button>
+										
+										<button type="button" class="btn line medium disabled" onclick="notUSRail('e')">Rail ETD/ETA</button>
+
+										
+										<button type="button" class="btn line medium disabled" onclick="notUSRail('m')">View Rail Move</button>
+										<button type="button" style="width: 150px" class="btn line medium disabled">Transloading Move</button>
+										
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="tab-inner">
+							<div class="tab-title-wrap" style="justify-content: flex-start; gap: 20px">
+								<div class="tab-title">Shipment Schedule</div>
+								
+							</div>
+							<div class="table-scroll" id="cntrChangeArea">
+								<div class="table-wrap">
+									<table>
+										
+											<colgroup
+											>
+												<col width="16%;" />
+												<col width="16%;" />
+												<col width="16%;" />
+												<col width="16%;" />
+												
+												
+												
+												<col width="16%;" />
+												<col width="16%;" />
+											</colgroup>
+											<thead>
+												<tr>
+													<th>
+														<div class="text"></div>
+													</th>
+													<th>
+														<div class="text">Origin</div>
+													</th>
+													<th>
+														<div class="text">Loading Port</div>
+													</th>
+													<th>
+														<div class="text">T/S Port</div>
+													</th>
+													
+													
+													
+													<th>
+														<div class="text">Discharging Port</div>
+													</th>
+													<th>
+														<div class="text">Destination</div>
+													</th>
+												</tr>
+											</thead>
+											<tr>
+												<th>
+													<div class="text">Location</div>
+												</th>
+												<td>
+													<div class="text">SHANGHAI,CHINA</div>
+												</td>
+												<td>
+													<div class="text">SHANGHAI,CHINA</div>
+												</td>
+												<td>
+													<div class="text">ALGECIRAS, SPAIN</div>
+												</td>
+												
+												
+												
+												<td>
+													<div class="text">CASABLANCA, MOROCCO</div>
+												</td>
+												<td>
+													<div class="text">CASABLANCA, MOROCCO</div>
+												</td>
+											</tr>
+											<tr>
+												<th>
+													<div class="text">Terminal</div>
+												</th>
+												<td>
+													<div class="text" style="white-space: normal">YANGSHAN PHASE 4 (SHANGDONG)</div>
+												</td>
+												<td>
+													<div class="text" style="white-space: normal">YANGSHAN PHASE 4 (SHANGDONG)</div>
+												</td>
+												<td>
+													<div class="text" style="white-space: normal">TOTAL TERMINAL INTERNATIONAL ALGECIRAS</div>
+												</td>
+												
+												
+												
+												<td>
+													<div class="text" style="white-space: normal">MARSA MAROC SOCIÉTÉ D&#39;EXPLOITATION D P</div>
+												</td>
+												<td>
+													<div class="text" style="white-space: normal">MARSA MAROC SOCIÉTÉ D&#39;EXPLOITATION D P</div>
+												</td>
+											</tr>
+										
+										<tr>
+											<th>
+												<div class="text">Vessel</div>
+											</th>
+											<td>
+												<div class="text"></div>
+											</td>
+											
+												
+													<td><div class="text">[FE3] HMM ALGECIRAS 0017W</div></td>
+													
+													
+													
+													<!--TS 5번째(vslSeq=6)는 shipment에서 표시하지 않고 있다(SHAZ5S148900). DLCE92656800-->
+													
+												
+											
+												
+													
+													<td><div class="text">[FDR] CASABLANCA A 0425S</div></td>
+													
+													
+													<!--TS 5번째(vslSeq=6)는 shipment에서 표시하지 않고 있다(SHAZ5S148900). DLCE92656800-->
+													
+												
+											
+											
+												<td><div class="text"></div></td>
+											
+										</tr>
+										
+											<tr>
+												<th>
+													<div class="text">Arrival(ETB)</div>
+												</th>
+												<td>
+													<div class="text"></div>
+												</td>
+												<td>
+													<div class="text red">2025-04-30 21:54</div>
+												</td>
+												<td>
+													<div class="text red">2025-06-20 22:11</div>
+												</td>
+												
+												
+												
+												<td>
+													<div
+														class="text red"
+													>2025-07-06 17:53</div>
+												</td>
+												<td>
+													<div
+														class="text red"
+													>2025-07-06 17:53</div>
+												</td>
+											</tr>
+											<tr>
+												<th>
+													<div class="text">Departure</div>
+												</th>
+												<td>
+													<div class="text red">2025-04-23 07:12</div>
+												</td>
+												<td>
+													<div class="text red">2025-05-04 05:26</div>
+												</td>
+												<td>
+													<div class="text red">2025-07-02 04:42</div>
+												</td>
+												
+												
+												
+												<td>
+													<div class="text blue"></div>
+												</td>
+												<td>
+													<div class="text"></div>
+												</td>
+											</tr>
+										
+									</table>
+								</div>
+							</div>
+							<div class="text-list" style="display: flex; justify-content: space-between">
+								<div>
+									<p class="text">The arrival date & time at discharging port is set as ETB (Estimated time of Berthing)</p>
+									<p class="text blue"><span class="blue">Blue : Estimated Date & Time</span></p>
+									<p class="text red"><span class="red">Red : Actual Date & Time</span></p>
+									<p class="text">All dates and times are local dates and times.</p>
+									<p class="text">Estimated data is given without guarantee and subject to change without prior notice.</p>
+									<p class="text">If your shipment is blank now, please contact with HMM for more details.</p>
+								</div>
+								<!--HP-4920-->
+								<div style="display: none"><button type="button" class="btn line medium" style="width: 100%" onclick="openContanerInfo()">Container Information</button></div>
+							</div>
+						</div>
+						<div id="containerInfo" class="tab-inner">
+							<div class="tab-title-wrap">
+								<div class="tab-title">Container Information</div>
+							</div>
+							<!--HP-4920-->
+							<div class="tab-cont-wrap" style="display: flex; justify-content: space-between; padding-right: 20px">
+								<!--HP-4121-->
+								<div class="table-scroll" style="width: calc(100vh - 300px)">
+									<style>
+										/* HP-4920: thead 없는 1행 테이블: table.css 좌하단 규칙이 좌상단을 덮어씀 */
+										#cntrInfoTitleTable tbody > tr:only-child th:nth-child(1),
+										#cntrInfoTitleTable tbody > tr:only-child th:nth-child(1)::before {
+											border-radius: 10px 0 0 10px;
+										}
+									</style>
+									<div class="table-wrap">
+										<table id="cntrInfoTitleTable">
+											<colgroup>
+												<col style="width: 200px" />
+												<col />
+											</colgroup>
+											<tbody>
+												<tr>
+													<th>
+														<div class="text">CNTR Type / Size / Qty</div>
+													</th>
+													<td>
+														<div class="text">DC4H:1</div>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</div>
+								<div class="btn-wrap">
+									<button type="button" class="btn func excel" onclick="excelDownload(&#39;#containerStatus&#39;, &#39;&#39; , &quot;SHAF36562700&quot;)">Excel</button>
+								</div>
+							</div>
+							<div class="table-scroll">
+								<div class="table-wrap" id="containerStatus">
+									<table>
+										<colgroup>
+											<col />
+											<col />
+											<col />
+											<col />
+											<col />
+											<col />
+											<col />
+											<col />
+											<col />
+											<col />
+											<col />
+											<!--HP-168-->
+											<!--<col th:if="${hasLastFreeTime}">-->
+											<col />
+											<col />
+											<col />
+										</colgroup>
+										<thead>
+											<tr>
+												<th>
+													<div class="text">No.</div>
+												</th>
+												<th>
+													<div class="text">Container No.</div>
+												</th>
+												<th>
+													<div class="text">Trailer No.</div>
+												</th>
+												<th>
+													<div class="text">Cargo Type</div>
+												</th>
+												<th>
+													<div class="text">Type / Size</div>
+												</th>
+												<th>
+													<div class="text">Weight</div>
+												</th>
+												<th>
+													<div class="text">B/L No.</div>
+												</th>
+												
+												<th>
+													<div class="text">Cell No.</div>
+												</th>
+												<th>
+													<div class="text">Service Term</div>
+												</th>
+												<th>
+													<div class="text">B/L Status</div>
+												</th>
+												<th>
+													<div class="text">Seal No.</div>
+												</th>
+												<!--HP-168-->
+												<!--<th th:if="${hasLastFreeTime}">
+														<div class="text" >Last Free Day<br>(Basic)</div>
+													</th>-->
+												<th>
+													<div class="text">Movement</div>
+												</th>
+												<th>
+													<div class="text">Last Movement Date</div>
+												</th>
+												<!--HP-4260-->
+												<th>
+													<div class="text">CNTR Status</div>
+												</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>
+													<div class="text">1</div>
+												</td>
+												<td>
+													<div class="text">
+														<div
+															class="click"
+															id="cntrId1" onclick="cntrSelect(&#39;SHAF36562700&#39;,&#39;bl&#39;,&#39;CAIU9965351&#39;, &#39;1&#39;)"
+														>CAIU9965351</div>
+													</div>
+												</td>
+												<td>
+													<div class="text"></div>
+												</td>
+												<td>
+													<div class="text">DC</div>
+												</td>
+												<td>
+													<div class="text">DC/4H</div>
+												</td>
+												<td>
+													<div class="text">23212</div>
+												</td>
+												<td>
+													<div class="text">SHAF36562700</div>
+												</td>
+												
+												<td>
+													<div class="text"></div>
+												</td>
+												<td>
+													<div class="text">CY-FO</div>
+												</td>
+												<td>
+													<div class="text">
+														<!-- HP-336 -->
+														
+														
+															<!--HP-3571-->
+															
+															
+																
+															
+															<div>Surrendered</div>
+														
+														<div class="tooltip-wrap">
+															<button type="button" class="icon btn-tooltip">tooltip</button>
+															<div class="tooltip tooltip-area">
+																<button type="button" class="icon btn-close">close</button>
+																<!--<div class="tooltip-title">Notificaton</div>-->
+																<div class="tooltip-text">Pick up is available without O B/L submission</div>
+																
+																
+																
+															</div>
+															<span class="tooltip-tail" style="top: 20px" />
+														</div>
+													</div>
+												</td>
+												<td>
+													<div class="text">213288413</div>
+												</td>
+												<!--HP-168-->
+												<!--<td th:if="${hasLastFreeTime}">
+														<div class="text" th:text="${cntrListData?.lfdDt}"></div>
+													</td>-->
+												<td>
+													<div class="text">Import Empty Container Returned</div>
+												</td>
+												<td>
+													<div class="text">2025-07-15 14:51</div>
+												</td>
+												<td>
+													<div class="text">HMM&#39;s Fleet</div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="text-list">
+								<p class="text">You can view Track & Trace results when clicking Container number.</p>
+								<!--HP-168-->
+								<!--<p class="text" th:if="${hasLastFreeTime}" th:style="${'color: #c04444'}">In case of the extended free time, please contact HMM local office.</p>
+                            		<p class="text" th:if="${hasLastFreeTime}" th:style="${'color: red'}">Last Free Day will be shown after Discharging date.</p>-->
+							</div>
+						</div>
+						<div class="tab-inner" style="display: none">
+							<div class="tab-title-wrap">
+								<div class="tab-title">Current Location</div>
+							</div>
+							<div class="tab-cont-wrap">
+								<div class="table-scroll">
+									<div class="table-wrap">
+										<table>
+											<colgroup>
+												<col width="33.3333%" />
+												<col width="33.3333%" />
+												<col width="33.3333%" />
+											</colgroup>
+											<thead>
+												<tr>
+													<th>
+														<div class="text">Location</div>
+													</th>
+													<th>
+														<div class="text">Date / Time</div>
+													</th>
+													<th>
+														<div class="text">Status Description</div>
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td>
+														<div class="text">CASABLANCA, MOROCCO</div>
+													</td>
+													<td>
+														<div class="text red">2025-07-15 14:51</div>
+													</td>
+													<td>
+														<div class="text">Import Empty Container Returned</div>
+													</td>
+												</tr>
+											</tbody>
+											
+										</table>
+									</div>
+								</div>
+								<!--HP-168-->
+								<div class="text-list">
+									<p class="text"><span class="blue">Blue : Estimated Date & Time</span></p>
+									<p class="text">The Status Description is shown per BL basis thus please check the individual container status at DEM/DET menu.</p>
+								</div>
+							</div>
+						</div>
+						<div class="tab-inner" style="display: none">
+							<div class="tab-title-wrap">
+								<div class="tab-title">Vessel Movement</div>
+							</div>
+							<div class="tab-cont-wrap">
+								<div class="table-scroll">
+									<div class="table-wrap">
+										<table>
+											<colgroup>
+												<col width="16.6666%" />
+												<col width="16.6666%" />
+												<col width="16.6666%" />
+												<col width="16.6666%" />
+												<col width="16.6666%" />
+												<col width="16.6666%" />
+											</colgroup>
+											<thead>
+												<tr>
+													<th>
+														<div class="text">Vessel / Voyage</div>
+													</th>
+													<th>
+														<div class="text">Route</div>
+													</th>
+													<th>
+														<div class="text">Loading Port</div>
+													</th>
+													<th>
+														<div class="text">Departure</div>
+													</th>
+													<th>
+														<div class="text">Discharging Port</div>
+													</th>
+													<th>
+														<div class="text">Arrival</div>
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td>
+														<div class="text">HMM ALGECIRAS 0017W</div>
+													</td>
+													<td>
+														<div class="text">FE3</div>
+													</td>
+													<td>
+														<div class="text">SHANGHAI,CHINA</div>
+													</td>
+													<td>
+														<div class="text red">2025-05-04 05:26</div>
+													</td>
+													<td>
+														<div class="text">ALGECIRAS, SPAIN</div>
+													</td>
+													<td>
+														<div class="text red">2025-06-20 22:11</div>
+													</td>
+												</tr>
+												<tr>
+													<td>
+														<div class="text">CASABLANCA A 0425S</div>
+													</td>
+													<td>
+														<div class="text">FDR</div>
+													</td>
+													<td>
+														<div class="text">ALGECIRAS, SPAIN</div>
+													</td>
+													<td>
+														<div class="text blue">2025-07-02 02:00</div>
+													</td>
+													<td>
+														<div class="text">CASABLANCA, MOROCCO</div>
+													</td>
+													<td>
+														<div class="text blue">2025-07-05 11:00</div>
+													</td>
+												</tr>
+											</tbody>
+											
+										</table>
+									</div>
+								</div>
+								<div class="text-list">
+									<p class="text">If your T/S vessel movement is not reflected on HMM website, Please contact HMM</p>
+									<!--HP-3975-->
+									<!--HP-4483-->
+									<p class="text blue"><span class="blue">Estimated Date & Time (For feeder services, the connecting vessel and schedule are not yet confirmed. The displayed ETA/ETD is provisional and subject to change)</span></p>
+									<p class="text red"><span class="red">Red : Actual Date & Time</span></p>
+								</div>
+							</div>
+						</div>
+						<div class="tab-inner" style="padding-bottom: 24px">
+							<div class="tab-title-wrap">
+								<div class="tab-title">Customs Status</div>
+							</div>
+							<div class="tab-cont-wrap">
+								<div class="table-scroll">
+									<div class="table-wrap">
+										<table>
+											<colgroup>
+												<col width="14.2857%" />
+												<col width="14.2857%" />
+												<col width="14.2857%" />
+												<col width="14.2857%" />
+												<col width="14.2857%" />
+												<col width="14.2857%" />
+												<col width="14.2857%" />
+											</colgroup>
+											<thead>
+												<tr>
+													<th>
+														<div class="text">Nation / Item</div>
+													</th>
+													<th>
+														<div class="text">US / AMS</div>
+													</th>
+													<th>
+														<div class="text">Canada / ACI</div>
+													</th>
+													<th>
+														<div class="text">EU / ENS</div>
+													</th>
+													<th>
+														<div class="text">U.K. / SNS</div>
+													</th>
+													<th>
+														<div class="text">China / CAMS</div>
+													</th>
+													<th>
+														<div class="text">Japan / AFR</div>
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<th>
+														<div class="text">Status</div>
+													</th>
+													<td>
+														<div class="text">N/A</div>
+													</td>
+													<td rowspan="2">
+														<div class="text">N/A</div>
+													</td>
+													<td rowspan="2">
+														<div class="text">Filed</div>
+													</td>
+													<td rowspan="2">
+														<div class="text">N/A</div>
+													</td>
+													<td rowspan="2">
+														<div class="text">N/A</div>
+													</td>
+													<td rowspan="2">
+														<div class="text">N/A</div>
+													</td>
+												</tr>
+												<!--HP-1891-->
+												
+											</tbody>
+											
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<div
+							class="tab-inner"
+						>
+							<div class="tab-title-wrap">
+								<div class="tab-title">Empty Container Return Location<!-- (North America Import Only)--></div>
+							</div>
+							<div class="tab-cont-wrap">
+								<div class="table-scroll">
+									<div class="table-wrap">
+										<table>
+											<colgroup>
+												<col width="50%" />
+												<col width="50%" />
+											</colgroup>
+											<tbody>
+												<tr>
+													<th>
+														<div class="text">Empty Container Return Location</div>
+													</th>
+													<!--HP-168-->
+													<!--<th>
+														<div class="text">Detention Freetime Expiry Date</div>
+													</th>-->
+													<th>
+														<div class="text">Address</div>
+													</th>
+												</tr>
+												<tr
+												>
+													<td>
+														<div class="text">Marsa Maroc Société d&#39;Exploitation d P</div>
+													</td>
+													<!--HP-168-->
+													<!--<td>
+														<div class="text"
+															th:text="${emptyContainerReturnLocationResultData?.dndExpDt}">UNION
+															PACIFIC RAILROAD</div>
+													</td>-->
+													<td>
+														<div class="text">175, bd Mohamed Zerktouni 20100 Casablanca</div>
+													</td>
+												</tr>
+												
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+					
+					
+					
+				</div>

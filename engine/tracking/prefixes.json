@@ -1,0 +1,228 @@
+{
+ "version": 1,
+ "generatedFrom": "engine/tracking/identify.mjs",
+ "carriers": [
+  {
+   "id": "maersk",
+   "name": "马士基 Maersk",
+   "scac": [
+    "MAEU"
+   ],
+   "container": [
+    "MSKU",
+    "MRKU",
+    "MRSU",
+    "MIEU",
+    "MNBU",
+    "MAEU",
+    "SEAU",
+    "PONU"
+   ],
+   "tracking": "live",
+   "booking": [
+    {
+     "label": "9 位纯数字（Maersk 订舱/提单）",
+     "score": 0.6,
+     "pattern": "/^\\d{9}$/"
+    }
+   ]
+  },
+  {
+   "id": "msc",
+   "name": "地中海航运 MSC",
+   "scac": [
+    "MSCU",
+    "MEDU"
+   ],
+   "container": [
+    "MSCU",
+    "MEDU",
+    "MSDU",
+    "MSMU",
+    "MSNU",
+    "MSPU",
+    "MSYU",
+    "GTIU"
+   ],
+   "tracking": "planned",
+   "booking": [
+    {
+     "label": "181 系列（MSC 订舱/参考号，真单实证）",
+     "score": 0.6,
+     "pattern": "/^181[A-Z]{2}[A-Z0-9]{5,}$/"
+    }
+   ]
+  },
+  {
+   "id": "hapag",
+   "name": "赫伯罗特 Hapag-Lloyd",
+   "scac": [
+    "HLCU",
+    "HLUS",
+    "HPET"
+   ],
+   "container": [
+    "HLCU",
+    "HLXU",
+    "HLBU",
+    "UACU",
+    "UAEU",
+    "HAMU"
+   ],
+   "tracking": "planned",
+   "booking": [
+    {
+     "label": "8 位纯数字（Hapag 订舱号）",
+     "score": 0.45,
+     "pattern": "/^\\d{8}$/"
+    }
+   ]
+  },
+  {
+   "id": "cosco",
+   "name": "中远海运 COSCO",
+   "scac": [
+    "COSU",
+    "COAU",
+    "COEU"
+   ],
+   "container": [
+    "CSNU",
+    "CBHU",
+    "CCLU",
+    "CSLU"
+   ],
+   "tracking": "planned",
+   "booking": []
+  },
+  {
+   "id": "hmm",
+   "name": "现代商船 HMM",
+   "scac": [
+    "HDMU",
+    "HMMU"
+   ],
+   "container": [
+    "HDMU",
+    "HMMU"
+   ],
+   "tracking": "planned",
+   "booking": []
+  },
+  {
+   "id": "one",
+   "name": "海洋网联 ONE",
+   "scac": [
+    "ONEY"
+   ],
+   "container": [
+    "ONEU",
+    "MOAU",
+    "NYKU",
+    "KKFU",
+    "KKTU",
+    "KLFU"
+   ],
+   "tracking": "planned",
+   "booking": [
+    {
+     "label": "3 字母 + 9 位数字（ONE BL 后 12 位形态）",
+     "score": 0.6,
+     "pattern": "/^[A-Z]{3}\\d{9}$/"
+    },
+    {
+     "label": "4 字母 + 8 位数字（ONE BL / 订舱号形态）",
+     "score": 0.6,
+     "pattern": "/^[A-Z]{4}\\d{8}$/"
+    }
+   ]
+  },
+  {
+   "id": "zim",
+   "name": "以星 ZIM",
+   "scac": [
+    "ZIMU"
+   ],
+   "container": [
+    "ZIMU",
+    "ZCSU",
+    "ZMOU"
+   ],
+   "tracking": "planned",
+   "booking": [
+    {
+     "label": "M + 数字（ZIM 订舱/预订号形态）",
+     "score": 0.3,
+     "pattern": "/^M\\d{7,}$/"
+    }
+   ]
+  },
+  {
+   "id": "cma",
+   "name": "达飞 CMA CGM",
+   "scac": [
+    "CMDU"
+   ],
+   "container": [
+    "CMAU",
+    "CGMU",
+    "ECMU",
+    "APZU",
+    "APHU",
+    "CNCU"
+   ],
+   "tracking": "none",
+   "booking": []
+  },
+  {
+   "id": "evergreen",
+   "name": "长荣 Evergreen",
+   "scac": [
+    "EGLV"
+   ],
+   "container": [
+    "EGHU",
+    "EGSU",
+    "EMCU",
+    "EISU",
+    "EITU",
+    "EGMU",
+    "EVGU",
+    "EMEU",
+    "IMTU",
+    "LTIU",
+    "UGMU",
+    "HMCU"
+   ],
+   "tracking": "none",
+   "booking": []
+  },
+  {
+   "id": "oocl",
+   "name": "东方海外 OOCL",
+   "scac": [
+    "OOLU"
+   ],
+   "container": [
+    "OOLU",
+    "OOCU"
+   ],
+   "tracking": "none",
+   "booking": []
+  },
+  {
+   "id": "yangming",
+   "name": "阳明 Yang Ming",
+   "scac": [
+    "YMLU",
+    "YMJA"
+   ],
+   "container": [
+    "YMLU",
+    "YMMU"
+   ],
+   "tracking": "none",
+   "booking": []
+  }
+ ]
+}

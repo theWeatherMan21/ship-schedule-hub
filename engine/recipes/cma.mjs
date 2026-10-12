@@ -105,7 +105,17 @@ export default {
         fsmod.writeFileSync('/tmp/dom-cma.txt', String(sched).replace(/[ \t\xa0]+/g, ' '));
         const tables = await page.evaluate(() => [...document.querySelectorAll('table, [class*=routing], [class*=result], [class*=card]')].slice(0, 60).map((t) => ({ tag: t.tagName, cls: (t.className || '').toString().slice(0, 60), txt: (t.innerText || '').replace(/\s+/g, ' ').slice(0, 300) }))).catch(() => []);
         fsmod.writeFileSync('/tmp/dom-cma-table.json', JSON.stringify(tables, null, 1));
-        console.error('[cma] DOM 已写 len=' + String(sched).length);
+        // ★ 10-10 收尾诊断：搜索后到底停在哪 —— URL/title/body/captcha challenge 帧
+        const meta = await page.evaluate(() => ({
+          url: location.href,
+          title: document.title,
+          bodyLen: (document.body?.innerText || '').length,
+          hasForm: !!document.querySelector('#AutoCompletePOL'),
+          capFrame: [...document.querySelectorAll('iframe')].filter((f) => /captcha-delivery/i.test(f.src || '')).map((f) => f.src.slice(0, 120)),
+          htmlHasDdTags: /js\.datadome\.co/.test(document.documentElement.innerHTML || ''),
+        })).catch((e) => ({ err: String(e).slice(0, 120) }));
+        fsmod.writeFileSync('/tmp/dom-cma-meta.json', JSON.stringify(meta, null, 1));
+        console.error('[cma] DOM 已写 len=' + String(sched).length + ' meta=' + JSON.stringify(meta).slice(0, 300));
       } catch { /* 忽略 */ }
     }
     // ---- 结构化抽取（9-24 Istanbul 10 条实测）----
