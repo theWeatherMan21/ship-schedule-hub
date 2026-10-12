@@ -90,7 +90,7 @@ export const CARRIERS = [
     scac: ['CMDU'],
     container: ['CMAU', 'CGMU', 'ECMU', 'APZU', 'APHU', 'CNCU'],
     booking: [],
-    tracking: 'none',
+    tracking: 'live',
   },
   {
     id: 'evergreen', name: '长荣 Evergreen',
