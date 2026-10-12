@@ -814,8 +814,9 @@ fn stop_query(app: AppHandle) -> Result<serde_json::Value, String> {
     // 兜底：按脚本路径再扫一遍（旧行为，macOS 上很有效；Windows 交给上面的进程树杀）
     #[cfg(not(windows))]
     {
-        for name in ["query.mjs", "track.mjs"] {
-            let script = project_root(Some(&app)).join("engine").join(name);
+        // 2026-10-12：track.mjs 旧入口已由 engine/tracking/cli.mjs 取代（run_track 现行脚本）
+        for rel in ["query.mjs", "tracking/cli.mjs"] {
+            let script = project_root(Some(&app)).join("engine").join(rel);
             let pattern = script.display().to_string();
             if let Ok(out) = Command::new("/usr/bin/pkill").args(["-f", &pattern]).output() {
                 killed = killed || out.status.success();
@@ -858,7 +859,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(EngineState::default())
         .manage(TrackState::default())
-        .setup(|app| {
+        .setup(|_app| {
             // Windows 玻璃效果（婉宜 10-08，真机迭代三轮定稿）
             // 背景：config 的 windowEffects 写的是 macOS 材质名(hudWindow)，Windows 不认 → 必须运行时设。
             // 三档用 SSH_GLASS 切换（不重编即可 A/B）：

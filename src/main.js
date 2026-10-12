@@ -1127,7 +1127,11 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
     if (!num) return;
     switchView('track');
     setTimeout(() => {
-      document.getElementById('trackNum').value = num;
+      const el = document.getElementById('trackNum');
+      if (el) {
+        el.value = num;
+        el.dispatchEvent(new Event('input', { bubbles: true }));   // 触发动态识别提示行（自检截图可见，2026-10-12 修）
+      }
       document.getElementById('btnTrackGo').click();
     }, 2500);
   } catch (e) { /* 无自检即忽略 */ }
