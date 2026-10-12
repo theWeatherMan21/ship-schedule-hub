@@ -1,0 +1,101 @@
+{
+ "successCnt": 1,
+ "containerList": [],
+ "blList": [
+  {
+   "queryTrackNo": "N237068499",
+   "returnTrackNo": "N237068499",
+   "trackType": "B/L No",
+   "trackTypeCode": "BLNO",
+   "blType": " (Seaway Bill)",
+   "bkgRef": "N237068499",
+   "basicInfo": {
+    "receipt": "SHANGHAI, SH (CNSHA)",
+    "loading": "SHANGHAI, SH (CNSHA)",
+    "discharge": "ROTTERDAM (NLRTM)",
+    "delivery": "ROTTERDAM (NLRTM)",
+    "vesselName": "HMM DUBLIN",
+    "vesselComn": "018W",
+    "voyageCode": "FE42606W",
+    "vesselCode": "HMDN",
+    "obDate": "2026/02/15",
+    "serviceTerm": "Container Yard - Container Yard",
+    "numPkg": 538,
+    "pkgType": "CT",
+    "grossWgt": 3255.4,
+    "grossWgtUnit": "KGS",
+    "cbm": 17.34,
+    "cbmUnit": "CBM",
+    "scacCode": null,
+    "erdCutOffDateReference": null,
+    "ctnrUnit": "1 unit (1 * 20')"
+   },
+   "routingInfo": {
+    "routingSchedule": [
+     {
+      "seq": 1,
+      "picQlfr": "VESSEL",
+      "placeName": "SHANGHAI",
+      "dateTime": "2026/02/15 11:30",
+      "dateQlfr": "Actual",
+      "berthInfo": null
+     },
+     {
+      "seq": 2,
+      "picQlfr": "DESTINATION",
+      "placeName": "ROTTERDAM",
+      "dateTime": "2026/04/05 12:15",
+      "dateQlfr": "Actual",
+      "berthInfo": "Berthing time at terminal: 2026/04/05 12:55 (Actual)"
+     }
+    ],
+    "routingDschPortTml": null
+   },
+   "additionalInfo": null,
+   "ctnrUnit": null,
+   "containerInfo": [
+    {
+     "trackPositionOut": "BL_CT",
+     "seq": 1,
+     "ctnrNo": "YMLU3560471",
+     "cnSize": "20",
+     "cnType": "DC-Dry cargo container",
+     "cnTypeDesc": null,
+     "sealNo": "YMAV279733",
+     "moveType": "FCL/FCL",
+     "moveDate": "2026/04/10 13:09",
+     "lastEvent": "Empty Returned",
+     "place": "ROTTERDAM - CETEM",
+     "dportETA": null,
+     "vgm": 5555.4,
+     "vgmUnit": "KGS"
+    }
+   ],
+   "dcsaContainerInfo": [
+    {
+     "trackPositionOut": "BL_CT",
+     "seq": 1,
+     "ctnrNo": "YMLU3560471",
+     "cnSize": "20",
+     "cnType": "DC-Dry cargo container",
+     "cnTypeDesc": null,
+     "sealNo": "YMAV279733",
+     "moveType": "FCL/FCL",
+     "moveDate": "2026/04/10 13:09",
+     "lastEvent": "Gate in of Empty Equipment by Truck at Depot",
+     "place": "ROTTERDAM - CETEM",
+     "eventClassifie": "Actual",
+     "vgm": 5555.4,
+     "vgmUnit": "KGS"
+    }
+   ],
+   "responeMessage": null,
+   "statusCode": null
+  }
+ ],
+ "bookingList": [],
+ "emptyList": [],
+ "responeMessage": [],
+ "maintenanceInfo": null,
+ "blockStatus": null
+}
