@@ -899,4 +899,5 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 - **ONE 官方两种后 12 位形态**：3 字母+9 数字 / 4 字母+8 数字 → ONE（0.6 自动）。带 ONEY 前缀自动剥（适配器已做，本轮 e2e 验证：`ONEYSZPG70884900`→`SZPG70884900` 南沙→温哥华 40 事件）。
 - 调研来源：one-line.com 官网口径 + Vizion《Bill of lading number formatting》全表（2026-10-12 Exa 检索，各家 MBL 形态对照：Maersk 9 数字 / MSC=MEDU+2+6 / ONE 后 12 位两种形态 / Hapag=HLCU+…16 位 / Evergreen 12 数字 / OOCL 10 数字 / YM 1 字母+9 数字 / ZIM 3 字母+4-7 数字 等）。
 **验证**：identify 106/0；ui-track-verify 离线回放全绿（静默 0→0）；实机 selftest `181AS0266823514M1` → 自动识别 MSC、结果卡 SHEKOU→ISTANBUL（MSC METTE，ETA 11-13）；部署 /Applications（09:49 构建）。
+**调研**：11 家船司「单号格式 × 识别规则 × 查询方法」全量调研完成（Exa 检索 R1/R2 来源 + 我方实证对照）→ `docs/CARRIER-NUMBER-FORMATS.md`（10-12；含识别器差距清单待拍板）。
 **技术债**：`engine/track.mjs`（10-10 遗留、无调用、未跟踪）与 lib.rs 817 行 pkill 旧名单——候选清理，不影响功能。
