@@ -93,7 +93,13 @@
     "CSLU"
    ],
    "tracking": "planned",
-   "booking": []
+   "booking": [
+    {
+     "label": "10 位纯数字（COSCO BL/订舱形态）",
+     "score": 0.5,
+     "pattern": "/^\\d{10}$/"
+    }
+   ]
   },
   {
    "id": "hmm",
@@ -195,7 +201,13 @@
     "HMCU"
    ],
    "tracking": "none",
-   "booking": []
+   "booking": [
+    {
+     "label": "12 位纯数字（Evergreen BL/订舱形态）",
+     "score": 0.5,
+     "pattern": "/^\\d{12}$/"
+    }
+   ]
   },
   {
    "id": "oocl",
@@ -208,7 +220,13 @@
     "OOCU"
    ],
    "tracking": "none",
-   "booking": []
+   "booking": [
+    {
+     "label": "10 位纯数字（OOCL BL 形态）",
+     "score": 0.5,
+     "pattern": "/^\\d{10}$/"
+    }
+   ]
   },
   {
    "id": "yangming",

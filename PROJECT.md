@@ -900,4 +900,5 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 - 调研来源：one-line.com 官网口径 + Vizion《Bill of lading number formatting》全表（2026-10-12 Exa 检索，各家 MBL 形态对照：Maersk 9 数字 / MSC=MEDU+2+6 / ONE 后 12 位两种形态 / Hapag=HLCU+…16 位 / Evergreen 12 数字 / OOCL 10 数字 / YM 1 字母+9 数字 / ZIM 3 字母+4-7 数字 等）。
 **验证**：identify 106/0；ui-track-verify 离线回放全绿（静默 0→0）；实机 selftest `181AS0266823514M1` → 自动识别 MSC、结果卡 SHEKOU→ISTANBUL（MSC METTE，ETA 11-13）；部署 /Applications（09:49 构建）。
 **调研**：11 家船司「单号格式 × 识别规则 × 查询方法」全量调研完成（Exa 检索 R1/R2 来源 + 我方实证对照）→ `docs/CARRIER-NUMBER-FORMATS.md`（10-12；含识别器差距清单待拍板）。
-**技术债**：`engine/track.mjs`（10-10 遗留、无调用、未跟踪）与 lib.rs 817 行 pkill 旧名单——候选清理，不影响功能。
+**第三批（候选补充，10-12 爹地圈选后落地）**：10 位纯数字 → COSCO/OOCL 候选、12 位纯数字 → Evergreen 候选（均 0.5、仅候选不自动）。验收：identify 108/0；UI 回放新增断言全绿；实机 5051645160 显示候选提示并拦在前端（不空跑引擎）；裸 10 位真号 `6469105960`（COSU 剥离形）手选 COSCO 直查成功（青岛→梅尔辛 11 事件/5 箱，真网）。
+**技术债**：`engine/track.mjs`（10-10 遗留、无调用、未跟踪）与 lib.rs 817 行 pkill 旧名单——候选清理，不影响功能。另：selftest 程序化填充不触发 input 事件（自检截图看不到动态 hint；真实输入路径经 Playwright 回放验证正常）——建议 selftest 填充处补 dispatch input。

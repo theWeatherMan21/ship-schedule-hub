@@ -53,7 +53,8 @@ export const CARRIERS = [
     id: 'cosco', name: '中远海运 COSCO',
     scac: ['COSU', 'COAU', 'COEU'],
     container: ['CSNU', 'CBHU', 'CCLU', 'CSLU'],
-    booking: [],
+    // 10 位纯数字 = COSCO BL/订舱形态（官网例 5051645160）。多义（OOCL 同形）→ 只作候选，不自动。
+    booking: [{ re: /^\d{10}$/, label: '10 位纯数字（COSCO BL/订舱形态）', score: 0.5 }],
     tracking: 'planned',
   },
   {
@@ -95,14 +96,16 @@ export const CARRIERS = [
     id: 'evergreen', name: '长荣 Evergreen',
     scac: ['EGLV'],
     container: ['EGHU', 'EGSU', 'EMCU', 'EISU', 'EITU', 'EGMU', 'EVGU', 'EMEU', 'IMTU', 'LTIU', 'UGMU', 'HMCU'],
-    booking: [],
+    // 12 位纯数字 = Evergreen BL/订舱形态（官方 ShipmentLink 例 012345678900）。多义 → 只作候选。
+    booking: [{ re: /^\d{12}$/, label: '12 位纯数字（Evergreen BL/订舱形态）', score: 0.5 }],
     tracking: 'none',
   },
   {
     id: 'oocl', name: '东方海外 OOCL',
     scac: ['OOLU'],
     container: ['OOLU', 'OOCU'],
-    booking: [],
+    // 10 位纯数字 = OOCL BL 形态（多义：与 COSCO 同形）→ 只作候选，不自动。
+    booking: [{ re: /^\d{10}$/, label: '10 位纯数字（OOCL BL 形态）', score: 0.5 }],
     tracking: 'none',
   },
   {
