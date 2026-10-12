@@ -68,6 +68,16 @@
 - **修复**：`identify.mjs`——「11 位 + 提单前缀(SCAC) 且校验位不符」改为低置信放行（`scac-loose`，0.55）；纯箱主码（非提单前缀）维持原拦截（防打错箱号）。UI hint 增加「前缀命中，校验位不符」提示；`detect.mjs` 透出 `flags`。
 - **回归**：identify 99/0（新增 4 条断言）；12 家形态表全绿；对照 MSKU3077039 仍拒。
 
+## 2026-10-12 · Hapag 追踪接入（无头化收口）· 追踪 7/11
+
+**状态：已部署 `/Applications`（11:34 构建）并实机验收通过；追踪线 6/11 → 7/11。**
+
+- **通路**：legacy 深链 `track-by-booking-solution-legacy.html?blno=<号>` GET 免提交直出结果；列表 → Details（JSF）→ 容器详情 + 事件表（站方口径：粗体=ACTUAL、非粗体=EXPECTED）。
+- **无头化（爹地指名：有头测试 OK 后转回无头）**：根因＝`cf_clearance` 绑定 UA——无头曾写死 UA Chrome/140 ≠ 真机 Chrome 152，带凭证仍被挑战；修复＝`browser.mjs` 新增 `realChromeUA()` 动态对齐真机 Chrome 版本。架构＝**auto 双模**：无头先行（8~10s），被拦自动升级有头真指纹过盾并刷新凭证（自适应）。三连无头 8.2 / 9.1 / 10.2s 全通。
+- **真单验收**：`HLCUTS12608CSOQ6` → UWLU4114042 · 45GP · NINGBO→ISTANBUL（9 事件 8-23→10-05 全程，10-05 ISTANBUL 卸船）。App 内 selftest 无头真跑 → UI「1 container(s) · 9 events」、NINGBO → ISTANBUL、Discharged · MAERSK SIRAC 638N。
+- **回归**：identify 108/0、UI 回放全绿、船期线 App 自检跑通（browser.mjs 的 UA 修正是全项目级，船期无头家一并受益）。
+- 识别元数据 `hapag tracking:'live'`；UI 说明栏「已接通：… / Hapag-Lloyd」；文档 `docs/TRACKING-HAPAG.md`。
+
 ## 一、北极星（一句话）
 > 做完的那天，**爹地能填一次「起运港 + 目的港 + 日期」，一键查到 Top10 船司的船期，
 > 结果直接显示出来看得见** —— 不用再手工逐个开网页、重复输入。
