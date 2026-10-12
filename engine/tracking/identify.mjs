@@ -47,7 +47,7 @@ export const CARRIERS = [
     scac: ['HLCU', 'HLUS', 'HPET'],
     container: ['HLCU', 'HLXU', 'HLBU', 'UACU', 'UAEU', 'HAMU'],
     booking: [{ re: /^\d{8}$/, label: '8 位纯数字（Hapag 订舱号）', score: 0.45 }],
-    tracking: 'planned',
+    tracking: 'live',
   },
   {
     id: 'cosco', name: '中远海运 COSCO',
