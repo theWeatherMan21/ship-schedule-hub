@@ -185,6 +185,12 @@ const callsBeforeManual = await page.evaluate(() => window.__calls.filter((x) =>
 ok((await page.textContent('#trackResult') || '').includes('Cannot identify carrier'), 'unknown number gets actionable error');
 ok(callsBeforeManual === 1, 'unknown number does not spawn a carrier query');
 
+// 10 位数字 → 候选提示（COSCO/OOCL），不自动查询（10-12 加）
+await page.fill('#trackNum', '5051645160');
+const tenHint = (await page.textContent('#trackHint') || '');
+ok(/COSCO/.test(tenHint) && /手选/.test(tenHint), '10-digit number shows candidate hint', tenHint);
+ok((await page.evaluate(() => window.__calls.filter((x) => x.cmd === 'run_track').length)) === 1, '10-digit candidate hint does not auto-query');
+
 // ---------- ④ MSC container manual selection ----------
 console.log('═══ ④ MSC container manual selection ═══');
 await page.fill('#trackNum', fixtures.msc.number);

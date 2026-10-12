@@ -84,6 +84,10 @@ check('ONEY 前缀自动剥离 → 官网格式', normalizeOneNumber('ONEYNB3JJE
 check('官网格式输入（无 ONEY）原样保留', normalizeOneNumber('NB3JJE454300').value === 'NB3JJE454300');
 check('ONE 箱号不被剥离', normalizeOneNumber('ONEU2000881').value === 'ONEU2000881');
 
+console.log('=== G. 数字形态候选补充（10-12）===');
+expect('5051645160（10 位数字）→ COSCO/OOCL 候选（不自动）', '5051645160', { ok: false, docType: 'booking', candidatesInclude: ['cosco', 'oocl'], candidatesFirst: 'cosco' });
+expect('012345678900（12 位数字）→ Evergreen 候选（不自动）', '012345678900', { ok: false, docType: 'booking', candidatesFirst: 'evergreen' });
+
 console.log('=== E. 路由表 JSON 同源守卫 ===');
 const table = exportTable();
 if (SYNC) {
