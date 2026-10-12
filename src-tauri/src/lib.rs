@@ -859,7 +859,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(EngineState::default())
         .manage(TrackState::default())
-        .setup(|_app| {
+        .setup(|app| {
             // Windows 玻璃效果（婉宜 10-08，真机迭代三轮定稿）
             // 背景：config 的 windowEffects 写的是 macOS 材质名(hudWindow)，Windows 不认 → 必须运行时设。
             // 三档用 SSH_GLASS 切换（不重编即可 A/B）：
