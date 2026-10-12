@@ -111,7 +111,8 @@
 - **19:29 冷却复核**：`node engine/tracking/cli.mjs --number NGP3170431 --carrier cma` → **ok:true, cached:false, 11.6s**
   - 2 柜：**CMAU0822049 / CMAU3124587**（22G1 (20ST)），`GATE IN EMPTY AT DEPOT` @ ISTANBUL, AMBARLI PORT E. SIDE，2026-03-05 14:41 / 14:35（与 14:47 首测一致）
   - 静默红线：窗口 0 → 0 ✓
-- **收口**：`identify.mjs` cma `tracking: 'none' → 'live'`；UI 说明栏「已接通」追加 ` / CMA CGM`；单号识别器 **108/0**（prefixes.json 已 sync）；CMA 单测 23/0；已重新构建+部署 /Applications + App 自检 + commit。
+- **收口**：`identify.mjs` cma `tracking: 'none' → 'live'`；UI 说明栏「已接通」追加 ` / CMA CGM`；单号识别器 **108/0**（prefixes.json 已 sync）；CMA 单测 23/0；重新构建 + `ditto` 部署 /Applications + ad-hoc 重签（部署态实测：bundle 内 `identify.mjs` 已是 `live`、`cma.mjs` 在包内）；commit `6902abb`。
+- **待办（唯一）**：**App 原生自检截图**未完成——跑自检时本机屏幕处于锁定态（`CGSSessionScreenIsLocked=1`），`screencapture` 报 `could not create image from display`，且锁屏下 WKWebView 的 `setTimeout` 被挂起，自检点击根本不发生（trace 无新增 `run_track`，缓存未被 App 触碰）。**结论：App 侧视觉验收必须等屏幕解锁后再跑**；已备一键脚本 `qa/cma-app-selftest.sh`（内含锁屏前置检查，锁屏即 exit 4 不瞎跑）。
 
 ## 2026-10-12 · v1.4.0 发布 🚀
 
