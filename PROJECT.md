@@ -105,6 +105,22 @@
 - **"每次打开弹通知"根治**：根因 = macOS「应用管理」（`kTCCServiceSystemPolicyAppBundles`）未授权——每次替换 /Applications 里的 app 触发一次拦截通知。排查：实测启动对 /Applications **零改动** → 查系统日志定位 TCC → **爹地手动授权**（日志确认 `full`，通知清除）。加固：构建卫生（旧证据目录移出 bundle）+ **部署后 ad-hoc 重签**（Sealed Resources 封条）。
 - 提交：`e2808c8`（CMA）、`2f3a68e`（构建卫生+部署须知）、`4883328`（自检 input 事件 + 停止逻辑）。
 
+## 2026-10-12 · CMA CGM 达飞 · 真网复核通过 → 升级 live（t_55c20bdb）
+
+- **背景**：白天探路访问过密 → CMA 官网 DataDome 对出口限流（追踪表单页不出现）；14:47 最后一次成功。
+- **19:29 冷却复核**：`node engine/tracking/cli.mjs --number NGP3170431 --carrier cma` → **ok:true, cached:false, 11.6s**
+  - 2 柜：**CMAU0822049 / CMAU3124587**（22G1 (20ST)），`GATE IN EMPTY AT DEPOT` @ ISTANBUL, AMBARLI PORT E. SIDE，2026-03-05 14:41 / 14:35（与 14:47 首测一致）
+  - 静默红线：窗口 0 → 0 ✓
+- **收口**：`identify.mjs` cma `tracking: 'none' → 'live'`；UI 说明栏「已接通」追加 ` / CMA CGM`；单号识别器 **108/0**（prefixes.json 已 sync）；CMA 单测 23/0；已重新构建+部署 /Applications + App 自检 + commit。
+
+## 2026-10-12 · v1.4.0 发布 🚀
+
+- **GitHub Release**：https://github.com/theWeatherMan21/ship-schedule-hub/releases/tag/v1.4.0（15:54）
+- **三资产**：`ShipScheduleHub_1.4.0_aarch64.dmg`（42MB）· `_x64.dmg`（43MB）· `_x64-setup.exe`（27MB）；**CI run 38218998197 success**
+- **本版内容**：提单追踪 6→10 家（ZIM/Hapag/阳明/长荣/达飞[代码就位]）+ Hapag 无头化（realChromeUA + auto 双模）+ 自动识别补课 + 自检 input 事件 + 构建卫生（证据目录移出 bundle）
+- **流程教训（重要）**：`src-tauri/src/lib.rs` 的改动**必须检查 Windows 分支编译影响**——macOS 条件编译会掩盖 Windows-only 代码引用的变量（本轮 `_app` 形参即此坑，首次 CI 失败）；本机 `cargo check`(macOS) 不能替代。
+- **部署要点**：`ditto` 新构建 → `/Applications` + `xattr -dr com.apple.quarantine` + **`codesign --force --deep --sign -`（ad-hoc 重签）**；部署动作本身会触发 macOS「应用管理」提示（需给终端授权一次，非 App 问题）。
+
 ## 2026-10-12 · Evergreen t_96b18a61
 
 进行中：适配器/UI 已部署到 /Applications。真提单 EGLV142552582916 → 上海→太子港，FCIU7515190，10 ACTUAL 事件，Completed；箱号独立查询通过（更新一票 6 事件）。纯 HTTP 零浏览器；identify 108/0、normalize、官方 HTML 断言、既有 UI 回放与 Evergreen selftest 回放全绿，窗口 0→0。证据：`~/.hermes/kanban/workspaces/t_96b18a61/VERIFICATION.md` 与 evergreen-timeline.png。剩余：原生 App selftest 截图尚未跑（显示 App 与零窗口约束冲突），交 review 明确验收方式；回放截图不冒充原生截图。
