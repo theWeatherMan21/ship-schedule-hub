@@ -24,6 +24,20 @@ pub struct QueryArgs {
     visible: Option<bool>,
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TrackArgs {
+    number: String,
+    carrier: Option<String>,
+}
+
+/// 提单/箱号追踪的独立状态：与船期查询**分开**（爹地在船期页查着，还能切到追踪页查单号，
+/// 两边互不踩：各自的 running / pid）。婉宜 10-10 接线。
+#[derive(Default)]
+pub struct TrackState {
+    pub running: std::sync::Mutex<bool>,
+    pub child_pid: std::sync::Mutex<Option<u32>>,
+}
 
 /// 用系统默认浏览器打开外部链接（维运网兜底查询等）婉宜 9-24
 #[tauri::command]
@@ -153,6 +167,11 @@ fn trace_line(msg: &str) {
 #[tauri::command]
 fn selftest_enabled() -> bool {
     std::env::var("SSH_SELFTEST").is_ok()
+}
+
+#[tauri::command]
+fn track_selftest() -> Option<String> {
+    std::env::var("SSH_TRACK_SELFTEST").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty())
 }
 
 fn find_node(app: Option<&AppHandle>) -> String {
@@ -606,6 +625,168 @@ fn run_query(
     Ok(serde_json::json!({ "ok": true }))
 }
 
+/// 提单/箱号追踪：拉起 engine/tracking/cli.mjs，NDJSON 走 **track://event**。
+/// 事件通道与船期查询的 engine://event **分开**（两个页签各听各的，互不干扰）。
+/// cli.mjs 协议（见其头注释）：track-started / track-result / track-error / track-exit。婉宜 10-10。
+#[tauri::command]
+fn run_track(
+    app: AppHandle,
+    state: State<'_, TrackState>,
+    args: TrackArgs,
+) -> Result<serde_json::Value, String> {
+    let number = args.number.trim().to_string();
+    trace_line(&format!("run_track ENTER number={:?} carrier={:?}", number, args.carrier));
+    if number.is_empty() {
+        return Err("缺少单号（tracking number is empty）".to_string());
+    }
+    let root = project_root(Some(&app));
+    let engine_dir = root.join("engine");
+    let script = engine_dir.join("tracking").join("cli.mjs");
+    if !script.exists() {
+        let msg = format!("安装不完整：缺少追踪引擎脚本（{}）—— 点「诊断」查看详情", script.display());
+        *state.running.lock().unwrap() = false;
+        let _ = app.emit("track://event", serde_json::json!({ "type": "track-error", "msg": msg.clone() }));
+        return Err(msg);
+    }
+    let node = find_node(Some(&app));
+    if !PathBuf::from(&node).exists() && node == "node" {
+        let msg = "找不到 node：随包运行时缺失且系统 PATH 里也没有 —— 请重装安装包，或点「诊断」".to_string();
+        *state.running.lock().unwrap() = false;
+        let _ = app.emit("track://event", serde_json::json!({ "type": "track-error", "msg": msg.clone() }));
+        return Err(msg);
+    }
+    {
+        let mut running = state.running.lock().unwrap();
+        if *running {
+            let pid = *state.child_pid.lock().unwrap();
+            if let Some(pid) = pid {
+                #[cfg(windows)]
+                { let sys32 = std::env::var("SystemRoot").map(|w| format!("{w}\\System32")).unwrap_or_else(|_| "C:\\Windows\\System32".into());
+                  let _ = Command::new(format!("{sys32}\\taskkill.exe")).args(["/T", "/F", "/PID", &pid.to_string()]).output(); }
+                #[cfg(not(windows))]
+                { let _ = Command::new("/bin/kill").args(["-TERM", &pid.to_string()]).output(); }
+            }
+            *state.child_pid.lock().unwrap() = None;
+            drop(running);
+            std::thread::sleep(std::time::Duration::from_millis(1200));
+            running = state.running.lock().unwrap();
+        }
+        *running = true;
+    }
+    let mut cmd = Command::new(find_node(Some(&app)));
+    cmd.current_dir(&engine_dir)
+        .arg(&script)
+        .arg("--number")
+        .arg(&number)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    if let Some(c) = args.carrier.as_ref().filter(|s| !s.trim().is_empty()) {
+        cmd.arg("--carrier").arg(c);
+    }
+    cmd.env_remove("NODE_PATH");
+    cmd.env_remove("NODE_OPTIONS");
+    cmd.env_remove("PLAYWRIGHT_BROWSERS_PATH");
+    cmd.env_remove("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD");
+    {
+        let tmp = project_root(Some(&app)).join("engine").join(".tmp");
+        let _ = std::fs::create_dir_all(&tmp);
+        let ts = tmp.display().to_string();
+        cmd.env("TMPDIR", &ts).env("TMP", &ts).env("TEMP", &ts);
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x0800_0000);
+    }
+    let mut child = cmd.spawn().map_err(|e| {
+        *state.running.lock().unwrap() = false;
+        let msg = format!("启动追踪引擎失败: {e}（node 不可用？点「诊断」查看 node 路径）");
+        let _ = app.emit("track://event", serde_json::json!({ "type": "track-error", "msg": msg.clone() }));
+        msg
+    })?;
+    *state.child_pid.lock().unwrap() = Some(child.id());
+    let stdout = child.stdout.take().unwrap();
+    let stderr = child.stderr.take().unwrap();
+    // stdout：逐行 NDJSON → track://event 原样转发（解析失败当日志行）
+    {
+        let app = app.clone();
+        std::thread::spawn(move || {
+            let reader = BufReader::new(stdout);
+            for line in reader.lines() {
+                let Ok(line) = line else { break };
+                let trimmed = line.trim();
+                if trimmed.is_empty() { continue; }
+                match serde_json::from_str::<serde_json::Value>(trimmed) {
+                    Ok(payload) => { let _ = app.emit("track://event", payload); }
+                    Err(_) => {
+                        let _ = app.emit("track://event", serde_json::json!({ "type": "track-log", "msg": trimmed.chars().take(300).collect::<String>() }));
+                    }
+                }
+            }
+        });
+    }
+    // stderr：收集转发（排障用）
+    {
+        let app = app.clone();
+        std::thread::spawn(move || {
+            let reader = BufReader::new(stderr);
+            let mut acc = String::new();
+            for line in reader.lines() {
+                let Ok(line) = line else { break };
+                acc.push_str(&line); acc.push('\n');
+            }
+            if !acc.is_empty() {
+                let msg: String = acc.chars().take(1200).collect();
+                let _ = app.emit("track://event", serde_json::json!({ "type": "track-stderr", "msg": msg }));
+            }
+        });
+    }
+    // 进程退出：复位状态 + 兜底通报（前端以引擎自发的 track-exit 为主）
+    {
+        let app = app.clone();
+        std::thread::spawn(move || {
+            let status = child.wait();
+            let (code, success) = match &status {
+                Ok(s) => (s.code().unwrap_or(-1), s.success()),
+                Err(_) => (-1, false),
+            };
+            let _ = app.emit("track://event", serde_json::json!({ "type": "track-process-exit", "code": code, "success": success }));
+            let state2 = app.state::<TrackState>();
+            *state2.running.lock().unwrap() = false;
+        });
+    }
+    Ok(serde_json::json!({ "ok": true }))
+}
+
+/// 停止追踪（与 stop_query 对称；停的是 TrackState 的 pid，互不影响船期查询）
+#[tauri::command]
+fn stop_track(app: AppHandle) -> Result<serde_json::Value, String> {
+    let state = app.state::<TrackState>();
+    let pid = *state.child_pid.lock().unwrap();
+    let mut killed = false;
+    if let Some(pid) = pid {
+        #[cfg(windows)]
+        {
+            killed = Command::new("taskkill").args(["/T", "/F", "/PID", &pid.to_string()]).output().map(|o| o.status.success()).unwrap_or(false);
+        }
+        #[cfg(not(windows))]
+        {
+            killed = Command::new("/bin/kill").args(["-TERM", &pid.to_string()]).output().map(|o| o.status.success()).unwrap_or(false);
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        let script = project_root(Some(&app)).join("engine/tracking/cli.mjs");
+        let pattern = script.display().to_string();
+        if let Ok(out) = Command::new("/usr/bin/pkill").args(["-f", &pattern]).output() {
+            killed = killed || out.status.success();
+        }
+    }
+    *state.running.lock().unwrap() = false;
+    *state.child_pid.lock().unwrap() = None;
+    Ok(serde_json::json!({ "ok": true, "killed": killed }))
+}
+
 #[tauri::command]
 fn stop_query(app: AppHandle) -> Result<serde_json::Value, String> {
     let state = app.state::<EngineState>();
@@ -633,10 +814,12 @@ fn stop_query(app: AppHandle) -> Result<serde_json::Value, String> {
     // 兜底：按脚本路径再扫一遍（旧行为，macOS 上很有效；Windows 交给上面的进程树杀）
     #[cfg(not(windows))]
     {
-        let script = project_root(Some(&app)).join("engine/query.mjs");
-        let pattern = script.display().to_string();
-        if let Ok(out) = Command::new("/usr/bin/pkill").args(["-f", &pattern]).output() {
-            killed = killed || out.status.success();
+        for name in ["query.mjs", "track.mjs"] {
+            let script = project_root(Some(&app)).join("engine").join(name);
+            let pattern = script.display().to_string();
+            if let Ok(out) = Command::new("/usr/bin/pkill").args(["-f", &pattern]).output() {
+                killed = killed || out.status.success();
+            }
         }
     }
     *state.running.lock().unwrap() = false;
@@ -674,6 +857,7 @@ fn set_glass(window: tauri::WebviewWindow, mode: String) -> Result<String, Strin
 pub fn run() {
     tauri::Builder::default()
         .manage(EngineState::default())
+        .manage(TrackState::default())
         .setup(|app| {
             // Windows 玻璃效果（婉宜 10-08，真机迭代三轮定稿）
             // 背景：config 的 windowEffects 写的是 macOS 材质名(hudWindow)，Windows 不认 → 必须运行时设。
@@ -733,7 +917,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![run_query, stop_query, open_external, selftest_enabled, diagnose, set_glass])
+        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

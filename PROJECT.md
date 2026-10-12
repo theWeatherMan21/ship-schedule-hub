@@ -1,12 +1,16 @@
 # ShipScheduleHub 驾驶舱（PROJECT.md）
 
 > 唯一真相源。中断后靠这份 + 芝麻仓重建上下文。更新频率：每轮收工 3 行。
-> 主管：婉宜 · 执行：码农（manong）· 最近更新：**2026-09-30**
+> 主管：婉宜 · 执行：婉宜主线 · 最近更新：**2026-10-12**
 > 路径：`/Users/russospencer/Documents/trae_projects/ShipScheduleHub`
 > 部署位置：**`/Applications/ShipScheduleHub.app`**（已上线自用）
 > 仓库：**https://github.com/theWeatherMan21/ship-schedule-hub**（私有，2026-09-30 首推，402 文件）
 
 ## 〇、当前状态（2026-10-09 晚 · 婉宜）
+
+### 发布卡 t_9ae00f7c（2026-10-10）
+
+进行中：v1.3.0 发布。关键路径：安装包重建与部署冒烟 → commit/tag/push → CI 三资产核验 → 爹地亲手验收。当前时间盒 60 分钟；不使用 Windows 真机、不弹自动化窗口。
 
 ### 本轮 WIP（≤2）
 
@@ -30,6 +34,39 @@
 | 版本 | 部署态 `/Applications/ShipScheduleHub.app` = **1.1.1**（含 10-09 全部修复）；最近提交 `a255a30` |
 | 站侧事实（非我方 bug） | 达飞官网在线查询**不覆盖以色列**（爹地亲自确认）；马士基/阳明部分航线官网确实无服务 |
 | 打扰 | **零窗口**（无头 + 探针包装器 `qa/quiet-probe.sh` 跑完比对屏幕窗口数）；测试一律独立 profile，绝不抢爹地 App 的 profile |
+
+## 2026-10-10 · 提单/箱号追踪聚合接入验收
+
+**状态：已交付待爹地验收**。提单/箱号页签已落到 `/Applications/ShipScheduleHub.app`（当前包版本仍为 `v1.2.4`，本轮未升版本号）；统一入口按 SCAC/箱主码/9 位 Maersk 形态识别，未知号要求手选船司。当前可用追踪器：Maersk、MSC、COSCO、HMM、ONE；Hapag 仍因交互式挑战未完成真实验收。
+
+- **源码离线 UI 回放**：`bash qa/quiet-probe.sh qa/ui-track-verify.mjs ~/.hermes/cache/scratch/track-ui-verify` 全部通过；Maersk/MSC/ONE 保存的官方结果快照、未知号前端拦截、摘要/ETA、折叠/展开、事件桥接、布局与 JS 错误断言通过；可见窗口 `0 → 0`。
+- **安装包内引擎真单**：`node /Applications/ShipScheduleHub.app/Contents/Resources/engine/tracking/cli.mjs --number 276759780` → `track-result ok:true`，`4.630s`，7 事件；`In Transit`，当前 `Container Departure`（ACTUAL），ETA `2026-11-26`。
+- **安装包真实 UI**：LaunchServices `open -a /Applications/ShipScheduleHub.app` + `SSH_TRACK_SELFTEST=276759780` 一次性自检；实机截图 `~/.hermes/cache/scratch/shiphub-tracking-selftest.png` 显示追踪页签、Maersk 摘要、路线、当前 ACTUAL、ETA、默认折叠；AX 展开复核显示 `Hide ▴`、4 条实际事件 + 3 条 `· est` 预计事件，无截断/重叠。
+- **代码/构建回归**：`npm run build`、`cargo check`、`node qa/track-normalize-test.mjs`、`node qa/track-identify-test.mjs`、JS `--check` 全通过；源码与 `/Applications` bundle 的 `engine/tracking/cli.mjs`、`normalize.mjs` 字节一致。
+- **边界**：本轮没有发布 v1.3.0；没有打 Windows 包/测 Windows；Hapag、ZIM、CMA、Evergreen、Yang Ming、OOCL 尚未进入追踪页可用下拉（避免伪成功）。
+
+### UI 卡 t_bb4f4e3c 本轮收口（2026-10-10）
+- 实施阶段已验证，交给下游发布卡 `t_9ae00f7c`；最终安装版验收由发布卡完成。
+- 本轮真实执行：`npm run build`、识别器 95 通过/0 失败、归一化回归、JS 语法检查、三家官方缓存 UI 回放全部通过；静默窗口 `0 → 0`，无 JS 报错、布局截断/重叠。
+- 新截图与验证报告通过任务附件留档：`UI-VERIFICATION.md`、`track-summary.png`、`track-timeline.png`、`track-one-timeline.png`。安装包 CLI 本轮复查 `276759780` 返回 7 事件，明确为 6 分钟缓存命中。
+- 发布注意：旧实机截图侧栏仍写仅 Maersk；新源码侧栏已列五家可用船司，发布时须重建最新源码。Hapag 模块存在不等于通过真单验收。
+
+## 2026-10-12 · v1.3.0 本地发布完成（待 GitHub push）
+
+**状态：已部署到 `/Applications/ShipScheduleHub.app`（v1.3.0），待爹地实机验收；GitHub 推送+CI 待确认。**
+
+- 背景：10-10 傍晚 ChatGPT（gpt-6.1-sol）协助已将版本升至 1.3.0（pkg/tauri/cargo 三处）+ 冻结发布快照 + 构建出 bundle，随后因 modelrelay 余额不足（403）中断在"部署前"。
+- 本轮（婉宜主线）接续：核对快照与主仓库关键文件字节一致 → 从主仓库生产源码重新构建（vite + tauri build 全绿）→ 部署 /Applications（旧版留档 `ShipScheduleHub.app.tmp-old`）→ 实机启动自检真单 `276759780` 通过。
+- 实机证据：`~/.hermes/cache/scratch/shiphub-v130-selftest.png`（追踪页签选中、Maersk 摘要卡、XINGANG→GDANSK、Container Departure ACTUAL、ETA 11-26、In Transit、7 events、无错误条）。
+- 本地提交：`feat(v1.3.0)` commit + tag `v1.3.0`（本地）；探针脚本不纳入提交。
+- 待办：①爹地验收；②push + tag → CI 三件套（dmg×2 + exe）；③验收通过后清理 `.tmp-old` 回滚档。
+
+### 2026-10-12 · 自动识别修复（爹地实机验收反馈）
+
+- **现象**：非 Maersk 的提单号（4字母+7数字，11 位常见 MBL 形态）无法自动识别船司。
+- **根因**：11 位形态被 ISO 6346 箱号校验拦杀——提单号没有校验位，被误伤拒绝路由（除 Maersk 9 位数字形态外普遍中招）。
+- **修复**：`identify.mjs`——「11 位 + 提单前缀(SCAC) 且校验位不符」改为低置信放行（`scac-loose`，0.55）；纯箱主码（非提单前缀）维持原拦截（防打错箱号）。UI hint 增加「前缀命中，校验位不符」提示；`detect.mjs` 透出 `flags`。
+- **回归**：identify 99/0（新增 4 条断言）；12 家形态表全绿；对照 MSKU1312523 仍拒。
 
 ## 一、北极星（一句话）
 > 做完的那天，**爹地能填一次「起运港 + 目的港 + 日期」，一键查到 Top10 船司的船期，
@@ -852,3 +889,14 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 **真相**：CMA 正常页面本身就带 `<script src="https://js.datadome.co/tags.js">`（DataDome 监控标签）；10-09 加的拦截判定是"前 6000 字符出现 datadome/captcha-delivery 字样"→ 正常页面全被误判。**证据**：证据截图里页面完全正常（表单都在），页面探针 i2=205 处即 tags.js。**修正**：判定改为"URL/iframe 真落在 captcha-delivery.com 且搜索表单不存在"才算拦截。
 **实测**（修后）：宁波→汉堡 10 ✓、青岛→格但斯克 10 ✓、厦门→鹿特丹 10 ✓、上海→汉堡 10 ✓、天津→汉堡 6 ✓、天津→阿什杜德=站方"No solution"（真无解）。
 **教训**：拦截判定必须用**正面证据**（挑战域 URL/iframe），不能拿"页面字样出现即拦"——正常页面自带监控标签会误报（"Safari 正常"是破了此案的钥匙）。
+
+## 10-12 自动识别补课（第二批：无前缀业务号 + ONE 官方口径）
+**症状**：爹地实测「除 Maersk 外都认不出」+ 复测 `181AS0266823514M1` 依旧无识别。
+**根因**：识别器只认「SCAC 前缀 / 箱号 / 少量订舱形态」；真实业务号的两类盲区——①无 SCAC 前缀的承运号（MSC 181 系列、ONE 后 12 位）；②11 位提单型被箱号校验误杀（第一批 scac-loose 已修）。
+**修复（两批合并）**：
+- `scac-loose`：4 字母+7 数字且前 4 位是提单前缀 → 低置信放行（`MSKU1312523` 对照仍拒）。
+- **MSC 181 系列**：`^181[A-Z]{2}[A-Z0-9]{5,}$` → MSC（0.6 自动；181AS0266823514M1 缓存+live 双实证，SHEKOU→ISTANBUL）。
+- **ONE 官方两种后 12 位形态**：3 字母+9 数字 / 4 字母+8 数字 → ONE（0.6 自动）。带 ONEY 前缀自动剥（适配器已做，本轮 e2e 验证：`ONEYSZPG70884900`→`SZPG70884900` 南沙→温哥华 40 事件）。
+- 调研来源：one-line.com 官网口径 + Vizion《Bill of lading number formatting》全表（2026-10-12 Exa 检索，各家 MBL 形态对照：Maersk 9 数字 / MSC=MEDU+2+6 / ONE 后 12 位两种形态 / Hapag=HLCU+…16 位 / Evergreen 12 数字 / OOCL 10 数字 / YM 1 字母+9 数字 / ZIM 3 字母+4-7 数字 等）。
+**验证**：identify 106/0；ui-track-verify 离线回放全绿（静默 0→0）；实机 selftest `181AS0266823514M1` → 自动识别 MSC、结果卡 SHEKOU→ISTANBUL（MSC METTE，ETA 11-13）；部署 /Applications（09:49 构建）。
+**技术债**：`engine/track.mjs`（10-10 遗留、无调用、未跟踪）与 lib.rs 817 行 pkill 旧名单——候选清理，不影响功能。

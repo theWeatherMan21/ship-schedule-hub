@@ -1,4 +1,5 @@
 import './styles.css';
+import { detectCarrier, describeShape } from '../engine/tracking/detect.mjs';
 
 // ---------- 船司清单（与 engine/recipes/registry 保持一致）----------
 const CARRIERS = [
@@ -236,6 +237,12 @@ app.innerHTML = `
   <div id="diagBox" class="diagbox" hidden></div>
   <div id="errBox" class="errbox" hidden></div>
 
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-v="sched">船期</button>
+    <button class="tab" data-v="track">提单/箱号</button>
+  </nav>
+
+  <div id="viewSched" class="view">
   <section class="formbar">
     <div class="field">
       <label>起运港</label>
@@ -268,6 +275,50 @@ app.innerHTML = `
       </div>
     </section>
   </section>
+  </div>
+
+  <div id="viewTrack" class="view" hidden>
+    <section class="formbar">
+      <div class="field">
+        <label>提单号 / 订舱号 / 箱号</label>
+        <input id="trackNum" placeholder="e.g. HLCU… / COSU… / 276759780" style="width:300px" />
+        <div id="trackHint" class="porthint"></div>
+      </div>
+      <div class="field">
+        <label>船司（留「自动识别」即可）</label>
+        <select id="trackCarrier">
+          <option value="">自动识别</option>
+          <option value="maersk">Maersk</option>
+          <option value="msc">MSC</option>
+          <option value="cosco">COSCO</option>
+          <option value="hmm">HMM</option>
+          <option value="hapag">Hapag-Lloyd</option>
+          <option value="one">ONE</option>
+        </select>
+        <div id="trackCarrierHint" class="porthint"></div>
+      </div>
+      <button id="btnTrackGo" class="btn-primary">查询</button>
+      <button id="btnTrackStop" class="btn-ghost">停止</button>
+    </section>
+    <section class="main">
+      <aside class="carriers">
+        <div class="head">说明</div>
+        <div class="track-tips">
+          • 单号按前缀自动识别归属<br>
+          • 已接通：<b>Maersk / MSC / COSCO / HMM / ONE</b><br>
+          • Hapag-Lloyd：适配器在建，可能被验证拦截<br>
+          • 结果一行摘要 → 点击展开时间线<br>
+          • 浅色行 = 预计（未发生）
+        </div>
+      </aside>
+      <section class="statuswrap">
+        <div class="statushead"><b>追踪结果</b><span id="trackSummary"></span></div>
+        <div id="trackResult" class="statuslist">
+          <div class="empty"><span class="big">📦</span><span>输入提单号 / 订舱号，点「查询」</span></div>
+        </div>
+      </section>
+    </section>
+  </div>
 `;
 
 document.getElementById('btnDiag').onclick = async () => {
@@ -550,6 +601,7 @@ function collectQuery() {
 }
 
 async function startQuery(q) {
+  runMode = 'sched';
   clearEngineError();
   lastQuery = { origin: q.origin, destination: q.destination };  // 修 9-25『点击无反应』：此前误用未定义变量
   renderInitialStatus(q.selected);
@@ -745,16 +797,30 @@ async function listenEngineEvents() {
         setTimeout(() => startQuery(q), 200);
         return;
       }
+      if (runMode === 'track' && pendingTrackRestart) {
+        pendingTrackRestart = false;
+        setTimeout(() => startTrack(), 200);
+        return;
+      }
       // 引擎退出但一条结果都没有 → 必须说清原因，别让人对着空卡片猜
-      const produced = Object.values(statusRows).some((g) => (g.querySelectorAll('.trow').length > 0));
+      const producedSched = Object.values(statusRows).some((g) => (g.querySelectorAll('.trow').length > 0));
+      const produced = runMode === 'track' ? trackDone : producedSched;
       if (!produced) {
         const tail = stderrTail.slice(-2).join(' ⏎ ');
-        showEngineError(tail
-          ? `Query finished with no results. Engine output: ${tail.slice(0, 200)}`
-          : 'Query finished with no results (open Diagnostics above to check node/engine paths)');
+        if (runMode === 'track') {
+          trackRenderFail('Query finished with no result' + (tail ? '：' + tail.slice(0, 160) : ''));
+        } else {
+          showEngineError(tail
+            ? `Query finished with no results. Engine output: ${tail.slice(0, 200)}`
+            : 'Query finished with no results (open Diagnostics above to check node/engine paths)');
+        }
       }
       renderDiagnostics();
     }
+    });
+    await listen('track://event', (e) => {
+      const ev = e.payload || {};
+      if (ev.type && ev.type.startsWith('track-')) handleTracking(ev);
     });
   } catch (err) {
     const box = document.getElementById('summary');
@@ -909,4 +975,158 @@ listenEngineEvents();
     btn.appendChild(s);
     setTimeout(() => s.remove(), 600);
   });
+})();
+
+// ========== 提单/箱号追踪（婉宜 10-10 · 卡①/②/③）==========
+let runMode = 'sched';
+let trackDone = false;
+let trackRunning = false;
+let pendingTrackRestart = false;
+
+const TRACK_NAME = { msc: 'MSC', maersk: 'Maersk', cma: 'CMA CGM', cosco: 'COSCO', hapag: 'Hapag-Lloyd', one: 'ONE', evergreen: 'Evergreen', yangming: 'Yang Ming', hmm: 'HMM', zim: 'ZIM', oocl: 'OOCL' };
+const esc = (x) => String(x == null ? '' : x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function detectClient(num) {
+  const detected = detectCarrier(num);
+  return detected.ok ? detected.carrier : null;
+}
+
+function switchView(v) {
+  const vs = document.getElementById('viewSched');
+  const vt = document.getElementById('viewTrack');
+  if (vs) vs.hidden = v !== 'sched';
+  if (vt) vt.hidden = v !== 'track';
+  document.querySelectorAll('#tabs .tab').forEach((b) => b.classList.toggle('active', b.dataset.v === v));
+}
+document.querySelectorAll('#tabs .tab').forEach((b) => { b.onclick = () => switchView(b.dataset.v); });
+
+document.getElementById('trackNum')?.addEventListener('input', () => {
+  const el = document.getElementById('trackHint');
+  if (!el) return;
+  const v = document.getElementById('trackNum').value.trim();
+  const c = detectClient(v);
+  const isBox = /^[A-Z]{4}\d{7}$/.test(v.toUpperCase().replace(/[^A-Z0-9]/g, ''));
+  const detected = detectCarrier(v);
+  const loose = c && detected.how === 'scac-loose';
+  el.textContent = !v ? '' : (c ? `${describeShape(v) || '单号'} → ${TRACK_NAME[c]}（auto）${loose ? ' · 前缀命中，校验位不符（输错请核对）' : (isBox ? ' · 箱主不一定是承运人，可手选' : '')}` : (detected.note || 'carrier not recognized — 可在右侧手动选'));
+  el.className = 'porthint' + (v && !c ? ' warn' : '');
+});
+
+function fmtDay(t) { const m = /(\d{4})-(\d{2})-(\d{2})/.exec(String(t || '')); return m ? `${m[2]}-${m[3]}` : ''; }
+
+function trackRenderRunning(num) {
+  const box = document.getElementById('trackResult');
+  if (box) box.innerHTML = `<div class="trackcard"><div class="thead"><span class="tcarrier">查询中…</span><span class="tnum">${esc(num)}</span></div><div class="tmeta">talking to the carrier…</div></div>`;
+  const sm = document.getElementById('trackSummary');
+  if (sm) sm.textContent = 'Querying…';
+}
+function trackRenderFail(msg, ev) {
+  const box = document.getElementById('trackResult');
+  if (box) box.innerHTML = `<div class="trackcard"><div class="thead"><span class="tcarrier">${esc((ev && ev.label) || '')}</span><span class="tnum">${esc((ev && (ev.docNum || ev.number)) || '')}</span></div><div class="tfail">⚠️ ${esc(msg)}</div></div>`;
+  const sm = document.getElementById('trackSummary');
+  if (sm) sm.textContent = '—';
+}
+function trackRenderDone(ev) {
+  const c = ev.current || {};
+  const eta = ev.eta || {};
+  const route = `${ev.origin || '?'} → ${ev.destination || '?'}`;
+  const curTxt = `${c.activity || ev.phase || 'Status unavailable'}${c.time ? ' · ' + fmtDay(c.time) : ''}${c.city ? ' @ ' + c.city : ''}${c.vessel ? ' · ' + c.vessel + (c.voyage ? ' ' + c.voyage : '') : ''}`;
+  const etaTxt = eta.time ? `${fmtDay(eta.time)} ${eta.city || ''}`.trim() : '—';
+  const events = (ev.events || []).map((e) => {
+    const estimated = e.timeType === 'EXPECTED' || e.isEta;
+    return `<div class="tev${estimated ? ' est' : ''}"><span class="d">${fmtDay(e.time)}</span><span class="a">${esc(e.activity)}</span><span class="l">${esc(e.city || '')}${e.vessel ? ' · ' + esc(e.vessel) + (e.voyage ? ' ' + e.voyage : '') : ''}${e.container ? ' · ' + esc(e.container) : ''}</span></div>`;
+  }).join('');
+  const conts = (ev.containers || []).map((ct) => `<div class="cblock"><div class="chead">📦 ${esc(ct.num || '')}${ct.size ? ` · ${esc(ct.size)}'` : ''} ${esc(ct.type || '')}<span class="cst">${esc(ct.status || '')}</span></div></div>`).join('');
+  const box = document.getElementById('trackResult');
+  if (box) box.innerHTML = `<div class="trackcard clickable" id="trackCard" role="button" tabindex="0" aria-expanded="false" aria-controls="trackBody">
+    <div class="thead"><span class="tcarrier">${esc(ev.carrierLabel || TRACK_NAME[ev.carrier] || '')}</span><span class="tnum">${esc(ev.docNum || ev.number)}</span><span class="spacer"></span><span class="tmore" id="trackMore">Details ▾</span></div>
+    <div class="troute">${esc(route)}</div><div class="tmain">${esc(curTxt)}</div><div class="tmeta">ETA ${esc(etaTxt)} · ${esc(ev.phase || '')}</div>
+    <div class="tbody" id="trackBody">${conts}${events}</div></div>`;
+  const sm = document.getElementById('trackSummary');
+  if (sm) sm.textContent = `${ev.containerCount || (ev.containers || []).length} container(s) · ${(ev.events || []).length} events${ev.cached ? ' · cached (' + (ev.cachedAgoMin || 1) + ' min ago)' : ''}`;
+  const card = document.getElementById('trackCard');
+  if (card) {
+    card.onclick = () => {
+      const open = card.classList.toggle('open');
+      card.setAttribute('aria-expanded', String(open));
+      const m = document.getElementById('trackMore');
+      if (m) m.textContent = open ? 'Hide ▴' : 'Details ▾';
+    };
+    card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); } };
+  }
+  trackDone = true;
+}
+function handleTracking(ev) {
+  if (ev.type === 'track-started') { trackDone = false; trackRunning = true; setEngineDot('busy'); trackRenderRunning(ev.number); return; }
+  if (ev.type === 'track-result') {
+    if (!ev.ok) { trackRenderFail(ev.error || 'No result', ev); trackDone = true; return; }
+    trackRenderDone(ev); trackDone = true; return;
+  }
+  if (ev.type === 'track-error') {
+    trackRenderFail(ev.msg || 'Tracking error', ev); trackDone = true; trackRunning = false;
+    setEngineDot(engineRunning ? 'on' : 'off'); updateGoBtn(); return;
+  }
+  if (ev.type === 'track-exit') {
+    trackRunning = false; setEngineDot(engineRunning ? 'on' : 'off'); updateGoBtn();
+    if (pendingTrackRestart) { pendingTrackRestart = false; setTimeout(() => startTrack(), 150); return; }
+    if (!trackDone) trackRenderFail('Tracking process exited without a result');
+    return;
+  }
+  if (ev.type === 'track-process-exit' && !trackDone) {
+    trackRenderFail(`Tracking process failed (code ${ev.code})`);
+    trackRunning = false; setEngineDot(engineRunning ? 'on' : 'off'); updateGoBtn();
+  }
+}
+
+async function startTrack() {
+  const inp = document.getElementById('trackNum');
+  const num = (inp.value || '').trim();
+  if (!num) { inp.classList.add('invalid'); inp.focus(); return; }
+  inp.classList.remove('invalid');
+  const selected = document.getElementById('trackCarrier').value || null;
+  const carrier = selected || detectClient(num);
+  if (!carrier) { trackRenderFail('Cannot identify carrier. Choose one from the carrier menu.'); return; }
+  clearEngineError(); runMode = 'track'; trackDone = false; trackRunning = true;
+  setEngineDot(engineRunning ? 'on' : 'busy'); updateGoBtn(); trackRenderRunning(num);
+  try {
+    const res = await invoke('run_track', { args: { number: num, carrier: selected } });
+    if (res && res.ok === false) throw new Error(res.error || 'Tracking engine did not start');
+  } catch (e) {
+    trackRunning = false; setEngineDot(engineRunning ? 'on' : 'off'); updateGoBtn();
+    trackRenderFail('Unable to start tracking: ' + String(e).slice(0, 150));
+  }
+}
+document.getElementById('btnTrackGo')?.addEventListener('click', async () => {
+  if (trackRunning) {
+    pendingTrackRestart = true;
+    const sm = document.getElementById('trackSummary');
+    if (sm) sm.textContent = '⏹ Stopping previous query, then starting the new one…';
+    await invoke('stop_track', {}).catch(() => {});
+    setTimeout(() => { if (!pendingTrackRestart) return; pendingTrackRestart = false; trackRunning = false; startTrack(); }, 8000);
+    return;
+  }
+  startTrack();
+});
+document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
+  pendingTrackRestart = false;
+  await invoke('stop_track', {}).catch(() => {});
+  trackRunning = false;
+  setEngineDot(engineRunning ? 'on' : 'off');
+  updateGoBtn();
+  const sm = document.getElementById('trackSummary');
+  if (sm) sm.textContent += '　Stop requested';
+});
+
+// 追踪自检（SSH_TRACK_SELFTEST=<单号> 启动时自动跑一单，婉宜取证用）
+(async function trackSelfTest() {
+  if (!hasTauri) return;
+  try {
+    const num = await invoke('track_selftest', {});
+    if (!num) return;
+    switchView('track');
+    setTimeout(() => {
+      document.getElementById('trackNum').value = num;
+      document.getElementById('btnTrackGo').click();
+    }, 2500);
+  } catch (e) { /* 无自检即忽略 */ }
 })();

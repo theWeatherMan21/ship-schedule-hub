@@ -209,6 +209,28 @@ export async function isBlockPage(page) {
   return false;
 }
 
+// ---- DataDome 系「挑战 cookie」作废（10-10 达飞收尾实测）----
+// 现象（同 IP、同一 profile 副本，第 3 轮对照实测 15:19–15:27）：
+//   带 datadome cookie 进新会话  → 必被挑战：HTTP 403 + captcha-delivery 设备检查 iframe（表单拿不到）
+//   作废 datadome cookie 后再访  → 3/3 全 200（表单在、无 iframe）
+//   同一 context 里第 2 次导航（带着首访下发的 datadome cookie）→ 又 403
+// 机制：挑战页会下发一枚「挑战态」datadome cookie，它落盘后每次都把人导回挑战页 ——
+//   profile 自己永远不会自愈（这就是达飞「从早到晚 0 条」的根因，不是 IP 声誉、不是时段）。
+// 处置：每次查询前先作废该域下的 datadome cookie，等价于「干净首访」。
+// 只碰 datadome 系 cookie，别动站点自己的会话 cookie（实测保留 _cs_c/XSRF/Human_Search 不影响放行）。
+export async function clearDataDomeCookies(ctx, urls) {
+  let killed = 0;
+  for (const u of (Array.isArray(urls) ? urls : [urls])) {
+    const cks = await ctx.cookies(u).catch(() => []);
+    for (const c of cks.filter((x) => /datadome/i.test(x.name))) {
+      // expires:0 = 立即过期（Playwright 会把它从 jar 里清掉）
+      await ctx.addCookies([{ ...c, expires: 0 }]).catch(() => {});
+      killed++;
+    }
+  }
+  return killed;
+}
+
 // ---- 通用候选点选（移植自 qa/m4-probe.mjs pickCandidate，V6C 起用）----
 // 轮询匹配 + 排除隐藏原生 select（CSS [role="option"] 不匹配原生 <option>，getByRole('option') 会）。
 // 打字用 field.type 定向输入（page.keyboard.type 在 React 重渲染后 focus 丢失，输入会进 <body>）。

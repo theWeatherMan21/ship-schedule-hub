@@ -540,3 +540,37 @@ html[data-platform="win"] body::before { display: none !important; }
   border: 1px solid var(--border, rgba(128,128,128,.35)); background: var(--card, transparent); color: inherit; }
 .porthint .ctrypick:hover { border-color: var(--accent); color: var(--accent); }
 .porthint .ctrypick.on { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+/* ---------- 页签 & 提单/箱号追踪（婉宜 10-10） ---------- */
+.tabs { display: flex; gap: 2px; padding: 0 18px; background: var(--panel); border-bottom: 1px solid var(--line); flex-shrink: 0; }
+.tabs .tab { font: inherit; font-size: 12.5px; font-weight: 650; color: var(--ink-2); background: transparent; border: none; border-bottom: 2px solid transparent; padding: 9px 13px 8px; cursor: pointer; }
+.tabs .tab.active { color: var(--ink); border-bottom-color: var(--accent); }
+.tabs .tab:hover { color: var(--ink); }
+.view { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.view[hidden] { display: none; }
+.field select { font: inherit; color: var(--ink); background: #fbfbfc; border: 1px solid var(--line); border-radius: 9px; padding: 7px 10px; min-width: 150px; outline: none; }
+.field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+.track-tips { padding: 12px 14px; color: var(--ink-2); font-size: 12px; line-height: 1.9; }
+.trackcard { margin: 12px 14px; padding: 13px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 1px 2px rgba(20, 30, 50, .04); }
+.trackcard.clickable { cursor: pointer; }
+.trackcard .thead { display: flex; align-items: center; gap: 8px; }
+.trackcard .tcarrier { font-weight: 750; color: var(--accent); }
+.trackcard .tnum { font-family: var(--mono); font-weight: 650; color: var(--ink-2); }
+.trackcard .spacer { flex: 1; }
+.trackcard .tmore { font-size: 10.5px; font-weight: 600; color: var(--ink-3); padding: 2px 7px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); }
+.trackcard.open .tmore { color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent); }
+.trackcard .troute { font-size: 12px; color: var(--ink-2); margin-top: 7px; }
+.trackcard .tmain { font-size: 14px; font-weight: 700; margin-top: 5px; }
+.trackcard .tmeta { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.trackcard .tfail { margin-top: 8px; color: var(--err); font-size: 12.5px; font-weight: 600; }
+.trackcard .tbody { display: none; margin-top: 10px; border-top: 1px dashed var(--line-soft); padding-top: 4px; }
+.trackcard.open .tbody { display: block; }
+.cblock + .cblock { margin-top: 8px; border-top: 1px dashed var(--line-soft); padding-top: 8px; }
+.cblock .chead { font-size: 12.5px; font-weight: 650; padding: 4px 0; }
+.cblock .chead .cst { color: var(--ink-3); font-weight: 500; font-size: 11px; margin-left: 6px; }
+.tev { display: flex; gap: 10px; padding: 6px 0 6px 2px; border-top: 1px dashed var(--line-soft); font-size: 12px; align-items: baseline; }
+.tev .d { min-width: 66px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tev .a { min-width: 158px; font-weight: 650; }
+.tev .l { color: var(--ink-2); }
+.tev.est { opacity: .55; }
+.tev.est .a::after { content: ' · est'; color: var(--ink-3); font-weight: 500; font-size: 10.5px; }
