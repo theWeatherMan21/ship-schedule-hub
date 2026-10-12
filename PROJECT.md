@@ -98,6 +98,13 @@
 - 文档：`docs/TRACKING-YANGMING.md`、`docs/TRACKING-EVERGREEN.md`。
 - **仍待**：OOCL（官方入口跳 Control Tower，人机滑块验证，需真单+人工过验证）、CMA（官网 403 + DataDome，A 路线保留 planned）——两家等真单/站点限制解除。
 
+## 2026-10-12 傍晚 · CMA 接入（代码完成）+ 弹窗根治
+
+- **CMA 适配器完成**（`cma.mjs`）：入口 GA `eBusiness/Tracking`（`#Reference` + `#btnTracking`）→ POST `/ebusiness/tracking/search` → 结果区解析；**冷却重试**（25s×2）+ not-found/blocked 如实区分；纯解析单测 **23/0**；CLI 已识别（**10/11 家可用**）。
+- **真单验收**：`NGP3170431`（爹地提供）**首次实测通过**（2 柜 CMAU0822049/CMAU3124587 · 伊斯坦布尔 Ambarli · 2026-03-05）；随后进入 **DataDome 限流**（探路访问过密；换 IP/干净档案均受制）——按站方机制，**待冷却后复核一次**即可收口。identify 暂保持 `tracking:'none'`（不宣称可用，直到真网复核过）。
+- **"每次打开弹通知"根治**：根因 = macOS「应用管理」（`kTCCServiceSystemPolicyAppBundles`）未授权——每次替换 /Applications 里的 app 触发一次拦截通知。排查：实测启动对 /Applications **零改动** → 查系统日志定位 TCC → **爹地手动授权**（日志确认 `full`，通知清除）。加固：构建卫生（旧证据目录移出 bundle）+ **部署后 ad-hoc 重签**（Sealed Resources 封条）。
+- 提交：`e2808c8`（CMA）、`2f3a68e`（构建卫生+部署须知）、`4883328`（自检 input 事件 + 停止逻辑）。
+
 ## 2026-10-12 · Evergreen t_96b18a61
 
 进行中：适配器/UI 已部署到 /Applications。真提单 EGLV142552582916 → 上海→太子港，FCIU7515190，10 ACTUAL 事件，Completed；箱号独立查询通过（更新一票 6 事件）。纯 HTTP 零浏览器；identify 108/0、normalize、官方 HTML 断言、既有 UI 回放与 Evergreen selftest 回放全绿，窗口 0→0。证据：`~/.hermes/kanban/workspaces/t_96b18a61/VERIFICATION.md` 与 evergreen-timeline.png。剩余：原生 App selftest 截图尚未跑（显示 App 与零窗口约束冲突），交 review 明确验收方式；回放截图不冒充原生截图。
