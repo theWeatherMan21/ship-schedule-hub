@@ -1,0 +1,2627 @@
+{
+ "capturedAt": "2026-10-10T15:27:55.292012",
+ "source": "ecomm.one-line.com EDH API (全网公开、无鉴权、无验证码)",
+ "endpoints": {
+  "search": "POST /v2/edh/containers/track-and-trace/search",
+  "timeline": "GET /v2/edh/containers/track-and-trace/cop-events",
+  "validate": "POST /v2/edh/containers/track-and-trace/validate-booking"
+ },
+ "queries": [
+  {
+   "number": "HAMG12062700",
+   "searchType": "BKG_NO",
+   "http": 201,
+   "total": 1,
+   "hits": [
+    {
+     "bookingNo": "HAMG12062700",
+     "containerNo": "ONEU4227196",
+     "containerTypeSize": "20'DRY ST.",
+     "por": {
+      "code": "DEHAM",
+      "locationName": "HAMBURG, HH",
+      "countryName": "GERMANY"
+     },
+     "pod": {
+      "code": "USMIA",
+      "locationName": "MIAMI, FL",
+      "countryName": "UNITED STATES"
+     },
+     "latestEvent": {
+      "eventName": "Empty Container Returned from Customer",
+      "locationName": "MIAMI, FL",
+      "date": "2026-04-20T10:16:00.000Z"
+     },
+     "copEvents": [
+      {
+       "eventName": "Empty Container Release to Shipper",
+       "eventLocalPortDate": "2026-03-23T15:07:00.000Z",
+       "eventDate": "2026-03-23T14:07:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E012",
+       "copSequence": 1011,
+       "opusCode": "MOTYDO",
+       "nodeCode": "DEMUC30",
+       "location": {
+        "code": "DEMUC",
+        "locationName": "MUNICH, BY",
+        "countryName": "GERMANY"
+       },
+       "yard": {
+        "yardCode": "DEMUC30",
+        "yardName": "KLOIBER MUNICH, MUNICH"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Gate In to Outbound Terminal",
+       "eventLocalPortDate": "2026-03-27T13:32:00.000Z",
+       "eventDate": "2026-03-27T12:32:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E040",
+       "copSequence": 1031,
+       "opusCode": "FOTMAD",
+       "nodeCode": "DEHAM01",
+       "location": {
+        "code": "DEHAM",
+        "locationName": "HAMBURG, HH",
+        "countryName": "GERMANY"
+       },
+       "yard": {
+        "yardCode": "DEHAM01",
+        "yardName": "CTA (CONTAINER TERMINAL ALTENWERDER), HAMBURG"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Loaded on Vessel at Port of Loading",
+       "eventLocalPortDate": "2026-03-30T22:34:00.000Z",
+       "eventDate": "2026-03-30T20:34:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E058",
+       "copSequence": 1032,
+       "opusCode": "FLVMLO",
+       "nodeCode": "DEHAM01",
+       "location": {
+        "code": "DEHAM",
+        "locationName": "HAMBURG, HH",
+        "countryName": "GERMANY"
+       },
+       "yard": {
+        "yardCode": "DEHAM01",
+        "yardName": "CTA (CONTAINER TERMINAL ALTENWERDER), HAMBURG"
+       },
+       "vessel": {
+        "code": "NRET",
+        "name": "NYK REMUS",
+        "voyNo": "0083",
+        "dirCode": "W"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "NRET",
+        "name": "NYK REMUS",
+        "voyNo": "0083",
+        "dirCode": "W",
+        "isShowVesselInformation": true,
+        "inboundConsortiumVoyage": "083W",
+        "outboundConsortiumVoyage": "083W"
+       }
+      },
+      {
+       "eventName": "Vessel Departure from Port of Loading",
+       "eventLocalPortDate": "2026-03-31T14:02:00.000Z",
+       "eventDate": "2026-03-31T12:02:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E061",
+       "copSequence": 4033,
+       "opusCode": "FLVMDO",
+       "nodeCode": "DEHAM01",
+       "location": {
+        "code": "DEHAM",
+        "locationName": "HAMBURG, HH",
+        "countryName": "GERMANY"
+       },
+       "yard": {
+        "yardCode": "DEHAM01",
+        "yardName": "CTA (CONTAINER TERMINAL ALTENWERDER), HAMBURG"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "NRET",
+        "name": "NYK REMUS",
+        "voyNo": "0083",
+        "dirCode": "W",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "083W",
+        "outboundConsortiumVoyage": "083W"
+       }
+      },
+      {
+       "eventName": "Vessel Arrival at Port of Discharge",
+       "eventLocalPortDate": "2026-04-14T11:15:00.000Z",
+       "eventDate": "2026-04-14T15:15:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E089",
+       "copSequence": 4052,
+       "opusCode": "FUVMBD",
+       "nodeCode": "USMIA02",
+       "location": {
+        "code": "USMIA",
+        "locationName": "MIAMI, FL",
+        "countryName": "UNITED STATES"
+       },
+       "yard": {
+        "yardCode": "USMIA02",
+        "yardName": "APM TERMINALS (SFCT) - MIAMI"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "NRET",
+        "name": "NYK REMUS",
+        "voyNo": "0083",
+        "dirCode": "W",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "083W",
+        "outboundConsortiumVoyage": "083W"
+       }
+      },
+      {
+       "eventName": "Unloaded from Vessel at Port of Discharging",
+       "eventLocalPortDate": "2026-04-14T16:31:00.000Z",
+       "eventDate": "2026-04-14T20:31:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E090",
+       "copSequence": 6053,
+       "opusCode": "FUVMUD",
+       "nodeCode": "USMIA02",
+       "location": {
+        "code": "USMIA",
+        "locationName": "MIAMI, FL",
+        "countryName": "UNITED STATES"
+       },
+       "yard": {
+        "yardCode": "USMIA02",
+        "yardName": "APM TERMINALS (SFCT) - MIAMI"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "NRET",
+        "name": "NYK REMUS",
+        "voyNo": "0083",
+        "dirCode": "W",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "083W",
+        "outboundConsortiumVoyage": "083W"
+       }
+      },
+      {
+       "eventName": "Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle)",
+       "eventLocalPortDate": "2026-04-17T16:12:00.000Z",
+       "eventDate": "2026-04-17T20:12:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E106",
+       "copSequence": 6054,
+       "opusCode": "FITMDO",
+       "nodeCode": "USMIA02",
+       "location": {
+        "code": "USMIA",
+        "locationName": "MIAMI, FL",
+        "countryName": "UNITED STATES"
+       },
+       "yard": {
+        "yardCode": "USMIA02",
+        "yardName": "APM TERMINALS (SFCT) - MIAMI"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Empty Container Returned from Customer",
+       "eventLocalPortDate": "2026-04-20T10:16:00.000Z",
+       "eventDate": "2026-04-20T14:16:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E138",
+       "copSequence": 6071,
+       "opusCode": "MITYAD",
+       "nodeCode": "USMIA02",
+       "location": {
+        "code": "USMIA",
+        "locationName": "MIAMI, FL",
+        "countryName": "UNITED STATES"
+       },
+       "yard": {
+        "yardCode": "USMIA02",
+        "yardName": "APM TERMINALS (SFCT) - MIAMI"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": "SZPG70884900",
+   "searchType": "BKG_NO",
+   "http": 201,
+   "total": 4,
+   "hits": [
+    {
+     "bookingNo": "SZPG70884900",
+     "containerNo": "DRYU2320259",
+     "containerTypeSize": "40'DRY HC.",
+     "por": {
+      "code": "CNNSA",
+      "locationName": "NANSHA, GUANGDONG",
+      "countryName": "CHINA"
+     },
+     "pod": {
+      "code": "CAVAN",
+      "locationName": "VANCOUVER, BC",
+      "countryName": "CANADA"
+     },
+     "latestEvent": {
+      "eventName": "Empty Container Returned from Customer",
+      "locationName": "VANCOUVER, BC",
+      "date": "2026-06-29T12:40:00.000Z"
+     },
+     "copEvents": [
+      {
+       "eventName": "Empty Container Release to Shipper",
+       "eventLocalPortDate": "2026-04-19T17:48:00.000Z",
+       "eventDate": "2026-04-19T09:48:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E012",
+       "copSequence": 1011,
+       "opusCode": "MOTYDO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Gate In to Outbound Terminal",
+       "eventLocalPortDate": "2026-04-20T11:00:00.000Z",
+       "eventDate": "2026-04-20T03:00:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E040",
+       "copSequence": 1031,
+       "opusCode": "FOTMAD",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Loading at O/B Inland Port",
+       "eventLocalPortDate": "",
+       "eventDate": "",
+       "triggerType": "ACTUAL",
+       "matrixId": "E180",
+       "copSequence": 1032,
+       "opusCode": "FOWMLO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Departure from O/B Inland Port",
+       "eventLocalPortDate": "2026-04-25T20:27:00.000Z",
+       "eventDate": "2026-04-25T12:27:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E031",
+       "copSequence": 1033,
+       "opusCode": "FOWMDO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Outbound Feeder Arrival at Inland Port",
+       "eventLocalPortDate": "2026-04-27T05:35:00.000Z",
+       "eventDate": "2026-04-26T21:35:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E041",
+       "copSequence": 1051,
+       "opusCode": "FLWMAD",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Unloading at POL",
+       "eventLocalPortDate": "",
+       "eventDate": "",
+       "triggerType": "ACTUAL",
+       "matrixId": "E183",
+       "copSequence": 1052,
+       "opusCode": "FLWMUD",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Loaded on Vessel at Port of Loading",
+       "eventLocalPortDate": "2026-05-01T15:29:00.000Z",
+       "eventDate": "2026-05-01T07:29:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E058",
+       "copSequence": 1053,
+       "opusCode": "FLVMLO",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "vessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": true,
+        "inboundConsortiumVoyage": "045E",
+        "outboundConsortiumVoyage": "045E"
+       }
+      },
+      {
+       "eventName": "Vessel Departure from Port of Loading",
+       "eventLocalPortDate": "2026-05-01T22:35:00.000Z",
+       "eventDate": "2026-05-01T14:35:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E061",
+       "copSequence": 4054,
+       "opusCode": "FLVMDO",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045E",
+        "outboundConsortiumVoyage": "045E"
+       }
+      },
+      {
+       "eventName": "Vessel Arrival at Port of Discharge",
+       "eventLocalPortDate": "2026-05-29T04:42:00.000Z",
+       "eventDate": "2026-05-29T11:42:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E089",
+       "copSequence": 4072,
+       "opusCode": "FUVMBD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045W",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Unloaded from Vessel at Port of Discharging",
+       "eventLocalPortDate": "2026-05-30T01:22:00.000Z",
+       "eventDate": "2026-05-30T08:22:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E090",
+       "copSequence": 6073,
+       "opusCode": "FUVMUD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045W",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle)",
+       "eventLocalPortDate": "2026-06-01T18:44:00.000Z",
+       "eventDate": "2026-06-02T01:44:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E106",
+       "copSequence": 6074,
+       "opusCode": "FITMDO",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Empty Container Returned from Customer",
+       "eventLocalPortDate": "2026-06-29T12:40:00.000Z",
+       "eventDate": "2026-06-29T19:40:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E138",
+       "copSequence": 6091,
+       "opusCode": "MITYAD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      }
+     ]
+    },
+    {
+     "bookingNo": "SZPG70884900",
+     "containerNo": "FFAU4245302",
+     "containerTypeSize": "40'DRY HC.",
+     "por": {
+      "code": "CNNSA",
+      "locationName": "NANSHA, GUANGDONG",
+      "countryName": "CHINA"
+     },
+     "pod": {
+      "code": "CAVAN",
+      "locationName": "VANCOUVER, BC",
+      "countryName": "CANADA"
+     },
+     "latestEvent": {
+      "eventName": "Empty Container Returned from Customer",
+      "locationName": "VANCOUVER, BC",
+      "date": "2026-06-25T12:24:00.000Z"
+     },
+     "copEvents": [
+      {
+       "eventName": "Empty Container Release to Shipper",
+       "eventLocalPortDate": "2026-04-17T19:31:00.000Z",
+       "eventDate": "2026-04-17T11:31:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E012",
+       "copSequence": 1011,
+       "opusCode": "MOTYDO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Gate In to Outbound Terminal",
+       "eventLocalPortDate": "2026-04-18T12:14:00.000Z",
+       "eventDate": "2026-04-18T04:14:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E040",
+       "copSequence": 1031,
+       "opusCode": "FOTMAD",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Loading at O/B Inland Port",
+       "eventLocalPortDate": "",
+       "eventDate": "",
+       "triggerType": "ACTUAL",
+       "matrixId": "E180",
+       "copSequence": 1032,
+       "opusCode": "FOWMLO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Departure from O/B Inland Port",
+       "eventLocalPortDate": "2026-04-25T22:34:00.000Z",
+       "eventDate": "2026-04-25T14:34:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E031",
+       "copSequence": 1033,
+       "opusCode": "FOWMDO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Outbound Feeder Arrival at Inland Port",
+       "eventLocalPortDate": "2026-04-27T04:33:00.000Z",
+       "eventDate": "2026-04-26T20:33:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E041",
+       "copSequence": 1051,
+       "opusCode": "FLWMAD",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Unloading at POL",
+       "eventLocalPortDate": "",
+       "eventDate": "",
+       "triggerType": "ACTUAL",
+       "matrixId": "E183",
+       "copSequence": 1052,
+       "opusCode": "FLWMUD",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Loaded on Vessel at Port of Loading",
+       "eventLocalPortDate": "2026-05-01T15:37:00.000Z",
+       "eventDate": "2026-05-01T07:37:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E058",
+       "copSequence": 1053,
+       "opusCode": "FLVMLO",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "vessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": true,
+        "inboundConsortiumVoyage": "045E",
+        "outboundConsortiumVoyage": "045E"
+       }
+      },
+      {
+       "eventName": "Vessel Departure from Port of Loading",
+       "eventLocalPortDate": "2026-05-01T22:35:00.000Z",
+       "eventDate": "2026-05-01T14:35:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E061",
+       "copSequence": 4054,
+       "opusCode": "FLVMDO",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045E",
+        "outboundConsortiumVoyage": "045E"
+       }
+      },
+      {
+       "eventName": "Vessel Arrival at Port of Discharge",
+       "eventLocalPortDate": "2026-05-29T04:42:00.000Z",
+       "eventDate": "2026-05-29T11:42:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E089",
+       "copSequence": 4072,
+       "opusCode": "FUVMBD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045W",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Unloaded from Vessel at Port of Discharging",
+       "eventLocalPortDate": "2026-05-30T01:24:00.000Z",
+       "eventDate": "2026-05-30T08:24:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E090",
+       "copSequence": 6073,
+       "opusCode": "FUVMUD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045W",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle)",
+       "eventLocalPortDate": "2026-06-01T18:44:00.000Z",
+       "eventDate": "2026-06-02T01:44:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E106",
+       "copSequence": 6074,
+       "opusCode": "FITMDO",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Empty Container Returned from Customer",
+       "eventLocalPortDate": "2026-06-25T12:24:00.000Z",
+       "eventDate": "2026-06-25T19:24:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E138",
+       "copSequence": 6091,
+       "opusCode": "MITYAD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      }
+     ]
+    },
+    {
+     "bookingNo": "SZPG70884900",
+     "containerNo": "NYKU8753231",
+     "containerTypeSize": "40'DRY HC.",
+     "por": {
+      "code": "CNNSA",
+      "locationName": "NANSHA, GUANGDONG",
+      "countryName": "CHINA"
+     },
+     "pod": {
+      "code": "CAVAN",
+      "locationName": "VANCOUVER, BC",
+      "countryName": "CANADA"
+     },
+     "latestEvent": {
+      "eventName": "Empty Container Returned from Customer",
+      "locationName": "VANCOUVER, BC",
+      "date": "2026-07-04T11:52:00.000Z"
+     },
+     "copEvents": [
+      {
+       "eventName": "Empty Container Release to Shipper",
+       "eventLocalPortDate": "2026-04-18T13:53:00.000Z",
+       "eventDate": "2026-04-18T05:53:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E012",
+       "copSequence": 1011,
+       "opusCode": "MOTYDO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Gate In to Outbound Terminal",
+       "eventLocalPortDate": "2026-04-18T21:36:00.000Z",
+       "eventDate": "2026-04-18T13:36:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E040",
+       "copSequence": 1031,
+       "opusCode": "FOTMAD",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Loading at O/B Inland Port",
+       "eventLocalPortDate": "",
+       "eventDate": "",
+       "triggerType": "ACTUAL",
+       "matrixId": "E180",
+       "copSequence": 1032,
+       "opusCode": "FOWMLO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Departure from O/B Inland Port",
+       "eventLocalPortDate": "2026-04-25T20:27:00.000Z",
+       "eventDate": "2026-04-25T12:27:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E031",
+       "copSequence": 1033,
+       "opusCode": "FOWMDO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Outbound Feeder Arrival at Inland Port",
+       "eventLocalPortDate": "2026-04-27T06:10:00.000Z",
+       "eventDate": "2026-04-26T22:10:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E041",
+       "copSequence": 1051,
+       "opusCode": "FLWMAD",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Unloading at POL",
+       "eventLocalPortDate": "",
+       "eventDate": "",
+       "triggerType": "ACTUAL",
+       "matrixId": "E183",
+       "copSequence": 1052,
+       "opusCode": "FLWMUD",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Loaded on Vessel at Port of Loading",
+       "eventLocalPortDate": "2026-05-01T15:40:00.000Z",
+       "eventDate": "2026-05-01T07:40:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E058",
+       "copSequence": 1053,
+       "opusCode": "FLVMLO",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "vessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": true,
+        "inboundConsortiumVoyage": "045E",
+        "outboundConsortiumVoyage": "045E"
+       }
+      },
+      {
+       "eventName": "Vessel Departure from Port of Loading",
+       "eventLocalPortDate": "2026-05-01T22:35:00.000Z",
+       "eventDate": "2026-05-01T14:35:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E061",
+       "copSequence": 4054,
+       "opusCode": "FLVMDO",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045E",
+        "outboundConsortiumVoyage": "045E"
+       }
+      },
+      {
+       "eventName": "Vessel Arrival at Port of Discharge",
+       "eventLocalPortDate": "2026-05-29T04:42:00.000Z",
+       "eventDate": "2026-05-29T11:42:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E089",
+       "copSequence": 4072,
+       "opusCode": "FUVMBD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045W",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Unloaded from Vessel at Port of Discharging",
+       "eventLocalPortDate": "2026-05-30T01:26:00.000Z",
+       "eventDate": "2026-05-30T08:26:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E090",
+       "copSequence": 6073,
+       "opusCode": "FUVMUD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045W",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle)",
+       "eventLocalPortDate": "2026-06-01T18:44:00.000Z",
+       "eventDate": "2026-06-02T01:44:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E106",
+       "copSequence": 6074,
+       "opusCode": "FITMDO",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Empty Container Returned from Customer",
+       "eventLocalPortDate": "2026-07-04T11:52:00.000Z",
+       "eventDate": "2026-07-04T18:52:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E138",
+       "copSequence": 6091,
+       "opusCode": "MITYAD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      }
+     ]
+    },
+    {
+     "bookingNo": "SZPG70884900",
+     "containerNo": "TCNU5325220",
+     "containerTypeSize": "40'DRY HC.",
+     "por": {
+      "code": "CNNSA",
+      "locationName": "NANSHA, GUANGDONG",
+      "countryName": "CHINA"
+     },
+     "pod": {
+      "code": "CAVAN",
+      "locationName": "VANCOUVER, BC",
+      "countryName": "CANADA"
+     },
+     "latestEvent": {
+      "eventName": "Empty Container Returned from Customer",
+      "locationName": "VANCOUVER, BC",
+      "date": "2026-06-21T13:48:00.000Z"
+     },
+     "copEvents": [
+      {
+       "eventName": "Empty Container Release to Shipper",
+       "eventLocalPortDate": "2026-04-19T16:50:00.000Z",
+       "eventDate": "2026-04-19T08:50:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E012",
+       "copSequence": 1011,
+       "opusCode": "MOTYDO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Gate In to Outbound Terminal",
+       "eventLocalPortDate": "2026-04-20T16:20:00.000Z",
+       "eventDate": "2026-04-20T08:20:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E040",
+       "copSequence": 1031,
+       "opusCode": "FOTMAD",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Loading at O/B Inland Port",
+       "eventLocalPortDate": "",
+       "eventDate": "",
+       "triggerType": "ACTUAL",
+       "matrixId": "E180",
+       "copSequence": 1032,
+       "opusCode": "FOWMLO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Departure from O/B Inland Port",
+       "eventLocalPortDate": "2026-04-25T20:27:00.000Z",
+       "eventDate": "2026-04-25T12:27:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E031",
+       "copSequence": 1033,
+       "opusCode": "FOWMDO",
+       "nodeCode": "CNNSA06",
+       "location": {
+        "code": "CNNSA",
+        "locationName": "NANSHA, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNNSA06",
+        "yardName": "NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Outbound Feeder Arrival at Inland Port",
+       "eventLocalPortDate": "2026-04-27T05:31:00.000Z",
+       "eventDate": "2026-04-26T21:31:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E041",
+       "copSequence": 1051,
+       "opusCode": "FLWMAD",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Feeder Unloading at POL",
+       "eventLocalPortDate": "",
+       "eventDate": "",
+       "triggerType": "ACTUAL",
+       "matrixId": "E183",
+       "copSequence": 1052,
+       "opusCode": "FLWMUD",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Loaded on Vessel at Port of Loading",
+       "eventLocalPortDate": "2026-05-01T15:33:00.000Z",
+       "eventDate": "2026-05-01T07:33:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E058",
+       "copSequence": 1053,
+       "opusCode": "FLVMLO",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "vessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": true,
+        "inboundConsortiumVoyage": "045E",
+        "outboundConsortiumVoyage": "045E"
+       }
+      },
+      {
+       "eventName": "Vessel Departure from Port of Loading",
+       "eventLocalPortDate": "2026-05-01T22:35:00.000Z",
+       "eventDate": "2026-05-01T14:35:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E061",
+       "copSequence": 4054,
+       "opusCode": "FLVMDO",
+       "nodeCode": "CNYTN01",
+       "location": {
+        "code": "CNYTN",
+        "locationName": "YANTIAN, GUANGDONG",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNYTN01",
+        "yardName": "YICT (YANTIAN INTL CONTAINER TERMINAL)"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045E",
+        "outboundConsortiumVoyage": "045E"
+       }
+      },
+      {
+       "eventName": "Vessel Arrival at Port of Discharge",
+       "eventLocalPortDate": "2026-05-29T04:42:00.000Z",
+       "eventDate": "2026-05-29T11:42:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E089",
+       "copSequence": 4072,
+       "opusCode": "FUVMBD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045W",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Unloaded from Vessel at Port of Discharging",
+       "eventLocalPortDate": "2026-05-30T01:28:00.000Z",
+       "eventDate": "2026-05-30T08:28:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E090",
+       "copSequence": 6073,
+       "opusCode": "FUVMUD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "HYZT",
+        "name": "HYUNDAI PLUTO",
+        "voyNo": "0045",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "045W",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle)",
+       "eventLocalPortDate": "2026-06-01T18:44:00.000Z",
+       "eventDate": "2026-06-02T01:44:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E106",
+       "copSequence": 6074,
+       "opusCode": "FITMDO",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Empty Container Returned from Customer",
+       "eventLocalPortDate": "2026-06-21T13:48:00.000Z",
+       "eventDate": "2026-06-21T20:48:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E138",
+       "copSequence": 6091,
+       "opusCode": "MITYAD",
+       "nodeCode": "CAVAN01",
+       "location": {
+        "code": "CAVAN",
+        "locationName": "VANCOUVER, BC",
+        "countryName": "CANADA"
+       },
+       "yard": {
+        "yardCode": "CAVAN01",
+        "yardName": "3891 DELTAPORT GCT"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": "GYEG18729700",
+   "searchType": "BKG_NO",
+   "http": 201,
+   "total": 1,
+   "hits": [
+    {
+     "bookingNo": "GYEG18729700",
+     "containerNo": "KKFU5234756",
+     "containerTypeSize": "40H.REEFER",
+     "por": {
+      "code": "ECPSJ",
+      "locationName": "POSORJA",
+      "countryName": "ECUADOR"
+     },
+     "pod": {
+      "code": "TWKHH",
+      "locationName": "KAOHSIUNG CITY",
+      "countryName": "TAIWAN, CHINA"
+     },
+     "latestEvent": {
+      "eventName": "Empty Container Returned from Customer",
+      "locationName": "KAOHSIUNG CITY",
+      "date": "2026-09-15T16:12:00.000Z"
+     },
+     "copEvents": [
+      {
+       "eventName": "Empty Container Release to Shipper",
+       "eventLocalPortDate": "2026-07-23T13:23:00.000Z",
+       "eventDate": "2026-07-23T18:23:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E012",
+       "copSequence": 1011,
+       "opusCode": "MOTYDO",
+       "nodeCode": "ECGYE37",
+       "location": {
+        "code": "ECGYE",
+        "locationName": "GUAYAQUIL",
+        "countryName": "ECUADOR"
+       },
+       "yard": {
+        "yardCode": "ECGYE37",
+        "yardName": "YAGUACHI -  CENTRO LOGISTICO SAN JOSE CLSJ S.A"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Gate In to Outbound Terminal",
+       "eventLocalPortDate": "2026-07-25T01:24:00.000Z",
+       "eventDate": "2026-07-25T06:24:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E040",
+       "copSequence": 1031,
+       "opusCode": "FOTMAD",
+       "nodeCode": "ECPSJ01",
+       "location": {
+        "code": "ECPSJ",
+        "locationName": "POSORJA",
+        "countryName": "ECUADOR"
+       },
+       "yard": {
+        "yardCode": "ECPSJ01",
+        "yardName": "DP WORLD POSORJA"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Loaded on Vessel at Port of Loading",
+       "eventLocalPortDate": "2026-07-28T20:29:00.000Z",
+       "eventDate": "2026-07-29T01:29:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E058",
+       "copSequence": 1032,
+       "opusCode": "FLVMLO",
+       "nodeCode": "ECPSJ01",
+       "location": {
+        "code": "ECPSJ",
+        "locationName": "POSORJA",
+        "countryName": "ECUADOR"
+       },
+       "yard": {
+        "yardCode": "ECPSJ01",
+        "yardName": "DP WORLD POSORJA"
+       },
+       "vessel": {
+        "code": "MEET",
+        "name": "MOL CELEBRATION",
+        "voyNo": "0105",
+        "dirCode": "W"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "MEET",
+        "name": "MOL CELEBRATION",
+        "voyNo": "0105",
+        "dirCode": "W",
+        "isShowVesselInformation": true,
+        "inboundConsortiumVoyage": "105W",
+        "outboundConsortiumVoyage": "105W"
+       }
+      },
+      {
+       "eventName": "Vessel Departure from Port of Loading",
+       "eventLocalPortDate": "2026-07-28T23:30:00.000Z",
+       "eventDate": "2026-07-29T04:30:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E061",
+       "copSequence": 4033,
+       "opusCode": "FLVMDO",
+       "nodeCode": "ECPSJ01",
+       "location": {
+        "code": "ECPSJ",
+        "locationName": "POSORJA",
+        "countryName": "ECUADOR"
+       },
+       "yard": {
+        "yardCode": "ECPSJ01",
+        "yardName": "DP WORLD POSORJA"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "MEET",
+        "name": "MOL CELEBRATION",
+        "voyNo": "0105",
+        "dirCode": "W",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "105W",
+        "outboundConsortiumVoyage": "105W"
+       }
+      },
+      {
+       "eventName": "Vessel Arrival at T/S Port",
+       "eventLocalPortDate": "2026-08-23T10:09:00.000Z",
+       "eventDate": "2026-08-23T01:09:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E066",
+       "copSequence": 4052,
+       "opusCode": "FTVMBD",
+       "nodeCode": "KRPUS18",
+       "location": {
+        "code": "KRPUS",
+        "locationName": "PUSAN",
+        "countryName": "REPUBLIC OF KOREA"
+       },
+       "yard": {
+        "yardCode": "KRPUS18",
+        "yardName": "DONGWON GLOBAL TERMINAL BUSAN CO., LTD."
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "MEET",
+        "name": "MOL CELEBRATION",
+        "voyNo": "0105",
+        "dirCode": "W",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "105W",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Unloaded from Vessel at Transshipment Port",
+       "eventLocalPortDate": "2026-08-23T21:52:00.000Z",
+       "eventDate": "2026-08-23T12:52:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E067-01",
+       "copSequence": 4053,
+       "opusCode": "FTVMUD",
+       "nodeCode": "KRPUS18",
+       "location": {
+        "code": "KRPUS",
+        "locationName": "PUSAN",
+        "countryName": "REPUBLIC OF KOREA"
+       },
+       "yard": {
+        "yardCode": "KRPUS18",
+        "yardName": "DONGWON GLOBAL TERMINAL BUSAN CO., LTD."
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "MEET",
+        "name": "MOL CELEBRATION",
+        "voyNo": "0105",
+        "dirCode": "W",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "105W",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "T/S Truck Terminal Departure",
+       "eventLocalPortDate": "2026-08-24T02:29:00.000Z",
+       "eventDate": "2026-08-23T17:29:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E068",
+       "copSequence": 4054,
+       "opusCode": "FTTMDO",
+       "nodeCode": "KRPUS18",
+       "location": {
+        "code": "KRPUS",
+        "locationName": "PUSAN",
+        "countryName": "REPUBLIC OF KOREA"
+       },
+       "yard": {
+        "yardCode": "KRPUS18",
+        "yardName": "DONGWON GLOBAL TERMINAL BUSAN CO., LTD."
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "T/S Truck Terminal Arrival",
+       "eventLocalPortDate": "2026-08-24T02:42:00.000Z",
+       "eventDate": "2026-08-23T17:42:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E069",
+       "copSequence": 4071,
+       "opusCode": "FTTMAD",
+       "nodeCode": "KRPUS12",
+       "location": {
+        "code": "KRPUS",
+        "locationName": "PUSAN",
+        "countryName": "REPUBLIC OF KOREA"
+       },
+       "yard": {
+        "yardCode": "KRPUS12",
+        "yardName": "HPNT, HMM PSA NEW-PORT TERMINAL CO., LTD"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Loaded on Vessel at Transshipment Port",
+       "eventLocalPortDate": "2026-08-25T08:59:00.000Z",
+       "eventDate": "2026-08-24T23:59:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E070-01",
+       "copSequence": 4072,
+       "opusCode": "FTVMLO",
+       "nodeCode": "KRPUS12",
+       "location": {
+        "code": "KRPUS",
+        "locationName": "PUSAN",
+        "countryName": "REPUBLIC OF KOREA"
+       },
+       "yard": {
+        "yardCode": "KRPUS12",
+        "yardName": "HPNT, HMM PSA NEW-PORT TERMINAL CO., LTD"
+       },
+       "vessel": {
+        "code": "EHRT",
+        "name": "HMM DREAM",
+        "voyNo": "0062",
+        "dirCode": "W"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "EHRT",
+        "name": "HMM DREAM",
+        "voyNo": "0062",
+        "dirCode": "W",
+        "isShowVesselInformation": true,
+        "inboundConsortiumVoyage": "061E",
+        "outboundConsortiumVoyage": "062W"
+       }
+      },
+      {
+       "eventName": "Departure from Transshipment Port",
+       "eventLocalPortDate": "2026-08-25T15:33:00.000Z",
+       "eventDate": "2026-08-25T06:33:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E073-01",
+       "copSequence": 4073,
+       "opusCode": "FTVMDO",
+       "nodeCode": "KRPUS12",
+       "location": {
+        "code": "KRPUS",
+        "locationName": "PUSAN",
+        "countryName": "REPUBLIC OF KOREA"
+       },
+       "yard": {
+        "yardCode": "KRPUS12",
+        "yardName": "HPNT, HMM PSA NEW-PORT TERMINAL CO., LTD"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "EHRT",
+        "name": "HMM DREAM",
+        "voyNo": "0062",
+        "dirCode": "W",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "061E",
+        "outboundConsortiumVoyage": "062W"
+       }
+      },
+      {
+       "eventName": "Vessel Arrival at Port of Discharge",
+       "eventLocalPortDate": "2026-09-13T03:20:00.000Z",
+       "eventDate": "2026-09-12T19:20:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E089",
+       "copSequence": 4092,
+       "opusCode": "FUVMBD",
+       "nodeCode": "TWKHH16",
+       "location": {
+        "code": "TWKHH",
+        "locationName": "KAOHSIUNG CITY",
+        "countryName": "TAIWAN, CHINA"
+       },
+       "yard": {
+        "yardCode": "TWKHH16",
+        "yardName": "KMCT (KAO MING CONTAINER TERMINAL)"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "EHRT",
+        "name": "HMM DREAM",
+        "voyNo": "0062",
+        "dirCode": "W",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "062W",
+        "outboundConsortiumVoyage": "062W"
+       }
+      },
+      {
+       "eventName": "Unloaded from Vessel at Port of Discharging",
+       "eventLocalPortDate": "2026-09-13T11:30:00.000Z",
+       "eventDate": "2026-09-13T03:30:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E090",
+       "copSequence": 6093,
+       "opusCode": "FUVMUD",
+       "nodeCode": "TWKHH16",
+       "location": {
+        "code": "TWKHH",
+        "locationName": "KAOHSIUNG CITY",
+        "countryName": "TAIWAN, CHINA"
+       },
+       "yard": {
+        "yardCode": "TWKHH16",
+        "yardName": "KMCT (KAO MING CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "EHRT",
+        "name": "HMM DREAM",
+        "voyNo": "0062",
+        "dirCode": "W",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "062W",
+        "outboundConsortiumVoyage": "062W"
+       }
+      },
+      {
+       "eventName": "Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle)",
+       "eventLocalPortDate": "2026-09-15T08:32:00.000Z",
+       "eventDate": "2026-09-15T00:32:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E106",
+       "copSequence": 6094,
+       "opusCode": "FITMDO",
+       "nodeCode": "TWKHH16",
+       "location": {
+        "code": "TWKHH",
+        "locationName": "KAOHSIUNG CITY",
+        "countryName": "TAIWAN, CHINA"
+       },
+       "yard": {
+        "yardCode": "TWKHH16",
+        "yardName": "KMCT (KAO MING CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Empty Container Returned from Customer",
+       "eventLocalPortDate": "2026-09-15T16:12:00.000Z",
+       "eventDate": "2026-09-15T08:12:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E138",
+       "copSequence": 6111,
+       "opusCode": "MITYAD",
+       "nodeCode": "TWKHH16",
+       "location": {
+        "code": "TWKHH",
+        "locationName": "KAOHSIUNG CITY",
+        "countryName": "TAIWAN, CHINA"
+       },
+       "yard": {
+        "yardCode": "TWKHH16",
+        "yardName": "KMCT (KAO MING CONTAINER TERMINAL)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": "SH5FVD622400",
+   "searchType": "BKG_NO",
+   "http": 201,
+   "total": 1,
+   "hits": [
+    {
+     "bookingNo": "SH5FVD622400",
+     "containerNo": "SEKU5942154",
+     "containerTypeSize": "40'DRY HC.",
+     "por": {
+      "code": "CNSHA",
+      "locationName": "SHANGHAI, SHANGHAI",
+      "countryName": "CHINA"
+     },
+     "pod": {
+      "code": "USLGB",
+      "locationName": "LONG BEACH, CA",
+      "countryName": "UNITED STATES"
+     },
+     "latestEvent": {
+      "eventName": "Empty Container Returned from Customer",
+      "locationName": "LOS ANGELES, CA",
+      "date": "2025-08-15T11:44:00.000Z"
+     },
+     "copEvents": [
+      {
+       "eventName": "Empty Container Release to Shipper",
+       "eventLocalPortDate": "2025-07-15T05:37:00.000Z",
+       "eventDate": "2025-07-14T21:37:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E012",
+       "copSequence": 1011,
+       "opusCode": "MOTYDO",
+       "nodeCode": "CNSHAF8",
+       "location": {
+        "code": "CNSHA",
+        "locationName": "SHANGHAI, SHANGHAI",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNSHAF8",
+        "yardName": "SHANGHAI LIANGKUN LOGISTICS LTD."
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Gate In to Outbound Terminal",
+       "eventLocalPortDate": "2025-07-18T16:04:00.000Z",
+       "eventDate": "2025-07-18T08:04:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E040",
+       "copSequence": 1031,
+       "opusCode": "FOTMAD",
+       "nodeCode": "CNSHA19",
+       "location": {
+        "code": "CNSHA",
+        "locationName": "SHANGHAI, SHANGHAI",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNSHA19",
+        "yardName": "SIPG - SHANGDONG BRANCH"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Loaded on Vessel at Port of Loading",
+       "eventLocalPortDate": "2025-07-22T02:03:00.000Z",
+       "eventDate": "2025-07-21T18:03:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E058",
+       "copSequence": 1032,
+       "opusCode": "FLVMLO",
+       "nodeCode": "CNSHA19",
+       "location": {
+        "code": "CNSHA",
+        "locationName": "SHANGHAI, SHANGHAI",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNSHA19",
+        "yardName": "SIPG - SHANGDONG BRANCH"
+       },
+       "vessel": {
+        "code": "FANT",
+        "name": "ONE FANTASTIC",
+        "voyNo": "0006",
+        "dirCode": "E"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "FANT",
+        "name": "ONE FANTASTIC",
+        "voyNo": "0006",
+        "dirCode": "E",
+        "isShowVesselInformation": true,
+        "inboundConsortiumVoyage": "006E",
+        "outboundConsortiumVoyage": "006E"
+       }
+      },
+      {
+       "eventName": "Vessel Departure from Port of Loading",
+       "eventLocalPortDate": "2025-07-22T16:45:00.000Z",
+       "eventDate": "2025-07-22T08:45:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E061",
+       "copSequence": 4033,
+       "opusCode": "FLVMDO",
+       "nodeCode": "CNSHA19",
+       "location": {
+        "code": "CNSHA",
+        "locationName": "SHANGHAI, SHANGHAI",
+        "countryName": "CHINA"
+       },
+       "yard": {
+        "yardCode": "CNSHA19",
+        "yardName": "SIPG - SHANGDONG BRANCH"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "FANT",
+        "name": "ONE FANTASTIC",
+        "voyNo": "0006",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "006E",
+        "outboundConsortiumVoyage": "006E"
+       }
+      },
+      {
+       "eventName": "Vessel Arrival at Port of Discharge",
+       "eventLocalPortDate": "2025-08-08T15:51:00.000Z",
+       "eventDate": "2025-08-08T22:51:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E089",
+       "copSequence": 4052,
+       "opusCode": "FUVMBD",
+       "nodeCode": "USLGB02",
+       "location": {
+        "code": "USLGB",
+        "locationName": "LONG BEACH, CA",
+        "countryName": "UNITED STATES"
+       },
+       "yard": {
+        "yardCode": "USLGB02",
+        "yardName": "ITS (INTL TRANSPORTATION SERVICES)"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "FANT",
+        "name": "ONE FANTASTIC",
+        "voyNo": "0006",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "006E",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Unloaded from Vessel at Port of Discharging",
+       "eventLocalPortDate": "2025-08-13T09:43:00.000Z",
+       "eventDate": "2025-08-13T16:43:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E090",
+       "copSequence": 6053,
+       "opusCode": "FUVMUD",
+       "nodeCode": "USLGB02",
+       "location": {
+        "code": "USLGB",
+        "locationName": "LONG BEACH, CA",
+        "countryName": "UNITED STATES"
+       },
+       "yard": {
+        "yardCode": "USLGB02",
+        "yardName": "ITS (INTL TRANSPORTATION SERVICES)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "FANT",
+        "name": "ONE FANTASTIC",
+        "voyNo": "0006",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "006E",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle)",
+       "eventLocalPortDate": "2025-08-14T15:52:00.000Z",
+       "eventDate": "2025-08-14T22:52:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E106",
+       "copSequence": 6054,
+       "opusCode": "FITMDO",
+       "nodeCode": "USLGB02",
+       "location": {
+        "code": "USLGB",
+        "locationName": "LONG BEACH, CA",
+        "countryName": "UNITED STATES"
+       },
+       "yard": {
+        "yardCode": "USLGB02",
+        "yardName": "ITS (INTL TRANSPORTATION SERVICES)"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Empty Container Returned from Customer",
+       "eventLocalPortDate": "2025-08-15T11:44:00.000Z",
+       "eventDate": "2025-08-15T18:44:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E138",
+       "copSequence": 6071,
+       "opusCode": "MITYAD",
+       "nodeCode": "USLAX06",
+       "location": {
+        "code": "USLAX",
+        "locationName": "LOS ANGELES, CA",
+        "countryName": "UNITED STATES"
+       },
+       "yard": {
+        "yardCode": "USLAX06",
+        "yardName": "TRAPAC LOS ANGELES"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "number": "ONEU4227196",
+   "searchType": "CNTR_NO",
+   "http": 201,
+   "total": 1,
+   "hits": [
+    {
+     "bookingNo": "RTMG19674500",
+     "containerNo": "ONEU4227196",
+     "containerTypeSize": "20'DRY ST.",
+     "por": {
+      "code": "NLRTM",
+      "locationName": "ROTTERDAM",
+      "countryName": "NETHERLANDS"
+     },
+     "pod": {
+      "code": "PHCGY",
+      "locationName": "CAGAYAN DE ORO",
+      "countryName": "PHILIPPINES"
+     },
+     "latestEvent": {
+      "eventName": "Departure from Transshipment Port",
+      "locationName": "SINGAPORE",
+      "date": "2026-10-08T13:20:00.000Z"
+     },
+     "copEvents": [
+      {
+       "eventName": "Empty Container Release to Shipper",
+       "eventLocalPortDate": "2026-08-17T16:15:00.000Z",
+       "eventDate": "2026-08-17T14:15:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E012",
+       "copSequence": 1011,
+       "opusCode": "MOTYDO",
+       "nodeCode": "NLRTM24",
+       "location": {
+        "code": "NLRTM",
+        "locationName": "ROTTERDAM",
+        "countryName": "NETHERLANDS"
+       },
+       "yard": {
+        "yardCode": "NLRTM24",
+        "yardName": "KRAMER TERMINAL (ONE DEDICATED DEPOT), ROTTERDAM"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Gate In to Outbound Terminal",
+       "eventLocalPortDate": "2026-08-20T06:11:00.000Z",
+       "eventDate": "2026-08-20T04:11:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E040",
+       "copSequence": 1031,
+       "opusCode": "FOTMAD",
+       "nodeCode": "NLRTM01",
+       "location": {
+        "code": "NLRTM",
+        "locationName": "ROTTERDAM",
+        "countryName": "NETHERLANDS"
+       },
+       "yard": {
+        "yardCode": "NLRTM01",
+        "yardName": "ECT DELTA TERMINAL, ROTTERDAM"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Loaded on Vessel at Port of Loading",
+       "eventLocalPortDate": "2026-08-24T02:56:00.000Z",
+       "eventDate": "2026-08-24T00:56:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E058",
+       "copSequence": 1032,
+       "opusCode": "FLVMLO",
+       "nodeCode": "NLRTM01",
+       "location": {
+        "code": "NLRTM",
+        "locationName": "ROTTERDAM",
+        "countryName": "NETHERLANDS"
+       },
+       "yard": {
+        "yardCode": "NLRTM01",
+        "yardName": "ECT DELTA TERMINAL, ROTTERDAM"
+       },
+       "vessel": {
+        "code": "FANT",
+        "name": "ONE FANTASTIC",
+        "voyNo": "0011",
+        "dirCode": "E"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "FANT",
+        "name": "ONE FANTASTIC",
+        "voyNo": "0011",
+        "dirCode": "E",
+        "isShowVesselInformation": true,
+        "inboundConsortiumVoyage": "011E",
+        "outboundConsortiumVoyage": "011E"
+       }
+      },
+      {
+       "eventName": "Vessel Departure from Port of Loading",
+       "eventLocalPortDate": "2026-08-25T18:56:00.000Z",
+       "eventDate": "2026-08-25T16:56:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E061",
+       "copSequence": 4033,
+       "opusCode": "FLVMDO",
+       "nodeCode": "NLRTM01",
+       "location": {
+        "code": "NLRTM",
+        "locationName": "ROTTERDAM",
+        "countryName": "NETHERLANDS"
+       },
+       "yard": {
+        "yardCode": "NLRTM01",
+        "yardName": "ECT DELTA TERMINAL, ROTTERDAM"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "FANT",
+        "name": "ONE FANTASTIC",
+        "voyNo": "0011",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "011E",
+        "outboundConsortiumVoyage": "011E"
+       }
+      },
+      {
+       "eventName": "Vessel Arrival at T/S Port",
+       "eventLocalPortDate": "2026-10-02T16:30:00.000Z",
+       "eventDate": "2026-10-02T08:30:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E066",
+       "copSequence": 4052,
+       "opusCode": "FTVMBD",
+       "nodeCode": "SGSIN04",
+       "location": {
+        "code": "SGSIN",
+        "locationName": "SINGAPORE",
+        "countryName": "SINGAPORE"
+       },
+       "yard": {
+        "yardCode": "SGSIN04",
+        "yardName": "PSA CORPORATION LIMITED"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "FANT",
+        "name": "ONE FANTASTIC",
+        "voyNo": "0011",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "011E",
+        "outboundConsortiumVoyage": "011E"
+       }
+      },
+      {
+       "eventName": "Unloaded from Vessel at Transshipment Port",
+       "eventLocalPortDate": "2026-10-03T11:10:00.000Z",
+       "eventDate": "2026-10-03T03:10:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E067-01",
+       "copSequence": 4053,
+       "opusCode": "FTVMUD",
+       "nodeCode": "SGSIN04",
+       "location": {
+        "code": "SGSIN",
+        "locationName": "SINGAPORE",
+        "countryName": "SINGAPORE"
+       },
+       "yard": {
+        "yardCode": "SGSIN04",
+        "yardName": "PSA CORPORATION LIMITED"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "FANT",
+        "name": "ONE FANTASTIC",
+        "voyNo": "0011",
+        "dirCode": "E",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "011E",
+        "outboundConsortiumVoyage": "011E"
+       }
+      },
+      {
+       "eventName": "Loaded on Vessel at Transshipment Port",
+       "eventLocalPortDate": "2026-10-08T08:41:00.000Z",
+       "eventDate": "2026-10-08T00:41:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E070-01",
+       "copSequence": 4054,
+       "opusCode": "FTVMLO",
+       "nodeCode": "SGSIN04",
+       "location": {
+        "code": "SGSIN",
+        "locationName": "SINGAPORE",
+        "countryName": "SINGAPORE"
+       },
+       "yard": {
+        "yardCode": "SGSIN04",
+        "yardName": "PSA CORPORATION LIMITED"
+       },
+       "vessel": {
+        "code": "KIMT",
+        "name": "KITI BHUM",
+        "voyNo": "1134",
+        "dirCode": "N"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "KIMT",
+        "name": "KITI BHUM",
+        "voyNo": "1134",
+        "dirCode": "N",
+        "isShowVesselInformation": true,
+        "inboundConsortiumVoyage": "1133S",
+        "outboundConsortiumVoyage": "1134N"
+       }
+      },
+      {
+       "eventName": "Departure from Transshipment Port",
+       "eventLocalPortDate": "2026-10-08T13:20:00.000Z",
+       "eventDate": "2026-10-08T05:20:00.000Z",
+       "triggerType": "ACTUAL",
+       "matrixId": "E073-01",
+       "copSequence": 4055,
+       "opusCode": "FTVMDO",
+       "nodeCode": "SGSIN04",
+       "location": {
+        "code": "SGSIN",
+        "locationName": "SINGAPORE",
+        "countryName": "SINGAPORE"
+       },
+       "yard": {
+        "yardCode": "SGSIN04",
+        "yardName": "PSA CORPORATION LIMITED"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "KIMT",
+        "name": "KITI BHUM",
+        "voyNo": "1134",
+        "dirCode": "N",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "1133S",
+        "outboundConsortiumVoyage": "1134N"
+       }
+      },
+      {
+       "eventName": "Vessel Arrival at Port of Discharge",
+       "eventLocalPortDate": "2026-10-14T01:00:00.000Z",
+       "eventDate": "2026-10-13T17:00:00.000Z",
+       "triggerType": "ESTIMATED",
+       "matrixId": "E089",
+       "copSequence": 4072,
+       "opusCode": "FUVMBD",
+       "nodeCode": "PHCGY06",
+       "location": {
+        "code": "PHCGY",
+        "locationName": "CAGAYAN DE ORO",
+        "countryName": "PHILIPPINES"
+       },
+       "yard": {
+        "yardCode": "PHCGY06",
+        "yardName": "MINDANAO CONTAINER TERMINAL"
+       },
+       "quickShow": false,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "KIMT",
+        "name": "KITI BHUM",
+        "voyNo": "1134",
+        "dirCode": "N",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "1134S",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Unloaded from Vessel at Port of Discharging",
+       "eventLocalPortDate": "2026-10-14T02:30:00.000Z",
+       "eventDate": "2026-10-13T18:30:00.000Z",
+       "triggerType": "ESTIMATED",
+       "matrixId": "E090",
+       "copSequence": 6073,
+       "opusCode": "FUVMUD",
+       "nodeCode": "PHCGY06",
+       "location": {
+        "code": "PHCGY",
+        "locationName": "CAGAYAN DE ORO",
+        "countryName": "PHILIPPINES"
+       },
+       "yard": {
+        "yardCode": "PHCGY06",
+        "yardName": "MINDANAO CONTAINER TERMINAL"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true,
+       "edhVessel": {
+        "code": "KIMT",
+        "name": "KITI BHUM",
+        "voyNo": "1134",
+        "dirCode": "N",
+        "isShowVesselInformation": false,
+        "inboundConsortiumVoyage": "1134S",
+        "outboundConsortiumVoyage": ""
+       }
+      },
+      {
+       "eventName": "Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle)",
+       "eventLocalPortDate": "2026-10-14T07:00:00.000Z",
+       "eventDate": "2026-10-13T23:00:00.000Z",
+       "triggerType": "ESTIMATED",
+       "matrixId": "E106",
+       "copSequence": 6074,
+       "opusCode": "FITMDO",
+       "nodeCode": "PHCGY06",
+       "location": {
+        "code": "PHCGY",
+        "locationName": "CAGAYAN DE ORO",
+        "countryName": "PHILIPPINES"
+       },
+       "yard": {
+        "yardCode": "PHCGY06",
+        "yardName": "MINDANAO CONTAINER TERMINAL"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      },
+      {
+       "eventName": "Empty Container Returned from Customer",
+       "eventLocalPortDate": "2026-10-14T13:00:00.000Z",
+       "eventDate": "2026-10-14T05:00:00.000Z",
+       "triggerType": "ESTIMATED",
+       "matrixId": "E138",
+       "copSequence": 6091,
+       "opusCode": "MITYAD",
+       "nodeCode": "PHCGY31",
+       "location": {
+        "code": "PHCGY",
+        "locationName": "CAGAYAN DE ORO",
+        "countryName": "PHILIPPINES"
+       },
+       "yard": {
+        "yardCode": "PHCGY31",
+        "yardName": "PORTLINK CONTAINER YARD CORPORATION"
+       },
+       "quickShow": true,
+       "cargoTrackingShow": true,
+       "containerProgressShow": true
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

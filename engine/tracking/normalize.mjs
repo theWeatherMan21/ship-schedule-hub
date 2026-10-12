@@ -29,10 +29,11 @@ export function prettyActivity(act) {
 
 function phaseOf(siteStatus, containers, actuals) {
   const explicit = [...(containers || []).map((c) => A(c.status)), A(siteStatus)];
-  if (explicit.some((st) => /^(DELIVERED|COMPLETED|CLOSED)$/.test(st))) return 'Completed';
+  if (explicit.some((st) => /^(DELIVERED|COMPLETED|CLOSED|EMPTY CONTAINER RETURNED)$/.test(st))) return 'Completed';
   if (!actuals.length) return 'Planned';
   const last = A(actuals[actuals.length - 1].activity);
-  if (/^(DELIVERED|EMPTY RETURN|GATE.?OUT)$/.test(last) && /IMPORT|DELIVER/i.test(A(siteStatus))) return 'Completed';
+  if (/^(EMPTY RETURN|GATE IN OF EMPTY)/.test(last)) return 'Completed';   // 空箱归还=该票结束（YM 实测两形态）；ZIM 短名同覆盖
+  if (/^(DELIVERED|GATE.?OUT)$/.test(last) && /IMPORT|DELIVER/i.test(A(siteStatus))) return 'Completed';
   return 'In Transit';
 }
 

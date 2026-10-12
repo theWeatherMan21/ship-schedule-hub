@@ -200,7 +200,7 @@
     "UGMU",
     "HMCU"
    ],
-   "tracking": "none",
+   "tracking": "live",
    "booking": [
     {
      "label": "12 位纯数字（Evergreen BL/订舱形态）",
@@ -239,7 +239,7 @@
     "YMLU",
     "YMMU"
    ],
-   "tracking": "none",
+   "tracking": "live",
    "booking": []
   }
  ]

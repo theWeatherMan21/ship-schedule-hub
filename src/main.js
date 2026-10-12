@@ -295,6 +295,7 @@ app.innerHTML = `
           <option value="hapag">Hapag-Lloyd</option>
           <option value="one">ONE</option>
           <option value="zim">ZIM</option>
+          <option value="evergreen">Evergreen</option>
         </select>
         <div id="trackCarrierHint" class="porthint"></div>
       </div>
@@ -306,7 +307,7 @@ app.innerHTML = `
         <div class="head">说明</div>
         <div class="track-tips">
           • 单号按前缀自动识别归属<br>
-          • 已接通：<b>Maersk / MSC / COSCO / HMM / ONE / ZIM / Hapag-Lloyd</b><br>
+          • 已接通：<b>Maersk / MSC / COSCO / HMM / ONE / ZIM / Hapag-Lloyd / Evergreen / Yang Ming</b><br>
           • Hapag 走真浏览器验证，偶发被拦时重试即可<br>
           • 结果一行摘要 → 点击展开时间线<br>
           • 浅色行 = 预计（未发生）

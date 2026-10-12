@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { parseEvergreenSummary, parseEvergreenMoves, evergreenDate, trackEvergreen } from '../engine/tracking/evergreen.mjs';
+import { normalizeTracking } from '../engine/tracking/normalize.mjs';
+const evidence = process.argv[2] || 'qa/fixtures';
+const r = parseEvergreenSummary(fs.readFileSync(path.join(evidence, 'evergreen-result.html'),'utf8'),'EGLV142552582916');
+assert.equal(r.docNum,'142552582916'); assert.equal(r.origin,'SHANGHAI (CN)'); assert.equal(r.destination,'PORT AU PRINCE (HT)');
+assert.equal(r.containers.length,1); assert.equal(r.containers[0].num,'FCIU7002134'); assert.equal(r.containers[0].size,"40'(SH)");
+r.containers[0].events = parseEvergreenMoves(fs.readFileSync(path.join(evidence,'evergreen-moves.html'),'utf8'),'FCIU7002134');
+assert.equal(r.containers[0].events.length,10); assert.equal(r.containers[0].events[0].time,'2025-10-17'); assert.equal(r.containers[0].events.at(-1).time,'2026-01-05');
+assert.equal(r.containers[0].events[6].vessel,'EVER CAREER'); assert.equal(r.containers[0].events[6].voyage,'0574-120N');
+assert(r.containers[0].events.every(e=>e.timeType==='ACTUAL'));
+const n=normalizeTracking(r); assert.equal(n.phase,'Completed'); assert.equal(n.events.length,10); assert.equal(n.current.time,'2026-01-05'); assert.equal(n.eta,null);
+assert.throws(()=>parseEvergreenMoves('<html>challenge</html>','FCIU7002134'));
+assert.equal(parseEvergreenSummary('<html>not found</html>','x').ok,false);
+assert.equal(evergreenDate('garbage'),null); assert.equal((await trackEvergreen('bad')).errorKind,'bad-number');
+console.log('Evergreen official fixture assertions passed: identity, 10 events, dates, vessels, entity decoding, completed phase, malformed response and input');

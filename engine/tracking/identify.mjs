@@ -98,7 +98,7 @@ export const CARRIERS = [
     container: ['EGHU', 'EGSU', 'EMCU', 'EISU', 'EITU', 'EGMU', 'EVGU', 'EMEU', 'IMTU', 'LTIU', 'UGMU', 'HMCU'],
     // 12 位纯数字 = Evergreen BL/订舱形态（官方 ShipmentLink 例 012345678900）。多义 → 只作候选。
     booking: [{ re: /^\d{12}$/, label: '12 位纯数字（Evergreen BL/订舱形态）', score: 0.5 }],
-    tracking: 'none',
+    tracking: 'live',
   },
   {
     id: 'oocl', name: '东方海外 OOCL',
@@ -113,7 +113,7 @@ export const CARRIERS = [
     scac: ['YMLU', 'YMJA'],            // 2023 起主码由 YMLU 迁往 YMJA
     container: ['YMLU', 'YMMU'],
     booking: [],
-    tracking: 'none',
+    tracking: 'live',
   },
 ];
 

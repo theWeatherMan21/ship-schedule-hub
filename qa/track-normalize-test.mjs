@@ -17,4 +17,18 @@ assert.equal(normalized.events.length, 4, 'normalized cache events are preserved
 assert.equal(normalized.current.activity, 'Container Departure', 'current remains last actual event');
 assert.equal(normalized.eta.time, '2026-11-26T06:00:00.000', 'cached ETA survives normalization');
 assert.equal(normalized.phase, 'In Transit', 'arrival forecast does not mean delivered');
+
+// YM：空箱归还（Gate in of Empty Equipment）→ phase=Completed（worker 复核缺口 d）
+const rawYm = {
+  ok: true, carrier: 'yangming', number: 'YMLU4794134',
+  containers: [{ num: 'YMLU4794134', status: '' }],
+  events: [
+    { time: '2026-09-30T16:33', activity: 'Gate in of Empty Equipment by Truck at Depot', city: 'KEELUNG', timeType: 'ACTUAL', container: 'YMLU4794134' },
+    { time: '2026-09-26T15:23', activity: 'Discharge of Laden Equipment from Vessel at Port terminal', city: 'KEELUNG', timeType: 'ACTUAL', container: 'YMLU4794134' },
+  ],
+};
+const nYm = normalizeTracking(rawYm);
+assert.equal(nYm.phase, 'Completed', 'YM empty return means completed');
+assert.equal(nYm.current.activity, 'Gate In Of Empty Equipment By Truck At Depot', 'YM current stays last actual');
+
 console.log('tracking normalize regression tests passed');

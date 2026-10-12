@@ -12,6 +12,14 @@
 
 进行中：v1.3.0 发布。关键路径：安装包重建与部署冒烟 → commit/tag/push → CI 三资产核验 → 爹地亲手验收。当前时间盒 60 分钟；不使用 Windows 真机、不弹自动化窗口。
 
+### CMA 追踪卡 t_55c20bdb（本轮）
+
+受阻：官网追踪入口 curl 和无头 Chrome 均 HTTP 403，明确 captcha-delivery 挑战 iframe，表单不存在；项目档案副本同样受阻（原档案复制时在用，不能据此判断原档案必失败）。静默 0→0。未新增适配器、未标 live、未部署；继续需可访问的官网结果/真实号或受限解除。证据见任务 t_55c20bdb 附件 CMA-FINDINGS.md。
+
+### OOCL 追踪卡 t_34917d7e（本轮）
+
+受阻：官方 Cargo Tracking → ExpressLink → 新版 Control Tower，连续两轮无头显示 `Please slide to verify`；尚未取得真实清单/事件响应。需要 OOCL 真实提单/箱号与人工验证通路。未建未经验证的适配器、未标 live、未部署；静默探针窗口 0→0。证据：`/Users/russospencer/.hermes/kanban/workspaces/t_34917d7e/OOCL-FINDINGS.md`。
+
 ### 本轮 WIP（≤2）
 
 **①【关键路径 · 进行中】填表 approach + 港口/船司特定名称匹配 全量复核**
@@ -77,6 +85,22 @@
 - **真单验收**：`HLCUE300F5C71EA7` → UWLU6948759 · 45GP · NINGBO→ISTANBUL（9 事件 8-23→10-05 全程，10-05 ISTANBUL 卸船）。App 内 selftest 无头真跑 → UI「1 container(s) · 9 events」、NINGBO → ISTANBUL、Discharged · MAERSK SIRAC 638N。
 - **回归**：identify 108/0、UI 回放全绿、船期线 App 自检跑通（browser.mjs 的 UA 修正是全项目级，船期无头家一并受益）。
 - 识别元数据 `hapag tracking:'live'`；UI 说明栏「已接通：… / Hapag-Lloyd」；文档 `docs/TRACKING-HAPAG.md`。
+
+## 2026-10-12 · 阳明 / 长荣接入 · 追踪 9/11
+
+**状态：已部署 `/Applications`（14:10 构建）并实机验收通过；追踪线 7/11 → 9/11。**
+
+- **阳明（`yangming.mjs`，站内 API）**：`/api/CargoTracking/GetTracking?paramTrackNo=&paramTrackPosition=&paramRefNo=`——`SEARCH` 直查 + `BL_CT` 提单下钻柜事件（参数矩阵实测）。真单：`YMLU4794134` 柜 20 事件（SURABAYA→KEELUNG，Completed）；`N237068499` 提单 SHANGHAI→ROTTERDAM（下钻 8 事件）。
+- **长荣（`evergreen.mjs`，纯 HTTP 无浏览器）**：ShipmentLink `TDB1_CargoTracking.do` POST（summary + 逐柜 moves 两段式）。真单：`EGLV142552582916` 10 事件（SHANGHAI→PORT AU PRINCE，Completed）。网络抖动自动重试一次。
+- **工人复核合并**：阳明卡由独立 worker 复核出 5 个缺口（多柜遍历 / booking 误报 / 空返 Completed 映射 / 下钻 ETA / 未知分类），**全部修复并补测试**；长荣卡由 worker 实施 + 主线复核（fixture 转正入库、App selftest 补齐）。
+- **回归**：identify 108/0、yangming 单测 36/0、evergreen 官方 fixture 断言、zim 23/0、normalize 回归（含 YM 空返用例）、静默 0→0。
+- App 实机 selftest：YM `1 container(s) · 20 events`（路线短名化）、EGLV `1 container(s) · 10 events`，均 Completed。
+- 文档：`docs/TRACKING-YANGMING.md`、`docs/TRACKING-EVERGREEN.md`。
+- **仍待**：OOCL（官方入口跳 Control Tower，人机滑块验证，需真单+人工过验证）、CMA（官网 403 + DataDome，A 路线保留 planned）——两家等真单/站点限制解除。
+
+## 2026-10-12 · Evergreen t_96b18a61
+
+进行中：适配器/UI 已部署到 /Applications。真提单 EGLV142552582916 → 上海→太子港，FCIU7002134，10 ACTUAL 事件，Completed；箱号独立查询通过（更新一票 6 事件）。纯 HTTP 零浏览器；identify 108/0、normalize、官方 HTML 断言、既有 UI 回放与 Evergreen selftest 回放全绿，窗口 0→0。证据：`~/.hermes/kanban/workspaces/t_96b18a61/VERIFICATION.md` 与 evergreen-timeline.png。剩余：原生 App selftest 截图尚未跑（显示 App 与零窗口约束冲突），交 review 明确验收方式；回放截图不冒充原生截图。
 
 ## 一、北极星（一句话）
 > 做完的那天，**爹地能填一次「起运港 + 目的港 + 日期」，一键查到 Top10 船司的船期，
