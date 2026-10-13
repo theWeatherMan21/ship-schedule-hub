@@ -234,6 +234,7 @@ app.innerHTML = `
     <span><span id="engineDot" class="engine-dot"></span><span id="engineState">engine 未启动</span></span>
     <button id="btnDiag" class="btn-ghost" title="查看引擎/node 路径与最近输出（排查「点了没反应」）">诊断</button>
     <button id="btnDiagCopy" class="btn-ghost" title="把诊断信息复制到剪贴板（发给婉宜排障用）">复制诊断</button>
+    <button id="btnCheckUpdate" class="btn-ghost" title="立即检查是否有新版本">检查更新</button>
   </header>
   <div id="diagBox" class="diagbox" hidden></div>
   <div id="errBox" class="errbox" hidden></div>
@@ -1138,9 +1139,9 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
   } catch (e) { /* 无自检即忽略 */ }
 })();
 
-// ---- 启动静默检查更新（10-13）：公开仓库匿名查 GitHub API → 有新版弹窗询问（含更新简介）----
-// 静默 = 不打扰、不阻塞；只有"确实有新版本"才弹窗，任何失败都什么都不做。
-(async function checkUpdates() {
+// ---- 更新检查（10-13）：启动静默 / 手动按钮可随时触发 ----
+// 静默 = 不打扰、不阻塞；只有"确实有新版本"才弹窗。任何失败都什么都不做（手动检查时给一句轻提示）。
+(function updateChecker() {
   if (!hasTauri) return;
   const API = 'https://api.github.com/repos/theWeatherMan21/ship-schedule-hub/releases/latest';
   const REPO_URL = 'https://github.com/theWeatherMan21/ship-schedule-hub/releases';
@@ -1158,6 +1159,18 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
     .replace(/^\s*---+\s*$/gm, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+
+  /** 轻提示（手动检查无更新/失败时用；2.5s 自动消失） */
+  const toast = (msg) => {
+    const old = document.getElementById('uc-toast');
+    if (old) old.remove();
+    const d = document.createElement('div');
+    d.id = 'uc-toast';
+    d.className = 'utoast';
+    d.textContent = msg;
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 2500);
+  };
 
   const showUpdateDialog = (info) => {
     if (document.getElementById('update-modal')) return;   // 已开着就不重复弹
@@ -1218,34 +1231,48 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
 
     card.appendChild(btns);
     wrap.appendChild(card);
-    wrap.addEventListener('click', (e) => { if (e.target === wrap) wrap.remove(); });   // 点遮罩关闭
+    wrap.addEventListener('click', (e) => { if (e.target === wrap) wrap.remove(); });
     document.body.appendChild(wrap);
   };
 
-  setTimeout(async () => {
+  /** manual=true（点「检查更新」）：跳过节流；无更新/失败时给轻提示 */
+  async function runUpdateCheck({ manual = false } = {}) {
     try {
-      // ① 24h 节流；命中且有更新 → 直接弹
-      let st = null;
-      try { st = JSON.parse(localStorage.getItem(STATE_KEY) || 'null'); } catch { /* 忽略 */ }
-      if (st && st.ts && Date.now() - st.ts < DAY) {
-        if (st.hasUpdate && st.latest) {
-          try { if (localStorage.getItem(SKIP_KEY) === st.latest) return; } catch { /* 忽略 */ }
-          showUpdateDialog(st);
+      if (!manual) {
+        // ① 24h 节流（落 localStorage）；命中且有更新 → 直接弹
+        let st = null;
+        try { st = JSON.parse(localStorage.getItem(STATE_KEY) || 'null'); } catch { /* 忽略 */ }
+        if (st && st.ts && Date.now() - st.ts < DAY) {
+          if (st.hasUpdate && st.latest) {
+            try { if (localStorage.getItem(SKIP_KEY) === st.latest) return; } catch { /* 忽略 */ }
+            showUpdateDialog(st);
+          }
+          return;
         }
-        return;
       }
       // ② 匿名查公开 release（含更新简介 body）
       const r = await fetch(API, { headers: { accept: 'application/vnd.github+json' } });
-      if (!r.ok) return;                                  // 403/404/限流 → 静默
+      if (!r.ok) { if (manual) toast('检查更新失败（网络或被限流），稍后再试'); return; }
       const j = await r.json();
       const latest = String(j.tag_name || '').replace(/^v/, '');
-      if (!latest) return;
+      if (!latest) { if (manual) toast('检查更新失败：响应异常'); return; }
       const hasUpdate = isNewer(latest, __APP_VERSION__);
       const info = { latest, hasUpdate, url: j.html_url || REPO_URL, notes: j.body || j.name || '' };
       try { localStorage.setItem(STATE_KEY, JSON.stringify({ ts: Date.now(), ...info })); } catch { /* 忽略 */ }
-      if (!hasUpdate) return;
+      if (!hasUpdate) {
+        if (manual) toast(`已是最新版本（v${__APP_VERSION__}）`);
+        return;
+      }
       try { if (localStorage.getItem(SKIP_KEY) === latest) return; } catch { /* 忽略 */ }
       showUpdateDialog(info);
-    } catch (e) { /* 静默：离线/网络失败都不打扰 */ }
-  }, 5000);
+    } catch (e) {
+      if (manual) toast('检查更新失败（离线或网络异常）');
+    }
+  }
+
+  // 启动静默检查（延迟 5s）
+  setTimeout(() => runUpdateCheck({ manual: false }), 5000);
+  // 手动「检查更新」按钮
+  document.getElementById('btnCheckUpdate')?.addEventListener('click', () => runUpdateCheck({ manual: true }));
 })();
+
