@@ -124,3 +124,14 @@ CI 侧（发布时产出清单，方案 A）：
 - 缓存落盘内容核对：正常路径写 `{current:"1.4.0", hasUpdate:false}`，force 路径不写
 
 **遗留/边界**：本方案依赖本机 `gh` 登录态（自用场景最优）；若要分发给同事自动更新，走文档第四节方案 C（公开镜像 repo）+ Tauri 官方 updater。
+
+### 追加（2026-10-13 下午）：仓库转公开后简化
+
+爹地拍板「项目公开，没必要为这点小事绕圈子」→ 仓库已转 **public**（先做安全体检 + 从**全部历史**清除 24 张桌面截图，含误入的微信/员工姓名/业务对话；`git filter-repo` 重写 142 commits，验证历史中 docs 图片数 = 0）。
+
+简化后：
+- **不再依赖本机 gh**，也删掉了 Rust 侧 `check_update`/`find_gh`/缓存逻辑
+- **前端直接匿名 `fetch` GitHub API**（实测 Tauri WebView 可通，无需凭据）：
+  - 延迟 5s → 24h 节流（localStorage）→ `isNewer()` 比对 → 有新版才插提示条 → 失败静默
+- 版本比较抽到 `src/lib/version.js`，单测 `qa/update-check-test.mjs` **9/0**
+- 附带好处：release 资产现在**匿名可下载**，同事可直接拿 dmg/exe

@@ -174,154 +174,6 @@ fn track_selftest() -> Option<String> {
     std::env::var("SSH_TRACK_SELFTEST").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty())
 }
 
-// ---------- 启动静默检查更新（10-13）----------
-// 设计：复用**本机已登录的 gh 凭据**查私有仓库的 latest release —— 零公开托管、零 token 入档。
-// 失败一律静默（离线/未登录/无限流）。24h 节流（落盘缓存），不阻塞启动。
-const UPDATE_REPO: &str = "theWeatherMan21/ship-schedule-hub";
-
-fn find_gh() -> Option<String> {
-    let mut cands: Vec<PathBuf> = Vec::new();
-    if let Ok(p) = std::env::var("SSH_GH_PATH") {
-        cands.push(PathBuf::from(p));
-    }
-    cands.push(PathBuf::from("/opt/homebrew/bin/gh"));
-    cands.push(PathBuf::from("/usr/local/bin/gh"));
-    if let Some(home) = std::env::var_os("HOME") {
-        cands.push(PathBuf::from(&home).join(".local/bin/gh"));
-    }
-    for c in cands {
-        if c.exists() {
-            return Some(c.to_string_lossy().to_string());
-        }
-    }
-    None
-}
-
-fn ver_parts(v: &str) -> Vec<u64> {
-    v.trim_start_matches('v')
-        .split('.')
-        .map(|x| x.chars().take_while(|c| c.is_ascii_digit()).collect::<String>().parse().unwrap_or(0))
-        .collect()
-}
-
-/// 语义化版本比较：latest 是否比 current 新
-fn is_newer(latest: &str, current: &str) -> bool {
-    let a = ver_parts(latest);
-    let b = ver_parts(current);
-    for i in 0..a.len().max(b.len()) {
-        let x = a.get(i).copied().unwrap_or(0);
-        let y = b.get(i).copied().unwrap_or(0);
-        if x != y {
-            return x > y;
-        }
-    }
-    false
-}
-
-fn update_cache_path(app: &AppHandle) -> Option<PathBuf> {
-    app.path().app_data_dir().ok().map(|d| d.join("update-check.json"))
-}
-
-/// 启动静默检查更新。返回 {hasUpdate, latest, url, cached?}；任何异常 → {hasUpdate:false, silent:true}
-#[tauri::command]
-async fn check_update(app: AppHandle, current: String) -> serde_json::Value {
-    use serde_json::json;
-    let none = json!({ "hasUpdate": false, "silent": true });
-    let cache = update_cache_path(&app);
-
-    // ① 24h 节流：命中缓存直接返回
-    if let Some(p) = cache.as_ref() {
-        if let Ok(txt) = std::fs::read_to_string(p) {
-            if let Ok(v) = serde_json::from_str::<serde_json::Value>(&txt) {
-                let fresh = v.get("ts").and_then(|x| x.as_u64()).map(|ts| {
-                    let now = std::time::SystemTime::now()
-                        .duration_since(std::time::UNIX_EPOCH)
-                        .map(|d| d.as_secs())
-                        .unwrap_or(0);
-                    now.saturating_sub(ts) < 24 * 3600
-                }).unwrap_or(false);
-                if fresh {
-                    if let Some(o) = v.get("result") {
-                        let mut o = o.clone();
-                        if let Some(m) = o.as_object_mut() {
-                            m.insert("cached".to_string(), json!(true));
-                        }
-                        return o;
-                    }
-                }
-            }
-        }
-    }
-
-    // ② 查 GitHub（用本机 gh 凭据）
-    let gh = match find_gh() {
-        Some(g) => g,
-        None => {
-            trace_line("update-check: 未找到 gh，跳过");
-            return none;
-        }
-    };
-    let out = std::process::Command::new(gh)
-        .args([
-            "api",
-            &format!("repos/{UPDATE_REPO}/releases/latest"),
-            "--jq",
-            "{tag: .tag_name, url: .html_url, name: .name}",
-        ])
-        .output();
-    let out = match out {
-        Ok(o) if o.status.success() => o,
-        Ok(o) => {
-            trace_line(&format!("update-check: gh 退出码 {:?}", o.status.code()));
-            return none;
-        }
-        Err(e) => {
-            trace_line(&format!("update-check: gh 执行失败 {e}"));
-            return none;
-        }
-    };
-    let txt = String::from_utf8_lossy(&out.stdout).to_string();
-    let j: serde_json::Value = match serde_json::from_str(txt.trim()) {
-        Ok(v) => v,
-        Err(_) => return none,
-    };
-    let latest = j.get("tag").and_then(|v| v.as_str()).unwrap_or("").trim_start_matches('v').to_string();
-    if latest.is_empty() {
-        return none;
-    }
-    // 验收开关：SSH_FORCE_UPDATE=1 时把"当前版本"当作低一档，强制走通提示条渲染（截图验收用）
-    let current = if std::env::var("SSH_FORCE_UPDATE").map(|v| v == "1").unwrap_or(false) {
-        "1.3.0".to_string()
-    } else {
-        current
-    };
-    let res = json!({
-        "hasUpdate": is_newer(&latest, &current),
-        "latest": latest,
-        "current": current,
-        "url": j.get("url").and_then(|v| v.as_str()).unwrap_or(""),
-        "notes": j.get("name").and_then(|v| v.as_str()).unwrap_or(""),
-        "silent": false
-    });
-
-    // ③ 落盘节流缓存（force 验收模式不写，避免污染真实结果）
-    let forced = std::env::var("SSH_FORCE_UPDATE").map(|v| v == "1").unwrap_or(false);
-    if !forced {
-        if let Some(p) = cache.as_ref() {
-            if let Some(dir) = p.parent() {
-                let _ = std::fs::create_dir_all(dir);
-            }
-            let ts = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_secs())
-                .unwrap_or(0);
-            let _ = std::fs::write(p, serde_json::json!({ "ts": ts, "result": res }).to_string());
-        }
-    }
-    trace_line(&format!("update-check: latest={latest} hasUpdate={}", res.get("hasUpdate").and_then(|v| v.as_bool()).unwrap_or(false)));
-    res
-}
-
 fn find_node(app: Option<&AppHandle>) -> String {
     // ① 显式指定
     if let Ok(p) = std::env::var("SSH_NODE_PATH") {
@@ -1066,27 +918,15 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, check_update])
+        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{fix_root, normalize_path, strip_verbatim, is_newer, ver_parts};
+    use super::{fix_root, normalize_path, strip_verbatim};
     use std::path::PathBuf;
-
-    #[test]
-    fn 版本比较() {
-        assert!(is_newer("1.4.0", "1.3.9"));
-        assert!(is_newer("v1.4.0", "1.3.0"));
-        assert!(is_newer("2.0.0", "1.99.99"));
-        assert!(is_newer("1.4.1", "1.4"));
-        assert!(!is_newer("1.4.0", "1.4.0"));
-        assert!(!is_newer("1.3.0", "1.4.0"));
-        assert!(!is_newer("1.4", "1.4.0"));
-        assert_eq!(ver_parts("v1.4.0"), vec![1, 4, 0]);
-    }
 
     #[test]
     fn 去掉扩展长度前缀() {
