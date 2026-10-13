@@ -589,3 +589,42 @@ html[data-theme="dark"] .update-bar, html[data-mode="dark"] .update-bar {
 .update-bar .ub-open { margin-left: auto; color: var(--accent); cursor: pointer; text-decoration: underline; }
 .update-bar button { background: none; border: 0; color: var(--ink-2); cursor: pointer; font-size: 12px; padding: 2px 6px; border-radius: 5px; }
 .update-bar button:hover { color: var(--ink); background: var(--line-soft); }
+
+/* ---------- 更新弹窗（10-13）：有新版才弹，含更新简介 + 用户选择 ---------- */
+.umask {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0, 0, 0, .35);
+  display: flex; align-items: center; justify-content: center;
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+}
+.ucard {
+  width: min(520px, calc(100vw - 48px));
+  max-height: min(560px, calc(100vh - 96px));
+  display: flex; flex-direction: column;
+  background: var(--panel); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .28);
+  padding: 18px 20px 14px; overflow: hidden;
+}
+.ucard .uhead { font-size: 16px; font-weight: 700; }
+.ucard .usub { font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+.ucard .ubody {
+  margin: 12px 0 4px; padding: 10px 12px;
+  background: var(--bg); border: 1px solid var(--line-soft); border-radius: 9px;
+  overflow: auto; flex: 1 1 auto; min-height: 60px;
+}
+.ucard .ubody pre {
+  margin: 0; font-family: var(--font); font-size: 12.5px; line-height: 1.65;
+  white-space: pre-wrap; word-break: break-word; color: var(--ink-2);
+}
+.ucard .ubtns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.ucard .ubtns button {
+  font: inherit; font-size: 13px; padding: 7px 14px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer;
+}
+.ucard .ubtns button:hover { background: var(--line-soft); }
+.ucard .ubtns .uprimary {
+  background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 650;
+}
+.ucard .ubtns .uprimary:hover { filter: brightness(1.06); }
+.ucard .ubtns .uskip { color: var(--ink-2); }
