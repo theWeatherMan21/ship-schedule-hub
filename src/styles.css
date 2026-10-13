@@ -574,3 +574,18 @@ html[data-platform="win"] body::before { display: none !important; }
 .tev .l { color: var(--ink-2); }
 .tev.est { opacity: .55; }
 .tev.est .a::after { content: ' · est'; color: var(--ink-3); font-weight: 500; font-size: 10.5px; }
+
+/* ---------- 启动静默更新提示条（10-13）---------- */
+.update-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 14px; font-size: 12.5px;
+  background: var(--ok-bg); color: var(--ok);
+  border-bottom: 1px solid var(--line);
+}
+html[data-theme="dark"] .update-bar, html[data-mode="dark"] .update-bar {
+  background: rgba(34, 197, 94, .12); color: #4ade80;
+}
+.update-bar .ub-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
+.update-bar .ub-open { margin-left: auto; color: var(--accent); cursor: pointer; text-decoration: underline; }
+.update-bar button { background: none; border: 0; color: var(--ink-2); cursor: pointer; font-size: 12px; padding: 2px 6px; border-radius: 5px; }
+.update-bar button:hover { color: var(--ink); background: var(--line-soft); }
