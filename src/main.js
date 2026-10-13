@@ -1136,3 +1136,58 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
     }, 2500);
   } catch (e) { /* 无自检即忽略 */ }
 })();
+
+// ---- 启动静默检查更新（10-13）：延迟 5s、失败静默、可跳过此版本 ----
+// 设计：更新提示是"赠品"，任何失败都不影响使用（离线/未登录/被拦 → 什么都不做）。
+(async function checkUpdates() {
+  if (!hasTauri) return;
+  const SKIP_KEY = 'ssh-skip-version';
+  const REPO_URL = 'https://github.com/theWeatherMan21/ship-schedule-hub/releases';
+
+  const showUpdateBar = (info) => {
+    const bar = document.createElement('div');
+    bar.className = 'update-bar';
+    const dot = document.createElement('span');
+    dot.className = 'ub-dot';
+    bar.appendChild(dot);
+    const txt = document.createElement('span');
+    txt.textContent = `有新版本 v${String(info.latest)}（当前 v${String(info.current || __APP_VERSION__)}）`;   // textContent：不解析任何 HTML（版本号来自远端）
+    bar.appendChild(txt);
+    const open = document.createElement('a');
+    open.className = 'ub-open';
+    open.textContent = '查看更新';
+    open.addEventListener('click', () => {
+      invoke('open_external', { url: String(info.url || REPO_URL) }).catch(() => {});
+    });
+    bar.appendChild(open);
+    const skip = document.createElement('button');
+    skip.className = 'ub-skip';
+    skip.title = '此版本不再提示';
+    skip.textContent = '跳过此版本';
+    skip.addEventListener('click', () => {
+      try { localStorage.setItem(SKIP_KEY, String(info.latest)); } catch { /* 忽略 */ }
+      bar.remove();
+    });
+    bar.appendChild(skip);
+    const x = document.createElement('button');
+    x.className = 'ub-x';
+    x.title = '关闭';
+    x.textContent = '×';
+    x.addEventListener('click', () => bar.remove());
+    bar.appendChild(x);
+
+    const app = document.getElementById('app');
+    if (app && app.firstChild) app.insertBefore(bar, app.firstChild);
+    else if (app) app.appendChild(bar);
+    else document.body.prepend(bar);
+  };
+
+  setTimeout(async () => {
+    try {
+      const r = await invoke('check_update', { current: __APP_VERSION__ });
+      if (!r || !r.hasUpdate || !r.latest) return;
+      try { if (localStorage.getItem(SKIP_KEY) === r.latest) return; } catch { /* 忽略 */ }
+      showUpdateBar(r);
+    } catch (e) { /* 静默：拿不到更新信息不是错误 */ }
+  }, 5000);
+})();

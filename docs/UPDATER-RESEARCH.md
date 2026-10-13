@@ -101,3 +101,26 @@ CI 侧（发布时产出清单，方案 A）：
     printf '{"version":"%s","url":"%s","notes":""}' "$VERSION" "$RELEASE_URL" > shiphub-latest.json
     # 推到公开可读处（公开 Gist / 公开 repo raw）
 ```
+
+---
+
+## 六、实施结果（2026-10-13 已完成）
+
+**最终方案**：**复用本机已登录的 `gh` 凭据查私有 release** —— 比公开托管更干净（零公开托管、零 token 入档、零公开仓库）。
+
+实现（`src-tauri/src/lib.rs` + `src/main.js` + `src/styles.css`）：
+
+| 部分 | 内容 |
+|---|---|
+| Rust `check_update` command | 找 `gh`（`SSH_GH_PATH` → `/opt/homebrew/bin/gh` → `/usr/local/bin/gh` → `~/.local/bin/gh`）→ `gh api repos/.../releases/latest --jq` → 语义化版本比较 `is_newer()` |
+| 节流 | 落盘 `~/Library/Application Support/com.ross.shipschedulehub/update-check.json`（bundle id 目录），**24h 内命中缓存** |
+| 静默 | 任何失败（找不到 gh / 未登录 / 网络失败 / 坏 JSON）→ `{hasUpdate:false, silent:true}`，不打扰 |
+| 前端 | 启动**延迟 5s** → `invoke('check_update')` → 有新版才在窗口顶部插一条绿色提示（**DOM API 构建，无 innerHTML**），带「查看更新 / 跳过此版本 / ×」 |
+| 验收开关 | `SSH_FORCE_UPDATE=1` 把 current 降到 1.3.0 强制走通提示条（该模式**不写缓存**，避免污染真实结果） |
+
+**验证**：
+- Rust 单测 `cargo test` **5 passed / 0 failed**（含版本比较 8 个断言）
+- 实机两条路径：有更新 → 绿色提示条「有新版本 v1.4.0（当前 v1.3.0）· 查看更新 · 跳过此版本 · ×」；无更新 → **完全静默**（截图 update-bar-final.png / update-bar-normal.png）
+- 缓存落盘内容核对：正常路径写 `{current:"1.4.0", hasUpdate:false}`，force 路径不写
+
+**遗留/边界**：本方案依赖本机 `gh` 登录态（自用场景最优）；若要分发给同事自动更新，走文档第四节方案 C（公开镜像 repo）+ Tauri 官方 updater。
