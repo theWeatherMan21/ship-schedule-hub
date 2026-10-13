@@ -1138,81 +1138,114 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
   } catch (e) { /* 无自检即忽略 */ }
 })();
 
-// ---- 启动静默检查更新（10-13）：公开仓库匿名查 GitHub API，延迟 5s、失败静默、24h 节流 ----
-// 仓库已 public，无需任何凭据；更新提示是"赠品"，任何失败都不影响使用。
+// ---- 启动静默检查更新（10-13）：公开仓库匿名查 GitHub API → 有新版弹窗询问（含更新简介）----
+// 静默 = 不打扰、不阻塞；只有"确实有新版本"才弹窗，任何失败都什么都不做。
 (async function checkUpdates() {
   if (!hasTauri) return;
   const API = 'https://api.github.com/repos/theWeatherMan21/ship-schedule-hub/releases/latest';
   const REPO_URL = 'https://github.com/theWeatherMan21/ship-schedule-hub/releases';
-  const STATE_KEY = 'ssh-update-state';      // {ts, latest, hasUpdate}
+  const STATE_KEY = 'ssh-update-state-t2';      // {ts, latest, hasUpdate, notes}
   const SKIP_KEY = 'ssh-skip-version';
   const DAY = 24 * 3600 * 1000;
 
+  /** release 简介（markdown）→ 适合纯文本展示：去标记、压空行 */
+  const plainNotes = (s) => String(s || '')
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^\s*[-*]\s+/gm, '· ')
+    .replace(/\|/g, ' ')
+    .replace(/^\s*---+\s*$/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 
-  const showUpdateBar = (info) => {
-    const bar = document.createElement('div');
-    bar.className = 'update-bar';
-    const dot = document.createElement('span');
-    dot.className = 'ub-dot';
-    bar.appendChild(dot);
-    const txt = document.createElement('span');
-    txt.textContent = `有新版本 v${String(info.latest)}（当前 v${__APP_VERSION__}）`;   // textContent：不解析任何 HTML
-    bar.appendChild(txt);
-    const open = document.createElement('a');
-    open.className = 'ub-open';
-    open.textContent = '查看更新';
-    open.addEventListener('click', () => {
+  const showUpdateDialog = (info) => {
+    if (document.getElementById('update-modal')) return;   // 已开着就不重复弹
+    const wrap = document.createElement('div');
+    wrap.id = 'update-modal';
+    wrap.className = 'umask';
+    const card = document.createElement('div');
+    card.className = 'ucard';
+
+    const h = document.createElement('div');
+    h.className = 'uhead';
+    h.textContent = `发现新版本 v${String(info.latest)}`;
+    card.appendChild(h);
+
+    const sub = document.createElement('div');
+    sub.className = 'usub';
+    sub.textContent = `当前版本 v${__APP_VERSION__}`;
+    card.appendChild(sub);
+
+    const notes = plainNotes(info.notes);
+    if (notes) {
+      const body = document.createElement('div');
+      body.className = 'ubody';
+      const pre = document.createElement('pre');
+      pre.textContent = notes.slice(0, 2000);   // textContent：不解析 HTML；超长截断
+      body.appendChild(pre);
+      card.appendChild(body);
+    }
+
+    const btns = document.createElement('div');
+    btns.className = 'ubtns';
+    const go = document.createElement('button');
+    go.className = 'uprimary';
+    go.textContent = '立即更新';
+    go.addEventListener('click', () => {
       const url = String(info.url || REPO_URL);
       if (hasTauri) invoke('open_external', { url }).catch(() => {});
       else window.open(url, '_blank');
+      wrap.remove();
     });
-    bar.appendChild(open);
+    btns.appendChild(go);
+
+    const later = document.createElement('button');
+    later.textContent = '稍后';
+    later.title = '下次启动再提示';
+    later.addEventListener('click', () => wrap.remove());
+    btns.appendChild(later);
+
     const skip = document.createElement('button');
-    skip.className = 'ub-skip';
-    skip.title = '此版本不再提示';
+    skip.className = 'uskip';
     skip.textContent = '跳过此版本';
+    skip.title = '此版本不再提示';
     skip.addEventListener('click', () => {
       try { localStorage.setItem(SKIP_KEY, String(info.latest)); } catch { /* 忽略 */ }
-      bar.remove();
+      wrap.remove();
     });
-    bar.appendChild(skip);
-    const x = document.createElement('button');
-    x.className = 'ub-x';
-    x.title = '关闭';
-    x.textContent = '×';
-    x.addEventListener('click', () => bar.remove());
-    bar.appendChild(x);
+    btns.appendChild(skip);
 
-    const app = document.getElementById('app');
-    if (app && app.firstChild) app.insertBefore(bar, app.firstChild);
-    else if (app) app.appendChild(bar);
-    else document.body.prepend(bar);
+    card.appendChild(btns);
+    wrap.appendChild(card);
+    wrap.addEventListener('click', (e) => { if (e.target === wrap) wrap.remove(); });   // 点遮罩关闭
+    document.body.appendChild(wrap);
   };
 
   setTimeout(async () => {
     try {
-      // ① 24h 节流（落 localStorage）
+      // ① 24h 节流；命中且有更新 → 直接弹
       let st = null;
       try { st = JSON.parse(localStorage.getItem(STATE_KEY) || 'null'); } catch { /* 忽略 */ }
       if (st && st.ts && Date.now() - st.ts < DAY) {
         if (st.hasUpdate && st.latest) {
           try { if (localStorage.getItem(SKIP_KEY) === st.latest) return; } catch { /* 忽略 */ }
-          showUpdateBar(st);
+          showUpdateDialog(st);
         }
         return;
       }
-      // ② 匿名查公开 release
+      // ② 匿名查公开 release（含更新简介 body）
       const r = await fetch(API, { headers: { accept: 'application/vnd.github+json' } });
       if (!r.ok) return;                                  // 403/404/限流 → 静默
       const j = await r.json();
       const latest = String(j.tag_name || '').replace(/^v/, '');
       if (!latest) return;
-      const hasUpdate = isNewer(latest, __APP_VERSION__);
-      const info = { latest, hasUpdate, url: j.html_url || REPO_URL, notes: j.name || '' };
+      const hasUpdate = isNewer(latest, "1.3.0");   // TEMP
+      const info = { latest, hasUpdate, url: j.html_url || REPO_URL, notes: j.body || j.name || '' };
       try { localStorage.setItem(STATE_KEY, JSON.stringify({ ts: Date.now(), ...info })); } catch { /* 忽略 */ }
       if (!hasUpdate) return;
       try { if (localStorage.getItem(SKIP_KEY) === latest) return; } catch { /* 忽略 */ }
-      showUpdateBar(info);
+      showUpdateDialog(info);
     } catch (e) { /* 静默：离线/网络失败都不打扰 */ }
   }, 5000);
 })();
