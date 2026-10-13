@@ -802,6 +802,71 @@ export async function zimInPage(page, originLocode, destLocode, isoDate, originN
 //      /schedules/pointToPoint?from=<GEO>&to=<GEO>&fromRkstCode=CNNPO&toRkstCode=TRAMB
 //        &containerIsoCode=45G1&fromServiceMode=CY&toServiceMode=CY&numberOfWeeks=4&dateType=D&date=<D+1>&dateTo=<D+29>
 const MAERSK_KEY = 'uXe7bxTHLY0yY0e8jnS6kotShkLuAAqG';
+// 截单/截关（deadlines）—— 10-13 补（爹地：官网卡片上有截单时间，我们之前没取）
+// 端点 POST https://api.maersk.com/deadlines/queries（与 routings 同一个公开 consumer-key，页内 fetch；curl 也能直连）
+//   请求体：数组，每项 {facilityId, vesselMaerskCode, voyageNumber, deadlineGroupName:'DOCUMENTATION'}
+//     ⚠️ facilityId = 装运段 vesselPortCallStart.location.facility 里的 GEO_ID（3JZPDO9X1OI32 这种），
+//        **不是** facilityCode（CNNPOMT/CNTAO 这种码头码）—— 10-13 实测：直接取 alternativeCodeType==='GEO_ID'，
+//        无需再调 geography 接口做码↔ID 转换。
+//     deadlineGroupName 只有 'DOCUMENTATION' 合法（CONTAINER/CUSTOMS/EQUIPMENT 都回 400），省略亦可（结果相同）。
+//   响应：数组，每项 {facilityId, vesselMaerskCode, voyageNumber, deadlines:[{deadlineName, deadlineCode, …}]}
+// 展示口径 = 站点原样（10-13 从 www.maersk.com/schedules/assets/main-*.js 挖出的硬编码映射 + 站点 i18n
+//   .../content/keys/query/<uuid>/en.json 的文案），保证「App 看到的 = 官网看到的」：
+//     deadlineTypes:   ["ECPL","SGIN","SINONAMS","VGM"]        → 4 行
+//     dgDeadlineTypes: ["DGDSDN","DGDSDS","FDGDSD","DGD","MVDGDD"] → 第 5 行（危品）
+//     ecpl=Empty container pickup / sgin=Container gate-in / sinonams=Shipping Instructions /
+//     vgm=Verified Gross Mass / dgd=Dangerous Goods Declaration / na=N/A
+//     Shipping Instructions 行 = min(SINONAMS, SIAMS)（站点函数取两者中较早者）
+//   ⚠️ 接口还会回 FMDGFD（Final Multimodal Dangerous Goods Form）与 ANID（Arrival Notice，Import 段）——
+//      **官网不展示这两条**，我们也不展示（要的是"官网上有的"）。FMDGFD 与危品行无关：实测官网危品行
+//      取 dgDeadlineTypes，干柜航线一律 N/A。
+export const MAERSK_CUTOFF_ROWS = [
+  { key: 'Empty container pickup', codes: ['ECPL'] },
+  { key: 'Container gate-in', codes: ['SGIN'] },
+  { key: 'Shipping Instructions', codes: ['SINONAMS', 'SIAMS'], earliest: true },
+  { key: 'Verified Gross Mass', codes: ['VGM'] },
+  { key: 'Dangerous Goods Declaration', codes: ['DGDSDN', 'DGDSDS', 'FDGDSD', 'DGD', 'MVDGDD'] },
+];
+const maerskCutFmt = (s) => {
+  const v = String(s || '');
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(v);
+  return m ? `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}` : v.slice(0, 16);
+};
+// 接口 deadlines[] → {文案: 'YYYY-MM-DD HH:mm' | 'N/A'}
+export function maerskCutoffs(deadlines) {
+  const by = new Map();
+  for (const d of Array.isArray(deadlines) ? deadlines : []) {
+    if (d && d.deadlineCode) by.set(String(d.deadlineCode).toUpperCase(), d);
+  }
+  const out = {};
+  for (const row of MAERSK_CUTOFF_ROWS) {
+    const vals = row.codes.map((c) => (by.get(c) || {}).deadline).filter(Boolean).map(maerskCutFmt);
+    out[row.key] = (row.earliest && vals.length > 1) ? vals.slice().sort()[0] : (vals[0] || 'N/A');
+  }
+  return out;
+}
+// 深链卡片文本里的 Deadlines 段 → 同口径 cutoffs（官网渲染值 "18 Oct 2026 11:00" → "2026-10-18 11:00"）
+const MAERSK_MON = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
+export function maerskCutoffsFromText(text) {
+  const t = String(text || '');
+  if (!/Deadlines/.test(t)) return null;
+  const norm = (s) => {
+    const v = String(s || '').trim();
+    if (/^n\/?a$/i.test(v) || !v) return 'N/A';
+    const m = /^(\d{1,2}) (\w{3}) (\d{4})(?:\s+(\d{2}:\d{2}))?$/.exec(v);
+    return m ? `${m[3]}-${MAERSK_MON[m[2]] || m[2]}-${String(m[1]).padStart(2, '0')} ${m[4] || '00:00'}` : v;
+  };
+  const out = {};
+  let hit = 0;
+  for (const row of MAERSK_CUTOFF_ROWS) {
+    const label = row.key;
+    const re = new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\n\\s*([^\\n]*)');
+    const m = re.exec(t);
+    if (!m) { out[label] = 'N/A'; continue; }
+    out[label] = norm(m[1]); hit++;
+  }
+  return hit ? out : null;
+}
 let maerskAltCache = null;
 let maerskAltProm = null;
 // 同城其它叫法：词典 aliases 里含该城市名的 maersk/un 别名取首词（istanbul → ambarli）
@@ -910,7 +975,12 @@ export function maerskRowsFromRoutings(routings) {
       .map((fa) => fa.facilityName || fa.locationName || fa.facilityCode || '').filter(Boolean);
     const m = /P(?:(\d+)D)?(?:T(?:(\d+)H)?)?/.exec(rt.estimatedTransitTime || '') || [];
     const h = (Number(m[1]) || 0) * 24 + (Number(m[2]) || 0);
+    // 截单查询三元组（deadlines/queries 用）：装运段设施的 GEO_ID + 船代码 + 航次——10-13 实测该 GEO_ID 即接口所需 facilityId
+    const stStart = fc.vesselPortCallStart || {};
+    const facObj = (stStart.location || {}).facility || {};
+    const facGeo = ((facObj.alternativeCodes || []).find((a) => a.alternativeCodeType === 'GEO_ID') || {}).alternativeCode || '';
     rows.push({
+      _dl: facGeo ? { facilityId: facGeo, vesselMaerskCode: ((fc.vessel || {}).vesselMaerskCode) || '', voyageNumber: stStart.departureVoyageNumber || '' } : null,
       vessel: ((fc.vessel || {}).vesselName) || '',
       voyage: ((fc.vesselPortCallStart || {}).departureVoyageNumber) || '',
       etd, eta,
@@ -918,7 +988,7 @@ export function maerskRowsFromRoutings(routings) {
       transitDays: h ? Math.round(h / 24) : daysBetween(etd, eta),
       via: vias.join(' → '),
       direct: legs.length <= 1,
-      // 逐段航程（马士基 routing 里每段带码头代码/设施、服务名、船名；截单时间在另一个接口，未取）
+      // 逐段航程（马士基 routing 里每段带码头代码/设施、服务名、船名）；截单/截关见 maerskApplyDeadlines（deadlines/queries）
       detail: mkDetail({
         service: ((f.vesselPortCallStart || {}).departureService || {}).serviceName
           || ((f.carriage || {}).vesselPortCallStart || {}).departureService && ((f.carriage || {}).vesselPortCallStart || {}).departureService.serviceName
@@ -949,6 +1019,47 @@ export function maerskRowsFromRoutings(routings) {
     });
   }
   return rows.filter((x) => x.etd && x.eta);
+}
+
+// ⑤ 截单时间：POST api.maersk.com/deadlines/queries
+//   三元组来自 routings 装运段设施的 GEO_ID（实测即接口所需 facilityId）+ 船代码 + 航次；公开 consumer-key，无需登录。
+export async function maerskDeadlines(page, items) {
+  const list = (items || []).filter((x) => x && x.facilityId && x.vesselMaerskCode && x.voyageNumber)
+    .map((x) => ({ facilityId: x.facilityId, vesselMaerskCode: x.vesselMaerskCode, voyageNumber: x.voyageNumber, deadlineGroupName: 'DOCUMENTATION' }));
+  if (!list.length) return null;
+  return page.evaluate(async ({ l, key }) => {
+    try {
+      const r = await fetch('https://api.maersk.com/deadlines/queries', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json', 'consumer-key': key },
+        body: JSON.stringify(l),
+      });
+      const t = await r.text();
+      let j = null; try { j = JSON.parse(t); } catch { /* noop */ }
+      return { status: r.status, data: Array.isArray(j) ? j : [], raw: t.slice(0, 200) };
+    } catch (e) { return { status: 0, data: [], raw: String(e).slice(0, 140) }; }
+  }, { l: list, key: MAERSK_KEY }).catch(() => null);
+}
+
+// 把 deadlines 响应合并进 rows（按 船代码|航次 匹配；口径由 maerskCutoffs 统一，对齐官网 5 行）
+export function maerskApplyDeadlines(rows, resp) {
+  const arr = (resp && resp.data) || [];
+  if (!arr.length) return rows;
+  const byKey = new Map();
+  for (const it of arr) {
+    const k = `${it.vesselMaerskCode || ''}|${it.voyageNumber || ''}`;
+    byKey.set(k, maerskCutoffs(it.deadlines));
+  }
+  for (const r of rows) {
+    if (!r._dl) continue;
+    const k = `${r._dl.vesselMaerskCode}|${r._dl.voyageNumber}`;
+    const cuts = byKey.get(k);
+    if (cuts && Object.keys(cuts).length) {
+      r.detail = r.detail || {};
+      r.detail.cutoffs = { ...(r.detail.cutoffs || {}), ...cuts };
+    }
+  }
+  return rows;
 }
 
 // ④ 页内 API 适配器（引擎 inPageApi 注入用）
@@ -983,6 +1094,12 @@ export async function maerskInPage(page, originLocode, destLocode, isoDate, oNam
       }
     }
     if (!rows.length) continue;
+    // 补截单时间（deadlines/queries）；拿不到不影响船期主体
+    try {
+      const dl = await maerskDeadlines(page, rows.map((r2) => r2._dl).filter(Boolean));
+      if (dl && dl.status === 200 && dl.data.length) maerskApplyDeadlines(rows, dl);
+    } catch { /* 截单缺省不影响主结果 */ }
+    for (const r2 of rows) delete r2._dl;   // 内部字段不外泄给 UI
     return { rows, note: `API: ${rows.length} schedules (${res.o.cityName}(${res.o.rkst}) → ${d.cityName}(${d.rkst}), tried ${tried.join(',')})` };
   }
   console.error(`[fastpath] maersk 无船期: ${tried.join(',')}`);

@@ -12,7 +12,7 @@
 //   ① page 内 API 直取（maerskInPage：geography 解析 GEO_ID → routings-queries，结构化船期）
 //   ② SPA 深链 goto + 卡片解析（走官网自己的带鉴权请求）
 //   ③ 表单点选（老路径兜底，纯地名打字 + CY 候选 + 回读校验）
-import { maerskResolve, maerskQuery, maerskRowsFromRoutings } from '../fastpath.mjs';
+import { maerskResolve, maerskQuery, maerskRowsFromRoutings, maerskDeadlines, maerskApplyDeadlines, maerskCutoffsFromText } from '../fastpath.mjs';
 
 // 日期：深链默认窗口 numberOfWeeks=4（起 明天，止 +29 天），与官网一跳一致
 const addDays = (iso, n) => { const t = new Date(`${iso}T00:00:00Z`); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
@@ -41,15 +41,25 @@ export default {
     const parseCards = (text) => {
       const out = [];
       try {
-        const cardRe = /Departure\n\s*(\d{1,2} \w{3} \d{4})\n[^\n]+\nArrival\n\s*(\d{1,2} \w{3} \d{4})\n[^\n]+\nVessel\/Voyage\n([^\n]+?)((?:\d+[W]?)?)\nTransit Time:(\d+) days? (\d+)? hours?/gi;
+        const cardRe = /Departure\n\s*(\d{1,2} \w{3} \d{4})\n[^\n]+\nArrival\n\s*(\d{1,2} \w{3} \d{4})\n[^\n]+\nVessel\/Voyage\n([^\n]+?)((?:(\d+[W]?)?))\nTransit Time:(\d+) days? (\d+)? hours?/gi;
+        const found = [];
         let cm;
-        while ((cm = cardRe.exec(text)) !== null && out.length < 12) {
-          out.push({
+        while ((cm = cardRe.exec(text)) !== null && found.length < 12) found.push(cm);
+        for (let i = 0; i < found.length; i++) {
+          cm = found[i];
+          const segStart = cm.index + cm[0].length;
+          const segEnd = i + 1 < found.length ? found[i + 1].index : Math.min(text.length, segStart + 1500);
+          const seg = text.slice(segStart, segEnd);
+          const row = {
             vessel: cm[3].trim(), voyage: cm[4].trim(),
             etd: fmt(cm[1]), eta: fmt(cm[2]),
             transitDays: Number(cm[5]) || cm[5],
             via: '', direct: true,
-          });
+          };
+          // Deadlines 段（10-13 接）：口径与 API 路径统一（maerskCutoffsFromText，对齐官网 5 行）
+          const cuts = maerskCutoffsFromText(seg);
+          if (cuts) row.detail = { routing: '', legs: [], cutoffs: cuts };
+          out.push(row);
         }
       } catch { /* 保持 prefilled */ }
       return out;
@@ -102,7 +112,15 @@ export default {
         try { qr = await maerskQuery(page, resolved.o.geo, d.geo, earliest, latest); } catch { /* 下一候选 */ }
         if (!qr || qr.status !== 200 || !qr.routings || !qr.routings.length) { tried.push(`${d.rkst}:HTTP${qr ? qr.status : '?'}`); continue; }
         const rows = maerskRowsFromRoutings(qr.routings);
-        if (rows.length) return { msg: mkMsg(rows, `API (${resolved.o.cityName} → ${d.cityName})`), schedules: rows };
+        if (rows.length) {
+          // 补截单/截关时间（deadlines/queries，10-13 接）；拿不到不影响船期主体
+          try {
+            const dl = await maerskDeadlines(page, rows.map((r) => r._dl).filter(Boolean));
+            if (dl && dl.status === 200 && dl.data.length) maerskApplyDeadlines(rows, dl);
+          } catch { /* 截单缺省不影响主结果 */ }
+          for (const r of rows) delete r._dl;
+          return { msg: mkMsg(rows, `API (${resolved.o.cityName} → ${d.cityName})`), schedules: rows };
+        }
         tried.push(`${d.rkst}:0条`);
       }
 
