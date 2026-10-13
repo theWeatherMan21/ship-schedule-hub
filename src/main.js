@@ -1144,7 +1144,7 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
   if (!hasTauri) return;
   const API = 'https://api.github.com/repos/theWeatherMan21/ship-schedule-hub/releases/latest';
   const REPO_URL = 'https://github.com/theWeatherMan21/ship-schedule-hub/releases';
-  const STATE_KEY = 'ssh-update-state-t2';      // {ts, latest, hasUpdate, notes}
+  const STATE_KEY = 'ssh-update-state';      // {ts, latest, hasUpdate, notes}
   const SKIP_KEY = 'ssh-skip-version';
   const DAY = 24 * 3600 * 1000;
 
@@ -1240,7 +1240,7 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
       const j = await r.json();
       const latest = String(j.tag_name || '').replace(/^v/, '');
       if (!latest) return;
-      const hasUpdate = isNewer(latest, "1.3.0");   // TEMP
+      const hasUpdate = isNewer(latest, __APP_VERSION__);
       const info = { latest, hasUpdate, url: j.html_url || REPO_URL, notes: j.body || j.name || '' };
       try { localStorage.setItem(STATE_KEY, JSON.stringify({ ts: Date.now(), ...info })); } catch { /* 忽略 */ }
       if (!hasUpdate) return;
