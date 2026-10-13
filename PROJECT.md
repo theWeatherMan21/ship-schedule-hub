@@ -114,6 +114,18 @@
 - **收口**：`identify.mjs` cma `tracking: 'none' → 'live'`；UI 说明栏「已接通」追加 ` / CMA CGM`；单号识别器 **108/0**（prefixes.json 已 sync）；CMA 单测 23/0；重新构建 + `ditto` 部署 /Applications + ad-hoc 重签（部署态实测：bundle 内 `identify.mjs` 已是 `live`、`cma.mjs` 在包内）；commit `6902abb`。
 - **待办（唯一）**：**App 原生自检截图**未完成——跑自检时本机屏幕处于锁定态（`CGSSessionScreenIsLocked=1`），`screencapture` 报 `could not create image from display`，且锁屏下 WKWebView 的 `setTimeout` 被挂起，自检点击根本不发生（trace 无新增 `run_track`，缓存未被 App 触碰）。**结论：App 侧视觉验收必须等屏幕解锁后再跑**；已备一键脚本 `qa/cma-app-selftest.sh`（内含锁屏前置检查，锁屏即 exit 4 不瞎跑）。
 
+## 2026-10-13 · 马士基船期补齐截关/截单时间 ⭐
+
+- **爹地提问**：「MSK的船期搜索为什么没有截关截单时间这些信息，官网上都有」
+- **根因**：走的是 `routings-queries` 接口，**54 个字段实测不含任何截单**；官网数据在**另一个端点**（代码里当时留了注释「未取」就一直没做）。
+- **破解**：`POST api.maersk.com/deadlines/queries`（同一把公开 consumer-key，**无需登录**）。
+  - 请求三元组 = routings 装运段 `facility.alternativeCodes[GEO_ID]` + `vesselMaerskCode` + `departureVoyageNumber`（**实测该 GEO_ID 即接口所需 facilityId**，无需码↔ID 转换）。
+  - 响应含 ECPL/SGIN/SI/VGM/DGD/FMDGFD/ANID 等。
+- **展示口径对齐官网**（从站点 `main-*.js` 硬编码 + i18n 挖出）：固定 5 行 —— Empty container pickup / Container gate-in（**截关**）/ Shipping Instructions（**截单**，取 min(SINONAMS,SIAMS)）/ Verified Gross Mass / Dangerous Goods Declaration；**官网不展示的 FMDGFD、ANID 一律不展示**（要的是「官网上有的」）。
+- **双路径接入**：API 路径（`maerskInPage` + recipes API）+ 深链卡片文本路径（`maerskCutoffsFromText`）。
+- **验证**：单测 `qa/maersk-cutoffs-test.mjs` **17/0**；实测与官网**逐行一致**（Ningbo→Ambarli：gate-in 10-19 03:00 / SI 10-18 04:00 / VGM 10-18 17:00 / 提空箱 10-18 11:00 / DG N/A）；App 实机展开可见「Cut-off times (site values)」。
+- commit `11dd4c6`；口径映射部分由 kanban worker t_c189cf96 从站点 JS 挖出（本次为并行重复施工，主线已统一为一套实现）。
+
 ## 2026-10-12 · v1.4.0 发布 🚀
 
 - **GitHub Release**：https://github.com/theWeatherMan21/ship-schedule-hub/releases/tag/v1.4.0（15:54）
