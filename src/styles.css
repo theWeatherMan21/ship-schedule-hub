@@ -628,3 +628,11 @@ html[data-theme="dark"] .update-bar, html[data-mode="dark"] .update-bar {
 }
 .ucard .ubtns .uprimary:hover { filter: brightness(1.06); }
 .ucard .ubtns .uskip { color: var(--ink-2); }
+
+/* 手动检查更新的轻提示（10-13）*/
+.utoast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  z-index: 10000; padding: 8px 16px; border-radius: 9px;
+  background: rgba(20, 22, 26, .92); color: #fff; font-size: 12.5px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+}
