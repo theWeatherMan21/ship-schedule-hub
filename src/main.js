@@ -1,5 +1,6 @@
 import './styles.css';
 import { detectCarrier, describeShape } from '../engine/tracking/detect.mjs';
+import { isNewer } from './lib/version.js';   // 更新检查的版本比较（可单测）
 
 // ---------- 船司清单（与 engine/recipes/registry 保持一致）----------
 const CARRIERS = [
@@ -1137,12 +1138,16 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
   } catch (e) { /* 无自检即忽略 */ }
 })();
 
-// ---- 启动静默检查更新（10-13）：延迟 5s、失败静默、可跳过此版本 ----
-// 设计：更新提示是"赠品"，任何失败都不影响使用（离线/未登录/被拦 → 什么都不做）。
+// ---- 启动静默检查更新（10-13）：公开仓库匿名查 GitHub API，延迟 5s、失败静默、24h 节流 ----
+// 仓库已 public，无需任何凭据；更新提示是"赠品"，任何失败都不影响使用。
 (async function checkUpdates() {
   if (!hasTauri) return;
-  const SKIP_KEY = 'ssh-skip-version';
+  const API = 'https://api.github.com/repos/theWeatherMan21/ship-schedule-hub/releases/latest';
   const REPO_URL = 'https://github.com/theWeatherMan21/ship-schedule-hub/releases';
+  const STATE_KEY = 'ssh-update-state';      // {ts, latest, hasUpdate}
+  const SKIP_KEY = 'ssh-skip-version';
+  const DAY = 24 * 3600 * 1000;
+
 
   const showUpdateBar = (info) => {
     const bar = document.createElement('div');
@@ -1151,13 +1156,15 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
     dot.className = 'ub-dot';
     bar.appendChild(dot);
     const txt = document.createElement('span');
-    txt.textContent = `有新版本 v${String(info.latest)}（当前 v${String(info.current || __APP_VERSION__)}）`;   // textContent：不解析任何 HTML（版本号来自远端）
+    txt.textContent = `有新版本 v${String(info.latest)}（当前 v${__APP_VERSION__}）`;   // textContent：不解析任何 HTML
     bar.appendChild(txt);
     const open = document.createElement('a');
     open.className = 'ub-open';
     open.textContent = '查看更新';
     open.addEventListener('click', () => {
-      invoke('open_external', { url: String(info.url || REPO_URL) }).catch(() => {});
+      const url = String(info.url || REPO_URL);
+      if (hasTauri) invoke('open_external', { url }).catch(() => {});
+      else window.open(url, '_blank');
     });
     bar.appendChild(open);
     const skip = document.createElement('button');
@@ -1184,10 +1191,28 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
 
   setTimeout(async () => {
     try {
-      const r = await invoke('check_update', { current: __APP_VERSION__ });
-      if (!r || !r.hasUpdate || !r.latest) return;
-      try { if (localStorage.getItem(SKIP_KEY) === r.latest) return; } catch { /* 忽略 */ }
-      showUpdateBar(r);
-    } catch (e) { /* 静默：拿不到更新信息不是错误 */ }
+      // ① 24h 节流（落 localStorage）
+      let st = null;
+      try { st = JSON.parse(localStorage.getItem(STATE_KEY) || 'null'); } catch { /* 忽略 */ }
+      if (st && st.ts && Date.now() - st.ts < DAY) {
+        if (st.hasUpdate && st.latest) {
+          try { if (localStorage.getItem(SKIP_KEY) === st.latest) return; } catch { /* 忽略 */ }
+          showUpdateBar(st);
+        }
+        return;
+      }
+      // ② 匿名查公开 release
+      const r = await fetch(API, { headers: { accept: 'application/vnd.github+json' } });
+      if (!r.ok) return;                                  // 403/404/限流 → 静默
+      const j = await r.json();
+      const latest = String(j.tag_name || '').replace(/^v/, '');
+      if (!latest) return;
+      const hasUpdate = isNewer(latest, __APP_VERSION__);
+      const info = { latest, hasUpdate, url: j.html_url || REPO_URL, notes: j.name || '' };
+      try { localStorage.setItem(STATE_KEY, JSON.stringify({ ts: Date.now(), ...info })); } catch { /* 忽略 */ }
+      if (!hasUpdate) return;
+      try { if (localStorage.getItem(SKIP_KEY) === latest) return; } catch { /* 忽略 */ }
+      showUpdateBar(info);
+    } catch (e) { /* 静默：离线/网络失败都不打扰 */ }
   }, 5000);
 })();
