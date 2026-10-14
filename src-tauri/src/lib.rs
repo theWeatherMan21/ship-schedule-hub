@@ -179,6 +179,12 @@ fn track_selftest() -> Option<String> {
     std::env::var("SSH_TRACK_SELFTEST").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty())
 }
 
+/// 重启 App（Tauri 核心 API，不依赖任何插件权限 —— 插件版 relaunch 会踩 ACL）
+#[tauri::command]
+fn restart_app(app: tauri::AppHandle) {
+    app.restart();
+}
+
 // ---------- 更新检查兜底（10-14）----------
 // 匿名 GitHub API 常因**共享出口 IP**被限流（403 rate limit）；本机 gh 已登录 → 走凭据通道（5000 次/小时）。
 const UPDATE_REPO: &str = "theWeatherMan21/ship-schedule-hub";
@@ -982,7 +988,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update])
+        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update, restart_app])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
