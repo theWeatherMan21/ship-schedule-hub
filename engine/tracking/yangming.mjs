@@ -202,7 +202,7 @@ async function apiCall(page, { no, pos = 'SEARCH', ref = '' }) {
   }, { u }).catch((e) => ({ error: String(e).slice(0, 160) }));
 }
 
-export async function trackYangming(number, { timeoutMs = 90000, ctx = null, maxContainers = 4 } = {}) {
+export async function trackYangming(number, { timeoutMs = 90000, ctx = null, maxContainers = 8 } = {}) {   // 10-14 提升：4→8（每箱一次页内 API，成本低）
   const ref0 = String(number || '').trim().toUpperCase().replace(/\s+/g, '');
   const own = !ctx;
   const c = ctx || (await launch({ headless: true }));
