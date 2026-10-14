@@ -1139,17 +1139,17 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
   } catch (e) { /* 无自检即忽略 */ }
 })();
 
-// ---- 更新检查（10-13）：启动静默 / 手动按钮可随时触发 ----
-// 静默 = 不打扰、不阻塞；只有"确实有新版本"才弹窗。任何失败都什么都不做（手动检查时给一句轻提示）。
+// ---- 更新检查 / App 内自动更新（10-14）----
+// 检查：Tauri updater 插件（读 tauri.conf.json 的 endpoints）优先；失败退回匿名 API / 本机 gh。
+// 安装：App 内下载 + 进度条 + 自动重启（不再跳浏览器）。
 (function updateChecker() {
   if (!hasTauri) return;
   const API = 'https://api.github.com/repos/theWeatherMan21/ship-schedule-hub/releases/latest';
   const REPO_URL = 'https://github.com/theWeatherMan21/ship-schedule-hub/releases';
-  const STATE_KEY = 'ssh-update-state';      // {ts, latest, hasUpdate, notes}
+  const STATE_KEY = 'ssh-update-state';
   const SKIP_KEY = 'ssh-skip-version';
   const DAY = 24 * 3600 * 1000;
 
-  /** release 简介（markdown）→ 适合纯文本展示：去标记、压空行 */
   const plainNotes = (s) => String(s || '')
     .replace(/^#{1,6}\s*/gm, '')
     .replace(/\*\*(.+?)\*\*/g, '$1')
@@ -1160,7 +1160,6 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
-  /** 轻提示（手动检查无更新/失败时用；2.5s 自动消失） */
   const toast = (msg) => {
     const old = document.getElementById('uc-toast');
     if (old) old.remove();
@@ -1169,11 +1168,13 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
     d.className = 'utoast';
     d.textContent = msg;
     document.body.appendChild(d);
-    setTimeout(() => d.remove(), 2500);
+    setTimeout(() => { if (d.parentNode) d.remove(); }, 3000);
+    return d;
   };
 
+  /** 更新弹窗：发现新版 → 立即更新（App 内下载+进度）/ 稍后 / 跳过此版本 */
   const showUpdateDialog = (info) => {
-    if (document.getElementById('update-modal')) return;   // 已开着就不重复弹
+    if (document.getElementById('update-modal')) return;
     const wrap = document.createElement('div');
     wrap.id = 'update-modal';
     wrap.className = 'umask';
@@ -1195,17 +1196,70 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
       const body = document.createElement('div');
       body.className = 'ubody';
       const pre = document.createElement('pre');
-      pre.textContent = notes.slice(0, 2000);   // textContent：不解析 HTML；超长截断
+      pre.textContent = notes.slice(0, 2000);
       body.appendChild(pre);
       card.appendChild(body);
     }
 
+    // 进度区（下载时才显示）
+    const prog = document.createElement('div');
+    prog.className = 'uprog';
+    prog.style.display = 'none';
+    const bar = document.createElement('div');
+    bar.className = 'ubar';
+    const fill = document.createElement('div');
+    fill.className = 'ufill';
+    bar.appendChild(fill);
+    const ptxt = document.createElement('div');
+    ptxt.className = 'uptxt';
+    prog.appendChild(bar);
+    prog.appendChild(ptxt);
+    card.appendChild(prog);
+
     const btns = document.createElement('div');
     btns.className = 'ubtns';
+
     const go = document.createElement('button');
     go.className = 'uprimary';
     go.textContent = '立即更新';
     go.addEventListener('click', async () => {
+      // 优先：Tauri updater 的 App 内下载安装
+      if (info._upd) {
+        go.disabled = true;
+        go.textContent = '更新中…';
+        later.style.display = 'none';
+        skip.style.display = 'none';
+        prog.style.display = 'block';
+        ptxt.textContent = '正在下载…';
+        let total = 0, got = 0;
+        try {
+          await info._upd.downloadAndInstall((ev) => {
+            if (ev.event === 'Started') {
+              total = (ev.data && ev.data.contentLength) || 0;
+              ptxt.textContent = total ? `正在下载… 0%（${Math.round(total / 1048576)} MB）` : '正在下载…';
+            } else if (ev.event === 'Progress') {
+              got += (ev.data && ev.data.chunkLength) || 0;
+              const pct = total ? Math.min(100, Math.round((got / total) * 100)) : 0;
+              fill.style.width = pct + '%';
+              ptxt.textContent = `正在下载… ${pct}%（${(got / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB）`;
+            } else if (ev.event === 'Finished') {
+              fill.style.width = '100%';
+              ptxt.textContent = '下载完成，正在安装…';
+            }
+          });
+          ptxt.textContent = '安装完成，正在重启…';
+          const { relaunch } = await import('@tauri-apps/plugin-process');
+          await relaunch();
+        } catch (e) {
+          go.disabled = false;
+          go.textContent = '重试';
+          later.style.display = '';
+          skip.style.display = '';
+          ptxt.textContent = '更新失败：' + String((e && (e.message || e)) || 'unknown').slice(0, 80);
+        }
+        return;
+      }
+      // 兜底：打开 Release 页（拿不到 updater 对象时）
       const url = String(info.url || REPO_URL);
       try {
         if (hasTauri) await invoke('open_external', { url });
@@ -1235,48 +1289,55 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
 
     card.appendChild(btns);
     wrap.appendChild(card);
-    wrap.addEventListener('click', (e) => { if (e.target === wrap) wrap.remove(); });
     document.body.appendChild(wrap);
   };
 
-  /** manual=true（点「检查更新」）：跳过节流；无更新/失败时给轻提示 */
   async function runUpdateCheck({ manual = false } = {}) {
     try {
       if (!manual) {
-        // ① 24h 节流（落 localStorage）；命中且有更新 → 直接弹
         let st = null;
         try { st = JSON.parse(localStorage.getItem(STATE_KEY) || 'null'); } catch { /* 忽略 */ }
         if (st && st.ts && Date.now() - st.ts < DAY) {
           if (st.hasUpdate && st.latest) {
             try { if (localStorage.getItem(SKIP_KEY) === st.latest) return; } catch { /* 忽略 */ }
-            showUpdateDialog(st);
+            // 缓存命中：仍要拿到 updater 对象才能 App 内更新
+            const upd = await tauriCheck();
+            showUpdateDialog({ ...st, _upd: upd });
           }
           return;
         }
       }
-      // ② 先匿名查公开 release；失败（尤其 403 共享 IP 限流）→ 用本机 gh 凭据兜底
-      let latest = '', notes = '', url = '';
-      let viaGh = false;
-      let r = null;
-      try { r = await fetch(API, { headers: { accept: 'application/vnd.github+json' } }); } catch { /* 走兜底 */ }
-      if (r && r.ok) {
-        const j = await r.json();
-        latest = String(j.tag_name || '').replace(/^v/, '');
-        notes = j.body || j.name || '';
-        url = j.html_url || REPO_URL;
+
+      // ① 首选 Tauri updater（能拿到可安装对象；走配置的 endpoint）
+      let latest = '', notes = '', url = '', upd = null;
+      upd = await tauriCheck();
+      if (upd) {
+        latest = String(upd.version || '').replace(/^v/, '');
+        notes = upd.body || '';
+        url = upd.html_url || REPO_URL;
       } else {
-        const g = await invoke('gh_check_update', {}).catch(() => null);
-        if (g && g.ok && g.tag) {
-          latest = String(g.tag).replace(/^v/, '');
-          notes = g.body || '';
-          url = g.url || REPO_URL;
-          viaGh = true;
+        // ② 退回匿名 API；③ 再退本机 gh 凭据
+        let r = null;
+        try { r = await fetch(API, { headers: { accept: 'application/vnd.github+json' } }); } catch { /* 走兜底 */ }
+        if (r && r.ok) {
+          const j = await r.json();
+          latest = String(j.tag_name || '').replace(/^v/, '');
+          notes = j.body || j.name || '';
+          url = j.html_url || REPO_URL;
         } else {
-          if (manual) toast(r ? `检查更新失败：HTTP ${r.status}${r.status === 403 ? '（共享出口 IP 被 GitHub 限流，约 1 小时后恢复）' : ''}` : '检查更新失败：网络不可达');
-          return;
+          const g = await invoke('gh_check_update', {}).catch(() => null);
+          if (g && g.ok && g.tag) {
+            latest = String(g.tag).replace(/^v/, '');
+            notes = g.body || '';
+            url = g.url || REPO_URL;
+          } else {
+            if (manual) toast(r ? `检查更新失败：HTTP ${r.status}` : '检查更新失败：网络不可达');
+            return;
+          }
         }
       }
       if (!latest) { if (manual) toast('检查更新失败：响应里没有版本号'); return; }
+
       const hasUpdate = isNewer(latest, __APP_VERSION__);
       const info = { latest, hasUpdate, url: url || REPO_URL, notes: notes || '' };
       try { localStorage.setItem(STATE_KEY, JSON.stringify({ ts: Date.now(), ...info })); } catch { /* 忽略 */ }
@@ -1285,15 +1346,22 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
         return;
       }
       try { if (localStorage.getItem(SKIP_KEY) === latest) return; } catch { /* 忽略 */ }
-      showUpdateDialog(info);
+      showUpdateDialog({ ...info, _upd: upd });
     } catch (e) {
       if (manual) toast('检查更新失败：' + String((e && (e.message || e)) || 'unknown').slice(0, 90));
     }
   }
 
-  // 启动静默检查（延迟 5s）
+  /** 调 Tauri updater 插件；不可用/无更新/报错 → null */
+  async function tauriCheck() {
+    try {
+      const { check } = await import('@tauri-apps/plugin-updater');
+      return await check();
+    } catch (e) {
+      return null;
+    }
+  }
+
   setTimeout(() => runUpdateCheck({ manual: false }), 5000);
-  // 手动「检查更新」按钮
   document.getElementById('btnCheckUpdate')?.addEventListener('click', () => runUpdateCheck({ manual: true }));
 })();
-

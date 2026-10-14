@@ -636,3 +636,9 @@ html[data-theme="dark"] .update-bar, html[data-mode="dark"] .update-bar {
   background: rgba(20, 22, 26, .92); color: #fff; font-size: 12.5px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
 }
+
+/* 更新进度条（10-14）*/
+.ucard .uprog { margin: 12px 0 4px; }
+.ucard .ubar { height: 6px; border-radius: 4px; background: var(--line-soft); overflow: hidden; }
+.ucard .ufill { height: 100%; width: 0%; background: var(--accent); transition: width .25s ease; }
+.ucard .uptxt { margin-top: 6px; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }

@@ -921,6 +921,9 @@ pub fn run() {
         .manage(EngineState::default())
         .manage(TrackState::default())
         .setup(|app| {
+            // 自动更新插件（App 内下载/安装）；任何失败都不影响主功能
+            #[cfg(desktop)]
+            let _ = app.handle().plugin(tauri_plugin_updater::Builder::new().build());
             // Windows 玻璃效果（婉宜 10-08，真机迭代三轮定稿）
             // 背景：config 的 windowEffects 写的是 macOS 材质名(hudWindow)，Windows 不认 → 必须运行时设。
             // 三档用 SSH_GLASS 切换（不重编即可 A/B）：
