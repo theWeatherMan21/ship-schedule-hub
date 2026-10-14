@@ -57,6 +57,9 @@ jobs:
           & engine/node-bin/node.exe --version
 
       - name: 构建安装包（NSIS）
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: npm run tauri build -- --bundles nsis
 
       - name: 产物清单
@@ -67,7 +70,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-exe
-          path: src-tauri/target/release/bundle/nsis/*.exe
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/nsis/*.sig
           if-no-files-found: error
 
   # ─────────────────────────── macOS ───────────────────────────
@@ -120,7 +125,20 @@ jobs:
           engine/node-bin/node --version
 
       - name: 构建 dmg（${{ matrix.name }}）
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: npm run tauri build -- --target ${{ matrix.target }} --bundles dmg
+
+      - name: 整理更新包（重命名避免两架构重名）
+        run: |
+          cd "src-tauri/target/${{ matrix.target }}/release/bundle/macos"
+          V=$(node -p "require('/Users/runner/work/ship-schedule-hub/ship-schedule-hub/package.json').version" 2>/dev/null || echo "0.0.0")
+          if [ -f ShipScheduleHub.app.tar.gz ]; then
+            cp ShipScheduleHub.app.tar.gz "ShipScheduleHub_${V}_${{ matrix.nodearch }}.app.tar.gz"
+            cp ShipScheduleHub.app.tar.gz.sig "ShipScheduleHub_${V}_${{ matrix.nodearch }}.app.tar.gz.sig"
+          fi
+          ls -lh
 
       - name: 产物清单
         run: ls -lh "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/"
@@ -129,7 +147,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}-dmg
-          path: src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+            src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app.tar.gz
+            src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app.tar.gz.sig
           if-no-files-found: error
 
   # ─────────────────────── 打 tag 时发 Release ───────────────────────
@@ -147,10 +168,42 @@ jobs:
       - name: 清单
         run: ls -lh dist/
 
+      - name: 生成 latest.json（App 内更新清单）
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          BASE="https://github.com/theWeatherMan21/ship-schedule-hub/releases/download/v${V}"
+          python3 - "$V" "$BASE" <<'PYEOF'
+          import json, os, sys, glob
+          v, base = sys.argv[1], sys.argv[2]
+          plats = {}
+          def sig_of(name):
+              for f in glob.glob('dist/**/' + name + '.sig', recursive=True) + glob.glob('dist/' + name + '.sig'):
+                  return open(f).read().strip()
+              return None
+          # macOS
+          for arch, key in (('aarch64', 'darwin-aarch64'), ('x64', 'darwin-x86_64')):
+              fn = f'ShipScheduleHub_{v}_{arch}.app.tar.gz'
+              s = sig_of(fn)
+              if s:
+                  plats[key] = {'signature': s, 'url': f'{base}/{fn}'}
+          # Windows（NSIS 的 updater 产物就是 setup.exe）
+          for f in glob.glob('dist/**/*setup.exe', recursive=True):
+              fn = os.path.basename(f)
+              s = sig_of(fn)
+              if s:
+                  plats['windows-x86_64'] = {'signature': s, 'url': f'{base}/{fn}'}
+          out = {'version': v, 'pub_date': __import__('datetime').datetime.now(__import__('datetime').timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'platforms': plats}
+          json.dump(out, open('latest.json', 'w'), indent=2, ensure_ascii=False)
+          print('latest.json:\n', json.dumps(out, indent=2)[:600])
+          print('平台数:', len(plats))
+          PYEOF
+
       - name: 发布 Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: |
+            dist/*
+            latest.json
           generate_release_notes: true
           body: |
             船期聚合驾驶舱 · ShipScheduleHub
