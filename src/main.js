@@ -1248,8 +1248,9 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
             }
           });
           ptxt.textContent = '安装完成，正在重启…';
-          const { relaunch } = await import('@tauri-apps/plugin-process');
-          await relaunch();
+          // 优先自实现（无 ACL 依赖）；失败再退插件版
+          try { await invoke('restart_app'); }
+          catch { const { relaunch } = await import('@tauri-apps/plugin-process'); await relaunch(); }
         } catch (e) {
           go.disabled = false;
           go.textContent = '重试';
