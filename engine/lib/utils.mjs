@@ -309,7 +309,9 @@ async function pickOnce(page, field, word, opts = {}) {
     const first = (s) => s.toLowerCase().replace(/^- option "/, '').split(/[(,]/)[0].trim();
     hit = texts.find((x) => first(x.txt) === key || first(x.txt).startsWith(key) || x.txt.toLowerCase().includes(key)) || null;
   }
-  if (!hit) hit = texts[0];
+  // 10-14 审阅 B3：未命中不再盲点第一项（cosco/hapag/yangming 把返回值当布尔——
+  // 盲点会「静默选错港口却报成功」）。未命中返回 null，上层换写法重试或如实报失败。
+  if (!hit) return null;
   // 点击（带兜底：目标不可见/不可点就逐个降级）
   let clicked = false;
   try { await pool[hit.i].click({ timeout: 5000 }); clicked = true; } catch { /* no-op */ }
