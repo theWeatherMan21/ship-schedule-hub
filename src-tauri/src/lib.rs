@@ -179,6 +179,117 @@ fn track_selftest() -> Option<String> {
     std::env::var("SSH_TRACK_SELFTEST").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty())
 }
 
+/// 更新链路自检（SSH_UPDATE_SELFTEST=1 时触发）
+/// 在真实 App 进程内跑：检查 → 下载，逐步写日志，然后退出。
+/// 用途：交付前自己跑通全链路，不拿用户机器当试验场。
+fn update_selftest_run(app: tauri::AppHandle) {
+    let log_path = std::env::var("SSH_UPDATE_SELFTEST_LOG")
+        .unwrap_or_else(|_| "/tmp/ssh-update-selftest.log".to_string());
+    let _ = std::fs::write(&log_path, "");
+    log_cb(&log_path, "=== 更新自检开始 ===".to_string());
+    log_cb(&log_path, format!("当前 App 版本: {}", env!("CARGO_PKG_VERSION")));
+
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.hide();
+        log_cb(&log_path, "窗口已隐藏（不打扰屏幕）".to_string());
+    }
+
+    tauri::async_runtime::spawn(async move {
+        use tauri_plugin_updater::UpdaterExt;
+        let p = log_path;
+        let updater = match app.updater() {
+            Ok(u) => u,
+            Err(e) => {
+                log_cb(&p, format!("✗ 构造 updater 失败: {e}"));
+                std::process::exit(2);
+            }
+        };
+        log_cb(&p, "① 检查更新（读 latest.json）…".to_string());
+        let checked = match updater.check().await {
+            Ok(c) => c,
+            Err(e) => {
+                log_cb(&p, format!("✗ ① 检查失败: {e}"));
+                log_cb(&p, format!("   debug: {e:?}"));
+                std::process::exit(3);
+            }
+        };
+        let Some(update) = checked else {
+            log_cb(&p, "✓ ① 检查成功：当前已是最新版，无可用更新".to_string());
+            log_cb(&p, "=== 自检结束 ===".to_string());
+            std::process::exit(0);
+        };
+        log_cb(&p, format!("✓ ① 检查成功：发现新版本 {}", update.version));
+        log_cb(&p, format!("   下载地址: {}", update.download_url));
+
+        let full_mode = std::env::var("SSH_UPDATE_SELFTEST").map(|v| v == "full").unwrap_or(false);
+        log_cb(&p, format!("② 下载更新包（此前失败的一步）… 模式={}", if full_mode { "full（含安装+重启）" } else { "仅下载" }));
+        let mut got: usize = 0;
+        let mut last: usize = 0;
+        let p2 = p.clone();
+        let res = update
+            .download(
+                move |chunk: usize, total: Option<u64>| {
+                    got += chunk;
+                    let t = total.unwrap_or(0);
+                    if got.saturating_sub(last) > 5_000_000 || (t > 0 && got as u64 >= t) {
+                        last = got;
+                        let msg = if t > 0 {
+                            format!("   已下载 {:.1}/{:.1} MB ({}%)", got as f64 / 1048576.0, t as f64 / 1048576.0, got as u64 * 100 / t.max(1))
+                        } else {
+                            format!("   已下载 {:.1} MB", got as f64 / 1048576.0)
+                        };
+                        log_cb(&p2, msg);
+                    }
+                },
+                || {},
+            )
+            .await;
+        match res {
+            Ok(bytes) => {
+                log_cb(&p, format!("✓ ② 下载成功：{} bytes", bytes.len()));
+                log_cb(&p, "③ 安装（解包替换当前 App）…".to_string());
+                match update.install(bytes) {
+                    Ok(_) => {
+                        log_cb(&p, "✓ ③ 安装成功".to_string());
+                        log_cb(&p, "④ 重启 App…".to_string());
+                        app.restart();
+                    }
+                    Err(e) => {
+                        log_cb(&p, format!("✗ ③ 安装失败: {e}"));
+                        log_cb(&p, format!("   debug: {e:?}"));
+                        log_cb(&p, "=== 自检结束：安装链路断 ===".to_string());
+                        std::process::exit(5);
+                    }
+                }
+            }
+            Err(e) => {
+                log_cb(&p, format!("✗ ② 下载失败: {e}"));
+                log_cb(&p, format!("   debug: {e:?}"));
+                log_cb(&p, "=== 自检结束：下载链路断 ===".to_string());
+                std::process::exit(4);
+            }
+        }
+    });
+}
+
+fn log_cb(path: &str, msg: String) {
+    use std::io::Write;
+    if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(path) {
+        let _ = writeln!(f, "{}", msg);
+    }
+    println!("{}", msg);
+    let _ = std::io::stdout().flush();
+}
+
+fn chrono_like_now() -> String {
+    std::process::Command::new("date")
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_string())
+        .unwrap_or_default()
+}
+
 /// 重启 App（Tauri 核心 API，不依赖任何插件权限 —— 插件版 relaunch 会踩 ACL）
 #[tauri::command]
 fn restart_app(app: tauri::AppHandle) {
@@ -930,6 +1041,11 @@ pub fn run() {
             // 自动更新插件（App 内下载/安装）；任何失败都不影响主功能
             #[cfg(desktop)]
             let _ = app.handle().plugin(tauri_plugin_updater::Builder::new().build());
+            // 更新链路自检（仅测试）：SSH_UPDATE_SELFTEST=1 时自动跑检查+下载，写日志后退出
+            #[cfg(desktop)]
+            if std::env::var("SSH_UPDATE_SELFTEST").is_ok() {
+                update_selftest_run(app.handle().clone());
+            }
             // Windows 玻璃效果（婉宜 10-08，真机迭代三轮定稿）
             // 背景：config 的 windowEffects 写的是 macOS 材质名(hudWindow)，Windows 不认 → 必须运行时设。
             // 三档用 SSH_GLASS 切换（不重编即可 A/B）：
