@@ -115,7 +115,7 @@ export default {
         });
         if (!direct) schedules[schedules.length - 1].via = 'T/S';
       }
-    } catch { /* 抽取失败 → 保持 prefilled */ }
+    } catch (e) { console.error('[cosco] 结果页解析失败（保持 prefilled）: ' + String(e && e.message || e).slice(0, 140)); }
 
     const msg = `Filled ${q.originText} → ${q.destText}, searched` +
       (schedules.length ? `, ${schedules.length} schedules: ` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays} days ${r.direct ? 'Direct' : 'via ' + r.via}`).join(' | ')

@@ -141,7 +141,7 @@ export default {
           detail: cutoff ? { service: '', routing: direct ? 'Direct' : 'Via', co2: '', legs: [], cutoffs: { '港口截关': cutoff } } : undefined,
         });
       }
-    } catch { /* 抽取失败 → 保持 prefilled */ }
+    } catch (e) { console.error('[cma] 结果页解析失败（保持 prefilled）: ' + String(e && e.message || e).slice(0, 140)); }
 
     // 官网有时直接回「没有方案」（10-09 天津→海法 实测：No solution has been found）——
     // 这不是我们填错了，也不该显示成"已填表·无结构化结果"，要如实转达。

@@ -783,7 +783,9 @@ async function listenEngineEvents() {
         // ⚠️ 10-09 修：原判据太松 —— `[fastpath] yangming status=200 isArray=false err= …`
         // 这类**信息行**被判成致命错误，界面弹出黄色横幅把引擎原始输出糊在爹地脸上（他当成"报错了"）。
         // 规则：先排除明显的信息/调试行，只认真正的错误签名。
-        const benign = /ExperimentalWarning|node --trace-warnings|\[fastpath\]|\[chrome\]|\[query\]|\[hmm\]|\[evergreen\]|\[cma\]|status=\d{3}|isArray=|^\s*\(node:/i.test(m);
+        // 10-14 P2：各家配方现在会把「结果页解析失败」记到 stderr（诊断面板可见），
+        // 那不是致命错误，别弹错误横幅 —— 这里把各家前缀一并列入 benign。
+        const benign = /ExperimentalWarning|node --trace-warnings|\[fastpath\]|\[chrome\]|\[query\]|\[hmm\]|\[evergreen\]|\[cma\]|\[cosco\]|\[maersk\]|\[one\]|\[oocl\]|\[msc\]|\[zim\]|\[yangming\]|\[reclaim\]|status=\d{3}|isArray=|^\s*\(node:/i.test(m);
         const fatal = !benign && /(^|\W)(Error|MODULE_NOT_FOUND|ENOENT|EACCES|EPERM)\b|Cannot find module|is not defined|SyntaxError|TypeError|ReferenceError|throw new/i.test(m);
         if (fatal) showEngineError(m);
         renderDiagnostics();
@@ -1042,7 +1044,15 @@ function trackRenderDone(ev) {
     const estimated = e.timeType === 'EXPECTED' || e.isEta;
     return `<div class="tev${estimated ? ' est' : ''}"><span class="d">${fmtDay(e.time)}</span><span class="a">${esc(e.activity)}</span><span class="l">${esc(e.city || '')}${e.vessel ? ' · ' + esc(e.vessel) + (e.voyage ? ' ' + e.voyage : '') : ''}${e.container ? ' · ' + esc(e.container) : ''}</span></div>`;
   }).join('');
-  const conts = (ev.containers || []).map((ct) => `<div class="cblock"><div class="chead">📦 ${esc(ct.num || '')}${ct.size ? ` · ${esc(ct.size)}'` : ''} ${esc(ct.type || '')}<span class="cst">${esc(ct.status || '')}</span></div></div>`).join('');
+  // 10-14 P2：箱型/尺寸显示统一走归一层算好的 label（跨家口径一致，如 40'HC）；
+  // label 为空（认不出来）时回退原样拼接 —— 但只有 size 确实是「两位长度」才补 `'`，
+  // 否则会把 MSC 那种整段描述（"40' HIGH CUBE REEFER"）拼成 "...REEFER'"。
+  const conts = (ev.containers || []).map((ct) => {
+    const raw = /^\d{2}$/.test(String(ct.size || '')) ? `${esc(ct.size)}'${ct.type ? ' ' + esc(ct.type) : ''}`
+      : [ct.size, ct.type].filter(Boolean).map(esc).join(' ');
+    const st = ct.label || raw;
+    return `<div class="cblock"><div class="chead">📦 ${esc(ct.num || '')}${st ? ` · ${st}` : ''}<span class="cst">${esc(ct.status || '')}</span></div></div>`;
+  }).join('');
   const box = document.getElementById('trackResult');
   if (box) box.innerHTML = `<div class="trackcard clickable" id="trackCard" role="button" tabindex="0" aria-expanded="false" aria-controls="trackBody">
     <div class="thead"><span class="tcarrier">${esc(ev.carrierLabel || TRACK_NAME[ev.carrier] || '')}</span><span class="tnum">${esc(ev.docNum || ev.number)}</span><span class="spacer"></span><span class="tmore" id="trackMore">Details ▾</span></div>

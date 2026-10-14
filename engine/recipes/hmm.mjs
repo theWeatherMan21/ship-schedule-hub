@@ -163,7 +163,7 @@ export default {
       // Transshipment 卡的 via 港名：innerText 卡片段落后有「Next Port(T/S)」明细（表格版），卡片版无 → 用 1st Vessel 兜底标 T/S
       // 简化：via 空且非直达 → 标 'T/S'（页面没给中转港名时不编造）
       for (const s of schedules) { if (!s.direct && !s.via) s.via = 'T/S'; }
-    } catch { /* 抽取失败 → 保持 prefilled */ }
+    } catch (e) { console.error('[hmm] 结果页解析失败（保持 prefilled）: ' + String(e && e.message || e).slice(0, 140)); }
 
     const msg = `Filled ${q.originText} → ${q.destText}, Search Results (${m[1]})` +
       (schedules.length ? `: ` + schedules.slice(0, 3).map((r) => `${r.vessel} ${r.voyage} ETD ${r.etd} → ${r.eta} ${r.transitDays} days ${r.direct ? 'Direct' : 'via ' + r.via}`).join(' | ') : '');

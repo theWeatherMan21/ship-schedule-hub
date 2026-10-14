@@ -28,9 +28,11 @@
 //     raw:{ bill, containers } }
 import fs from 'node:fs';
 import https from 'node:https';
+import { realChromeUA } from '../lib/ua.mjs';
 
 const BASE = 'https://elines.coscoshipping.com';
-const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
+// UA 与浏览器实际版本统一（2026-10-14 审阅 P2「UA/指纹三处不一致」；单一来源 engine/lib/ua.mjs）
+const UA = () => realChromeUA();
 
 // ---------- HTTP ----------
 // GUI/launchd 环境常缺 SSL_CERT_FILE（Clash TUN 等 MITM 代理）→ fetch 报 unable to get local issuer certificate。
@@ -52,7 +54,7 @@ function systemCa() {
 }
 
 async function getJSON(url, timeoutMs = 20000) {
-  const headers = { 'user-agent': UA, accept: 'application/json, text/plain, */*' };
+  const headers = { 'user-agent': UA(), accept: 'application/json, text/plain, */*' };
   const parse = (text, status) => {
     let json = null; try { json = JSON.parse(text); } catch { /* 非 JSON = 路由被 SPA 兜住/被拦 */ }
     return { status, text, json, error: json ? null : `non-JSON response (HTTP ${status}) —— 路径或 accept 头不对` };

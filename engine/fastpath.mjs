@@ -7,10 +7,16 @@ import * as httpsMod from 'node:https';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { realChromeUA } from './lib/ua.mjs';   // UA 与浏览器实际版本统一（见 lib/ua.mjs 头注释）
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);   // ESM 里拿 CJS 的 node:sqlite（同步查词典）
-const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
+// ★ 10-14 审阅 P2「UA/指纹三处不一致」：以前这里（以及 tracking/cosco、tracking/one）各写死
+//   一份 Chrome/140 —— 而浏览器实际用的是 browser.mjs 按本机 Chrome 版本生成的 UA（可能 152+）。
+//   同一项目对同一家站发出的 UA 版本不一致，正是反爬最容易抓的破绽（cf_clearance 等凭证还绑 UA）。
+//   现在统一取 realChromeUA()（懒调用 + 内部缓存，取不到版本时回退到该函数内的常量）。
+let _ua = null;
+const UA = () => (_ua || (_ua = realChromeUA()));
 
 // 词典别名 → 各家 API 需要的 LOCODE（fastpath 只认 LOCODE，比文本稳）
 // resolvePort 的结果里已有 locode 字段可直接用；这里只处理没有 locode 时的兜底映射
@@ -28,7 +34,7 @@ async function getJSON(url, timeoutMs = 12000, headers = {}) {
     const ctl = new AbortController();
     const timer = setTimeout(() => ctl.abort(), timeoutMs);
     try {
-      const r = await fetch(url, { signal: ctl.signal, headers: { 'user-agent': UA, accept: 'application/json', ...headers }, dispatcher });
+      const r = await fetch(url, { signal: ctl.signal, headers: { 'user-agent': UA(), accept: 'application/json', ...headers }, dispatcher });
       const text = await r.text();
       let json = null;
       try { json = JSON.parse(text); } catch { /* 非 JSON（可能是拦截页） */ }
@@ -62,7 +68,7 @@ async function getJSON(url, timeoutMs = 12000, headers = {}) {
             ]).filter(Boolean);
         let ca = null;
         for (const f of candidates) {
-          try { const c = fsMod.readFileSync(f, 'utf8'); if (c.includes('BEGIN CERTIFICATE')) { ca = c; console.error('[fastpath] 用 CA:', f); break; } } catch {}
+          try { const c = fsMod.readFileSync(f, 'utf8'); if (c.includes('BEGIN CERTIFICATE')) { ca = c; console.error('[fastpath] 用 CA:', f); break; } } catch { /* 该候选不可读（不存在/无权限），试下一个 */ }
         }
         // Windows 首次遇到证书错：把系统根证书（机器+用户）导出成 PEM 备用
         if (!ca && process.platform === 'win32') {
@@ -89,24 +95,27 @@ async function getJSON(url, timeoutMs = 12000, headers = {}) {
             if (c.includes('BEGIN CERTIFICATE')) { ca = c; console.error('[fastpath] 已从 Windows 证书存储导出 CA:', out); }
           } catch { /* 导出失败就继续报原错 */ }
         }
-        if (!ca) throw new Error('no usable CA file');
-        const body = await new Promise((resolve, reject) => {
+        if (!ca) throw new Error('no usable CA file (tried: ' + candidates.join(', ') + ')');
+        const { status, text: body } = await new Promise((resolve, reject) => {
           const u = new URL(url);
           const req = httpsMod.request({
             hostname: u.hostname, path: u.pathname + u.search, method: 'GET',
-            headers: { 'user-agent': UA, accept: 'application/json', ...headers },
+            headers: { 'user-agent': UA(), accept: 'application/json', ...headers },
             ca,
           }, (res) => {
             let d = '';
             res.on('data', (c) => (d += c));
-            res.on('end', () => resolve(d));
+            // ★ 10-14 审阅 P2「CA 兜底固定返回 200」：以前这里写死 status:200，被 WAF 挡回的
+            //   403/503 HTML 会被当成 200「成功」交给上层（上层恰恰只看 status!==200 判失败）。
+            //   改成透传真实状态码。
+            res.on('end', () => resolve({ status: res.statusCode || 0, text: d }));
           });
           req.setTimeout(timeoutMs, () => req.destroy(new Error('timeout')));
           req.on('error', reject);
           req.end();
         });
-        let json = null; try { json = JSON.parse(body); } catch {}
-        return { status: 200, text: body, json };
+        let json = null; try { json = JSON.parse(body); } catch { /* 非 JSON（可能是拦截页） */ }
+        return { status, text: body, json, viaCa: true };
       } catch (e2) {
         return { status: 0, text: '', json: null, error: String(e2).slice(0, 120) };
       }

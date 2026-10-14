@@ -17,6 +17,7 @@ import { dismissCookies, isBlockPage, waitThroughChallenge, pickOption, portPick
 import { withTimeout, setValue, setInputByValueShape, clickByText, fillAutocomplete } from './lib/dom.mjs';
 import { resolvePort } from './lib/portsolve.mjs';
 import { siblingPorts } from './portdb.mjs';
+import { pruneEvidence, keepFromEnv } from './lib/reclaim.mjs';
 
 // ---------- 启动守卫（Windows 盘符根路径）----------
 // 爹地 9-30 实测：App 装在 D:\ 根目录时，出现驱动器相对路径（"D:" 没有反斜杠），
@@ -488,7 +489,10 @@ export async function runCarrier(ctx, carrier) {
         try {
           // 爹地 10-09：短超时撤销 —— 一律给足 60 秒（早放弃反而像"查不到"）
           // 10-14 拍板：60s 目前足够（应用层统一上限；配方声明的 timeoutMs 已同步为 60000，声明=生效）
-          const tmo = Math.min(carrier.timeoutMs || perCarrier, 60000);
+          // 10-14 P2：apiEmptyHint 落实（此前**只写不读**，注释里的"短超时"承诺从未生效）——
+          //   接口已明确回「本条航线无服务」的船司，页面兜底只是复核，给 30s 就够，不陪着死等 60s。
+          const tmoCap = apiEmptyHint[carrier.id] ? 30000 : 60000;
+          const tmo = Math.min(carrier.timeoutMs || perCarrier, tmoCap);
           const r = await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), tmo, `Recipe timeout (${tmo}ms)`);
           res.status = 'prefilled';
           res.level = 2;
@@ -528,7 +532,9 @@ export async function runCarrier(ctx, carrier) {
         }
       }
     } else if (carrier.kind === 'open') {
-      try { await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), Math.min(perCarrier, 60000), 'Fallback timeout'); }
+      // 10-14 P2：与 dom 路径同口径 —— 接口已确认无此线的船司不再给满 60s
+      const openCap = apiEmptyHint[carrier.id] ? 30000 : 60000;
+      try { await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), Math.min(perCarrier, openCap), 'Fallback timeout'); }
       catch (e) { domErr = String(e.message || e).split('\n')[0]; }
       blocked = await isBlockPage(page);
     }
@@ -576,6 +582,9 @@ export async function runCarrier(ctx, carrier) {
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const ndjsonPath = path.join(EVIDENCE_DIR, `run-${stamp}.ndjson`);
 fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
+// ★ 10-14 审阅 P2「运行产物无回收」：启动时滚动清理旧的 run-*.ndjson / hapag 调试 dump
+//   （只保留最近 N 个，见 lib/reclaim.mjs；本次刚创建的文件永远最新，不会被清掉）。
+try { pruneEvidence(EVIDENCE_DIR, { ...keepFromEnv(), log: (m) => console.error(m) }); } catch { /* 回收失败不影响查询 */ }
 const ndjson = fs.createWriteStream(ndjsonPath, { flags: 'a' });
 
 emit('engine-started', { origin, destination, date: isoDate, carriers: selected.map((c) => c.id), windowMode });
@@ -698,6 +707,7 @@ const recordXhr = !!args['record-xhr'];
 const fillAudit = process.env.SSH_FILL_AUDIT === '1';   // 填表审计（记下表单实际填成什么）
 
 let ctx;
+let fatalError = null;   // 10-14 P2：致命错误要如实反映到退出码（见文件末尾）
 try {
   // 9-29 起：默认【零窗口】——Chrome 新无头档（--headless=new），屏幕上不会出现任何窗口。
   // 部署态实测覆盖：HMM 6 / CMA 10 / Evergreen 7 / OOCL 3 全通（真实 profile）；
@@ -711,6 +721,10 @@ try {
     //   不是"查太多次"的限流 —— 跟爹地那条"别为压测做过度设计"不冲突：
     //   做法仍是**静默**的（有头 + CDP 最小化，实测 windowState=minimized、屏幕上无窗口），
     //   只对声明了 needsRealFingerprint 的船司启用，不是全家。
+    // ▸ 10-14 审阅 A3 现状备注：机制可用，但目前**没有任何配方声明**该字段（11 家当前全部无头可查；
+    //   曾被硬拦的 zim/阳明已通过其它路径解决）。若未来某家开始被盾硬拦：在配方 default 里加
+    //   `needsRealFingerprint: true` 即自动走「有头 + CDP 最小化」静默通道，无需改 query.mjs。
+    //   （更进一步的「运行时探测被拦后自动升级」列入后续批次，见 docs/audit-2026-10-14/AUDIT.md）
     const needsReal = !process.env.SSH_FORCE_HEADLESS && needBrowser.some((c) => c.needsRealFingerprint);
     const lq = (process.env.SSH_ALLOW_HEADED === '1' || needsReal)
       ? await launchHeadedQuiet()
@@ -785,6 +799,7 @@ try {
 } catch (e) {
   // 关键：错误必须同时写 ndjson，否则 App 前端只看得到「未查询」而看不到原因（婉宜 9-23）
   const emsg = String(e && e.stack ? e.stack : e).slice(0, 500);
+  fatalError = emsg;
   emit('engine-error', { msg: emsg });
   try { ndjson.write(JSON.stringify({ type: 'engine-error', msg: emsg }) + '\n'); } catch {}
   console.error('[engine] fatal:', e);
@@ -812,5 +827,10 @@ try {
   emit('engine-exit', { total: results.length, prefilled: summary.prefilled, opened: summary.opened, failed: summary.failed });
   if (!keepOpen && ctx) await Promise.race([ctx.close(), sleep(4000)]).catch(() => {});
   ndjson.end();
-  setTimeout(() => process.exit(0), 300);
+  // ★ 10-14 审阅 P2「恒 exit 0」：致命错误**且一条结果都没有** → 如实报 1
+  //   （App 侧 engine-exit 事件已带 code/success，Rust 层会透出；前端不受影响）。
+  //   只挂了几家、或至少一家出结果时不改 —— 那是正常的「查不到」，不是引擎故障。
+  const exitCode = (fatalError && results.length === 0) ? 1 : 0;
+  if (exitCode) console.error('[engine] 退出码 1：致命错误且零结果');
+  setTimeout(() => process.exit(exitCode), 300);
 }
