@@ -12,7 +12,7 @@ export default {
   urls: ['https://www.hapag-lloyd.com/solutions/vessel-schedule/#/?language=en',
     'https://www.hapag-lloyd.com/en/home.html'],
   fallbackNote: 'Cloudflare 挑战未通过时仅打开页面（可手动过盾后操作）',
-  timeoutMs: 230000, // 过盾 + SPA 渲染 + 两轮候选 + 搜索（部署态实测更慢，婉宜 9-23）
+  timeoutMs: 60000,  // 10-14 拍板：应用层统一 60s 上限（本值须与之一致）。历史：过盾+SPA曾估 230s
   async run(page, q, H) {
     await H.dismissCookies(page);
 

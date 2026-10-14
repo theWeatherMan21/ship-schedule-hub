@@ -7,7 +7,7 @@ export default {
   kind: 'dom',
   entry: 'https://www.msc.com/en/search-a-schedule',
   urls: ['https://www.msc.com/en/search-a-schedule', 'https://www.msc.com/en/schedules'],
-  timeoutMs: 130000, // 部署态 profile 下页面更慢，60s 默认会超时（婉宜 9-23 部署态实测）
+  timeoutMs: 60000,  // 10-14 拍板：应用层统一 60s 上限（本值须与之一致）。历史：9-23 部署态曾估 130s
   async run(page, q, H) {
     await H.dismissCookies(page);
     if (await H.isBlockPage(page)) await H.waitThroughChallenge(page, 12000);

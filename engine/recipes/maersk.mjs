@@ -57,7 +57,7 @@ export default {
   kind: 'dom',
   entry: 'https://www.maersk.com/schedules/pointToPoint',
   urls: ['https://www.maersk.com/schedules/pointToPoint', 'https://www.maersk.com/schedules/'],
-  timeoutMs: 150000,   // 深链往返 + 卡片轮询 + 表单兜底
+  timeoutMs: 60000,   // 10-14 拍板：应用层统一 60s 上限（本值须与之一致）。历史：深链+轮询曾估 150s
   async run(page, q, H) {
     await H.dismissCookies(page);
     if (await H.isBlockPage(page)) await H.waitThroughChallenge(page, 12000);

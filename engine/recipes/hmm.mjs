@@ -12,7 +12,7 @@ export default {
   entry: 'https://www.hmm21.com/e-service/general/schedule/ScheduleMain.do',
   urls: ['https://www.hmm21.com/e-service/general/schedule/ScheduleMain.do', 'https://www.hmm21.com/'],
   fallbackNote: 'HMM e-service 被拦/候选未出时仅打开页面',
-  timeoutMs: 80000,   // ★ 10-10：候选循环缩肥后仍留裕量（原 60s 在慢线必爆）
+  timeoutMs: 60000,  // 10-14 拍板：应用层统一 60s 上限（本值须与之一致；10-10 曾调 80s 但被钳制不生效）
   async run(page, q, H) {
     await H.dismissCookies(page);
     if (await H.isBlockPage(page)) await H.waitThroughChallenge(page, 12000);

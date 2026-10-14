@@ -14,7 +14,7 @@ export default {
   entry: 'https://elines.coscoshipping.com/ebusiness/sailingSchedule/searchByCity',
   urls: ['https://elines.coscoshipping.com/ebusiness/sailingSchedule/searchByCity', 'https://elines.coscoshipping.com/'],
   fallbackNote: '反爬拦截时仅打开页面；表单链路已验证（searchByCity 词典直填）',
-  timeoutMs: 150000, // 候选轮询各 ~40s + 结果等待（COSCO 候选渲染极慢，婉宜 9-22）
+  timeoutMs: 60000,  // 10-14 拍板：应用层统一 60s 上限（本值须与之一致）。历史：COSCO 候选渲染极慢曾估 150s
   async run(page, q, H) {
     await H.dismissCookies(page);
     if (await H.isBlockPage(page)) await H.waitThroughChallenge(page, 12000);
