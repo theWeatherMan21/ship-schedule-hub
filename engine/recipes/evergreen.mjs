@@ -140,7 +140,7 @@ export default {
         }
         return out.slice(0, 20);
       }, MON2).catch(() => []);
-    } catch { /* 抽取失败 → 保持 prefilled */ }
+    } catch (e) { console.error('[evergreen] 结果页解析失败（保持 prefilled）: ' + String(e && e.message || e).slice(0, 140)); }
 
     // 逐段航程（新版结构可能不同）：数量对不上就整批不挂，宁缺勿错位
     if (schedules.length) {

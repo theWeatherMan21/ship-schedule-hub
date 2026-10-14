@@ -28,13 +28,17 @@
 //        event.utc 为 UTC 时刻（eventDate）。航运看板习惯以港口当地时间为准。
 //   · 无时刻事件（ONE 对部分中转港里程碑不给时间）不进时间线，另存 containers[].undatedEvents + raw —— 不编造时间。
 
+import { realChromeUA } from '../lib/ua.mjs';
+
 const BASE = 'https://ecomm.one-line.com/api';
+// UA 与浏览器实际版本统一（2026-10-14 审阅 P2「UA/指纹三处不一致」；单一来源 engine/lib/ua.mjs）。
+// 用 getter：真正发请求时才取值，realChromeUA() 内部有缓存 → 零额外开销。
 const HDRS = {
   'Content-Type': 'application/json',
   Accept: 'application/json',
   Origin: 'https://www.one-line.com',
   Referer: 'https://www.one-line.com/',
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+  get 'User-Agent'() { return realChromeUA(); },
 };
 
 async function jpost(path, body, timeoutMs) {

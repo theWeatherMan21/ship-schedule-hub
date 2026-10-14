@@ -46,7 +46,7 @@ export const parseMaerskCardsText = (text) => {
         if (cuts) row.detail = { routing: '', legs: [], cutoffs: cuts };
         out.push(row);
       }
-    } catch { /* 保持 prefilled */ }
+    } catch (e) { console.error('[maersk] 深链卡片解析失败（保持 prefilled）: ' + String(e && e.message || e).slice(0, 140)); }
     return out;
 };
 

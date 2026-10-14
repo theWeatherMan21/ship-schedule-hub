@@ -95,6 +95,72 @@ function eventsFromUnified(r) {
 
 const timeKey = (e) => String(e.time || '').slice(0, 19);
 
+// ---------- 箱型/尺寸口径统一（2026-10-14 审阅 P2「箱号 size/type 三家三样，显示 22G1'」）----------
+// 实测各家给的字段形态完全不同（同一项目里并存）：
+//   maersk  size=20  type=DRY    iso=22G1         one  size=40  type="DRY HC."（带句点）
+//   cosco   size=40  type=HQ                      cma  size=40  type="(40HC)"（带括号）
+//   evergreen / zim / hapag  size 与 type 是**同一个值**（"40" 或 "42GP"）
+//   hmm     type=货类  size=从括号里抠的两位
+// 旧 UI 一律渲染 `${size}' ${type}` → 出现 "40' (40HC)"、"40' 40"、"22G1'" 这类不伦不类的显示。
+// 这里按**行业习惯**（长度 + 箱型简码，如 40'HC / 20'GP）算一个 label；认不出来就返回 ''，
+// 由 UI 回退到原样显示 —— 没有的信息绝不猜。
+const A_ = (x) => String(x == null ? '' : x).toUpperCase().replace(/[^0-9A-Z]+/g, '');
+const LEN_FROM_ISO = { 2: '20', 3: '30', 4: '40', L: '45', M: '48', P: '53' };
+const LEN_OK = new Set(['20', '30', '40', '45', '48', '53']);
+// 顺序即优先级：冷藏/开顶/框架/罐/散装 先于 高箱/普柜 判（"40RF" 不能被 GC 规则误吃）
+const TYPE_RULES = [
+  [/REEF|RF/, 'RF'],
+  [/OPEN.?TOP|OT/, 'OT'],
+  [/FLAT|PLATFORM|FR/, 'FR'],
+  [/TANK|TK/, 'TK'],
+  [/BULK|BU/, 'BU'],
+  [/HIGH.?CUBE|HQ|HC/, 'HC'],
+  [/GENERAL|STANDARD|DRY|DV|GP/, 'GP'],
+];
+// ISO 6346 箱型码后两位 → 箱型族（G=普柜 R=冷藏 U=开顶 P=平台 T=罐 B=散装）
+const ISO_TYPE = { G0: 'GP', G1: 'GP', R0: 'RF', R1: 'RF', U0: 'OT', U1: 'OT', P0: 'FR', P1: 'FR', T0: 'TK', T1: 'TK', B0: 'BU', B1: 'BU' };
+
+function containerLength(size, type, iso) {
+  const s = A_(size);
+  const t = A_(type);
+  if (/^\d{2}$/.test(s)) return LEN_OK.has(s) ? s : (LEN_FROM_ISO[s[0]] || '');   // 22 这类 ISO 尺寸码前两位 → 20
+  // 4 位 ISO 尺寸/箱型码（22G1 / 42GP / 45G1）→ 首字符定长度。**必须排在「取开头两位」之前**：
+  // 45G1 的 "45" 是「40 尺 + 高箱」，当长度读会变成 45 尺（错）。
+  if (/^[0-9A-Z]{4}$/.test(s) && LEN_FROM_ISO[s[0]]) return LEN_FROM_ISO[s[0]];
+  if (/^[0-9A-Z]{4}$/.test(t) && LEN_FROM_ISO[t[0]]) return LEN_FROM_ISO[t[0]];
+  // 自由文本（10-14 真单实测：MSC 把整段描述塞进 size —— "40' HIGH CUBE REEFER"）→ 取开头的合法长度
+  const lead = /^(20|30|40|45|48|53)/.exec(s) || /^(20|30|40|45|48|53)/.exec(t);
+  if (lead) return lead[1];
+  const i = A_(iso);
+  if (/^[0-9A-Z]{4}$/.test(i) && LEN_FROM_ISO[i[0]]) return LEN_FROM_ISO[i[0]];
+  return '';
+}
+
+function containerType(size, type, iso) {
+  const t = A_(type);
+  const s = A_(size);
+  for (const [re, code] of TYPE_RULES) if (re.test(t)) return code;
+  if (/^[A-Z]{2}$/.test(t)) return t;                 // 已是短码（如 OT/FR 被上面吃掉，其它原样）
+  // 描述被塞进 size 的情况（MSC："40' HIGH CUBE REEFER"）——T 没给时从 size 找箱型词
+  for (const [re, code] of TYPE_RULES) if (re.test(s)) return code;
+  const i = A_(iso);
+  if (/^[0-9A-Z]{4}$/.test(i)) {
+    if (ISO_TYPE[i.slice(2)]) return ISO_TYPE[i.slice(2)];
+    for (const [re, code] of TYPE_RULES) if (re.test(i)) return code;
+  }
+  return '';
+}
+
+/** 箱号显示用标签：长度 + 箱型简码（40'HC / 22'GP…）；认不出返回 ''（UI 回退原样）。 */
+export function containerLabel(c) {
+  if (!c) return '';
+  const len = containerLength(c.size, c.type, c.iso);
+  const tc = containerType(c.size, c.type, c.iso);
+  if (len && tc) return `${len}'${tc}`;
+  if (len) return `${len}'`;
+  return tc || '';
+}
+
 export function normalizeTracking(r) {
   if (!r || !r.ok) {
     return { ok: false, carrier: r?.carrier || '', number: r?.number || '', error: r?.error || 'no data' };
@@ -132,9 +198,11 @@ export function normalizeTracking(r) {
     }
   }
 
-  const containers = Array.isArray(r.containers) ? r.containers.map((c) => ({
-    num: c.num || '', size: c.size || '', type: c.type || '', iso: c.iso || '', status: c.status || '',
-  })) : [];
+  const containers = Array.isArray(r.containers) ? r.containers.map((c) => {
+    const ct = { num: c.num || '', size: c.size || '', type: c.type || '', iso: c.iso || '', status: c.status || '' };
+    ct.label = containerLabel(ct);   // 10-14 P2：跨家统一的显示标签（长度+箱型简码，如 40'HC）
+    return ct;
+  }) : [];
 
   return {
     ok: true,

@@ -19,6 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { EVIDENCE_DIR } from '../browser.mjs';
+import { pruneEvidence, keepFromEnv } from '../lib/reclaim.mjs';
 import { detectCarrier, describeShape, CARRIER_LABELS } from './detect.mjs';
 import { loadTracker, availableCarriers } from './registry.mjs';
 import { normalizeTracking } from './normalize.mjs';
@@ -36,6 +37,9 @@ function parseArgs(argv) {
   return out;
 }
 const args = parseArgs(process.argv.slice(2));
+// ★ 10-14 审阅 P2「运行产物无回收」：追踪路径自己也会产出 hapag 调试 dump（每次追踪若干个），
+//   这里启动时滚动清理一次（与船期引擎同一套策略，见 engine/lib/reclaim.mjs）。
+try { pruneEvidence(EVIDENCE_DIR, { ...keepFromEnv(), log: (m) => console.error(m) }); } catch { /* 回收失败不影响追踪 */ }
 const emit = (type, obj = {}) => process.stdout.write(JSON.stringify({ type, ...obj }) + '\n');
 // 10-14 审阅 C3：process.exit 不等 stdout 异步 flush → 大结果（>64KB 管道容量）被截断（实测 807KB→64KB）。
 // 空写回调 = 前面所有写都进内核后退出；1.5s 保险丝防 stdout 异常挂死。
@@ -101,7 +105,7 @@ emit('track-started', {
 // ---------- 缓存（同条件重复查 = 秒回；口径与船期查询一致：只缓存「真的有数据」的结果） ----------
 const CACHE_TTL_MS = process.env.SSH_TRACK_CACHE_TTL_MS === undefined ? 20 * 60 * 1000 : Number(process.env.SSH_TRACK_CACHE_TTL_MS);
 const cacheDir = path.join(EVIDENCE_DIR, 'cache');
-const CACHE_SCHEMA = 2; // phase/status 语义变化时 bump，淘汰旧归一化缓存
+const CACHE_SCHEMA = 3; // phase/status 语义变化时 bump，淘汰旧归一化缓存（10-14：containers[].label 新增）
 const cacheKey = createHash('sha1').update(`track|v${CACHE_SCHEMA}|${carrier}|${number}`).digest('hex');
 const cachePath = path.join(cacheDir, `track-${cacheKey}.json`);
 if (CACHE_TTL_MS > 0 && !args['no-cache']) {

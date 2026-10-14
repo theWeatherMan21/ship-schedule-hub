@@ -34,16 +34,9 @@ export const PROFILE_DIR = process.env.SSH_PROFILE_DIR || path.join(DATA_DIR, 'b
 
 // 无头 UA 与「真机已装 Chrome」版本对齐（CF 的 cf_clearance 等凭证绑定 UA；
 // 写死版本会在 Chrome 升级后漂移导致凭证失效——2026-10-12 Hapag 有头过盾后无头复用失败即此因）。
-let _realUA = null;
-export function realChromeUA() {
-  if (_realUA) return _realUA;
-  try {
-    const v = execSync('"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --version', { encoding: 'utf8', timeout: 5000 });
-    const m = /(\d+)\./.exec(v);
-    if (m) _realUA = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${m[1]}.0.0.0 Safari/537.36`;
-  } catch { /* 取不到版本时用兜底 */ }
-  return _realUA || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36';
-}
+// ★ 10-14 审阅 P2：UA 解析搬到 lib/ua.mjs —— 全项目（浏览器 / fastpath / 追踪适配器）单一来源。
+import { realChromeUA } from './lib/ua.mjs';
+export { realChromeUA };
 export const EVIDENCE_DIR = path.join(DATA_DIR, 'evidence');
 
 // 一次性迁移：包内旧目录 → 用户目录（保住已「养熟」的 Chrome profile，反爬依赖它）

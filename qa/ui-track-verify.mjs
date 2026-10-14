@@ -202,6 +202,12 @@ const mscCard = (await page.textContent('#trackResult') || '').replace(/\s+/g, '
 const mscRows = await page.locator('.tbody .tev').count();
 ok(mscCard.includes(fixtures.msc.number), 'selected MSC result card contains queried number', mscCard.slice(0, 120));
 ok(mscRows === fixtures.msc.events.length, 'MSC timeline shows all saved events', `${mscRows}/${fixtures.msc.events.length}`);
+// 10-14 P2 回归：箱子行必须用**归一后的**尺寸/箱型标签（40'HC / 20'GP…），
+// 不许再出现 "40' (40HC)"、"40' 40"、"22G1'" 这类跨家口径不一的历史显示。
+const mscLabel = fixtures.msc.containers?.[0]?.label || '';
+const mscHead = ((await page.locator('.cblock .chead').first().textContent()) || '').replace(/\s+/g, ' ').trim();
+ok(!!mscLabel && mscHead.includes(mscLabel), 'MSC container head uses normalized size/type label', mscHead.slice(0, 90));
+ok(!/' \(|' 40|\d{2}G\d'/.test(mscHead), 'no legacy "40\' (40HC)" / "40\' 40" / "22G1\'" form', mscHead.slice(0, 90));
 await page.screenshot({ path: path.join(OUT, 'track-msc-container.png') });
 
 // ---------- ⑤ Layout check ----------
