@@ -42,8 +42,13 @@ pub struct TrackState {
 /// 用系统默认浏览器打开外部链接（维运网兜底查询等）婉宜 9-24
 #[tauri::command]
 fn open_external(_app: tauri::AppHandle, url: String) -> Result<(), String> {
-    // 只允许 https 维运网域名（防任意 URL 注入）
-    if !url.starts_with("https://www.weiyun001.com") {
+    // 白名单（防任意 URL 注入）：① 维运网（查不到时的兜底链接）② 本项目 GitHub（更新说明/下载页）
+    const ALLOWED: &[&str] = &[
+        "https://www.weiyun001.com",
+        "https://github.com/theWeatherMan21/ship-schedule-hub",
+        "https://api.github.com/repos/theWeatherMan21/ship-schedule-hub",
+    ];
+    if !ALLOWED.iter().any(|p| url.starts_with(p)) {
         return Err(format!("拒绝打开非白名单 URL: {}", &url[..url.len().min(60)]));
     }
     tauri::async_runtime::spawn(async move {

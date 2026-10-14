@@ -1205,11 +1205,15 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
     const go = document.createElement('button');
     go.className = 'uprimary';
     go.textContent = '立即更新';
-    go.addEventListener('click', () => {
+    go.addEventListener('click', async () => {
       const url = String(info.url || REPO_URL);
-      if (hasTauri) invoke('open_external', { url }).catch(() => {});
-      else window.open(url, '_blank');
-      wrap.remove();
+      try {
+        if (hasTauri) await invoke('open_external', { url });
+        else window.open(url, '_blank');
+        wrap.remove();
+      } catch (e) {
+        toast('打开更新页失败：' + String((e && (e.message || e)) || 'unknown').slice(0, 80));
+      }
     });
     btns.appendChild(go);
 
