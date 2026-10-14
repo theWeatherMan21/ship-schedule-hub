@@ -173,7 +173,8 @@ jobs:
       - name: 生成 latest.json（App 内更新清单）
         run: |
           V="${GITHUB_REF_NAME#v}"
-          BASE="https://github.com/theWeatherMan21/ship-schedule-hub/releases/download/v${V}"
+          # 国内镜像加速（直连 GitHub 常被限速到十几 KB/s；gh-proxy.com 实测 3+ MB/s）
+          BASE="https://gh-proxy.com/https://github.com/theWeatherMan21/ship-schedule-hub/releases/download/v${V}"
           python3 - "$V" "$BASE" <<'PYEOF'
           import json, os, sys, glob
           v, base = sys.argv[1], sys.argv[2]
