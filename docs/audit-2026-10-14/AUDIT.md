@@ -48,6 +48,30 @@
 
 ---
 
+## ①.6 修复进度（批次二 · 同日 · P2 三主题 + 诚实化）
+
+**本批 9 项**（19 套离线测试全绿；真网复测 + 离线 UI 回放全绿；屏幕窗口 0→0）：
+
+| # | 项 | 主题 | 修复内容 |
+|---|---|---|---|
+| 16 | 运行产物无回收（154+ ndjson / dump 堆积） | 资源回收 | 新增 `engine/lib/reclaim.mjs`：按「保留最近 N」滚动清理 `run-*.ndjson`(50) 与 `hapag-track-*.txt`(40)，`SSH_KEEP_RUNS/DUMPS` 可覆盖、`<1` 关闭；**只清这两类自己的产物**，绝不碰 png/其它 txt/cache。引擎与追踪 CLI 启动各跑一次 → 实测 **156→51 个 ndjson，证据目录 5.8M→4.3M** |
+| 17 | `apiEmptyHint` 只写不读（注释承诺的"短超时"从未生效） | 静默失败 | 落实：接口已确认"本条航线无服务"的船司，页面兜底 30s（不再陪等 60s） |
+| 18 | 退出码恒 0（引擎故障也报成功） | 诚实化 | 致命错误**且零结果** → `exit 1`（App 侧 `engine-exit` 已带 code/success）；部分家失败不改 |
+| 19 | CA 兜底固定返回 200 | 静默失败 | `https` 兜底透传真实 `statusCode`（被 WAF 挡回的 403 HTML 曾被当 200 成功交给上层）；CA 候选全不可读时错误信息列出试过的路径 |
+| 20 | UA 三处写死且不一致 | 口径漂移 | 新增 `engine/lib/ua.mjs` 单一来源；`fastpath`/`tracking/cosco`/`tracking/one` 去掉写死的 `Chrome/140`，全部用 `realChromeUA()`（与浏览器一致） |
+| 21 | 结果页解析失败静默吞 | 静默失败 | cma/cosco/evergreen/hmm/maersk 五家解析失败写 stderr（诊断面板可见）；`main.js` 信息行判据同步纳入各家前缀（不误弹错误横幅） |
+| 22 | 箱号 size/type 三家三样（`40' (40HC)` / `40' 40` / `22G1'`） | 口径统一 | `normalize.containerLabel()`：按行业习惯归一到 `40'HC` / `20'GP` / `40'RF`（长度+箱型简码），认不出返回 `''` 由 UI 回退（**绝不猜**）；UI 改用它；真单验证 one/maersk/cosco/msc 四家标签一致 |
+| 23 | 追踪缓存未随归一形状失效 | 资源回收 | `CACHE_SCHEMA` 2→3（新增 `containers[].label`） |
+| 24 | A3 现状未写清 / A2 无回归测试 | 注释漂移 | `query.mjs` 补 A3 现状注释（机制在、当前无配方声明）；新增 `qa/query-args-test.mjs`（5 组非法值 fail fast） |
+
+**新增测试**：`qa/reclaim-unit.mjs`（保留策略/只清自己产物/幂等/可关/目录不存在不抛）、`qa/container-label-unit.mjs`（17 组真网形态 + 归一层接线）、`qa/ui-track-verify.mjs` 增 2 条箱子标签断言。
+
+**本批真网证据**：船期 hmm 15 条 / maersk 8 条 / yangming 11 条（无解析失败日志）；追踪 one·maersk·cosco·msc 四家 `label` 统一；`--carriers hmm` + 坏 profile 复现致命路径 → `exit=1`（诚实化生效）。
+
+**仍未开工**：B5 三家（msc/hapag/yangming）DOM 结果页解析（架构级）；A3「运行时被拦自动升级」；P2 剩余（约 40 条，主题：静默失败残余 / 识别表缺口 / 跨家口径）。
+
+---
+
 ## ② 方法与可复现路径
 
 - 基线：全部自带单测通过（identify 108/0、update-check 11/0、maersk-cutoffs 17/0、cma-track 23/0、portsolve 8/0、overlay 8/0、hmm/evergreen 全过、normalize 通过）

@@ -1036,3 +1036,18 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 **发布**：v1.5.0 三平台（macOS arm64/x64 + Windows，包址走 gh-proxy 镜像）；**更新自检 1.4.9→1.5.0 全链路四步通过**（检查→下载 47,471,607 bytes→安装→重启，版本已变）
 
 **遗留**（后续批次）：B5 三家（msc/hapag/yangming）DOM 结果页解析（架构级）；A3 运行时被拦自动升级；P2 剩余按主题分批
+
+## 2026-10-14 续 · 修复批次二（P2 三主题 + 诚实化，**未发布**）
+
+**修复 9 项**（19 套离线测试全绿；细节见 AUDIT.md §①.6）——主题就是审阅列的三个：资源回收 / 静默失败 / 口径统一
+- **资源回收**：新增 `engine/lib/reclaim.mjs`，证据目录运行产物滚动保留（`run-*.ndjson` 50 / `hapag-track-*.txt` 40，`SSH_KEEP_RUNS|DUMPS` 可覆盖）；引擎与追踪 CLI 启动各清一次 → 实测 **156→51 个 ndjson、5.8M→4.3M**，只清自己的产物
+- **静默失败**：5 家配方结果页解析失败不再静默吞（写 stderr，诊断面板可见，不误弹横幅）；CA 兜底不再固定返回 200（透传真实状态码，403 曾被当成功）；`apiEmptyHint` 只写不读 → 落实「API 确认无此线则页面兜底只给 30s」
+- **口径统一**：新增 `engine/lib/ua.mjs`（UA 单一来源，治 fastpath/tracking 三处写死 Chrome/140 与浏览器不一致）；`normalize.containerLabel()` 把 11 家 11 样的箱号尺寸/箱型统一成 `40'HC / 20'GP / 40'RF`（认不出才回退，绝不猜）；追踪 `CACHE_SCHEMA` 2→3
+- **诚实化**：引擎致命错误且零结果 → `exit 1`（原来恒 0）
+
+**验证**：19 套离线测试全绿（新增 reclaim / container-label 两套 + A2 回归）；真网 hmm 15 / maersk 8 / yangming 11 条船期；追踪真单 one·maersk·cosco·msc 标签统一；`qa/ui-track-verify.mjs` 离线 UI 回放 ALL PASS（含新增箱子标签断言）+ 屏幕窗口 **0→0**
+
+**本机状态**：`/Applications` 仍是 **1.4.9**（批次一/二的源码都还没进安装包）——落地方式待爹地定：
+**(A)** 本地 `ditto` 部署到 `/Applications`（即时能看到，但会绕过 updater 的版本叙事）；
+**(B)** 版本升到 v1.5.1 → CI 三平台发布 → 爹地点「检查更新」验收（沿用 1.4.9→1.5.0 那条已验证的路）。
+当前 local build 的 `dist/` 已是批次二源码；`/Applications` 未改动。
