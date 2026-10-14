@@ -173,7 +173,7 @@ export async function trackOne(number, { timeoutMs = 30000 } = {}) {
       lastUpdate: h.latestEvent?.date || (cur ? cur.utc || cur.time : null),
       weight: h.weight || '',
       copNo: h.copNo || '',
-      eta: ests.length ? ests[ests.length - 1].time : null,
+      eta: ests.length ? { time: ests[ests.length - 1].time, city: ests[ests.length - 1].city || '', terminal: '', activity: ests[ests.length - 1].activity || 'Estimated arrival', fromSite: true } : null,   // 10-14 审阅 C5：统一为对象口径
       events: dated,
       undatedEvents: undated,
       rawCopEvents: raw,
@@ -199,7 +199,7 @@ export async function trackOne(number, { timeoutMs = 30000 } = {}) {
     lastUpdate: first.latestEvent?.date || (cur ? cur.utc || cur.time : null),
     status: cur ? cur.activity : (first.latestEvent?.eventName || ''),
     current: cur,
-    eta: ests.length ? ests[ests.length - 1].time : null,
+    eta: ests.length ? { time: ests[ests.length - 1].time, city: ests[ests.length - 1].city || '', terminal: '', activity: ests[ests.length - 1].activity || 'Estimated arrival', fromSite: true } : null,   // 10-14 审阅 C5：统一为对象口径
     vessel: first.vesselVoyage ? `${first.vesselVoyage.vesselName || ''} ${first.vesselVoyage.voyageNo || ''}`.trim() : '',
     containers,
     // raw 供归一化层读取（normalize.mjs 优先用 raw.status 判 phase）
