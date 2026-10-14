@@ -107,7 +107,9 @@ export function normalizeTracking(r) {
   events.sort((a, b) => timeKey(a).localeCompare(timeKey(b)));
 
   const actuals = events.filter((e) => e.timeType === 'ACTUAL');
-  const current = actuals.length ? actuals[actuals.length - 1] : (events.length ? events[events.length - 1] : null);
+  // 修复（10-14 审阅 P0-2）：只认 ACTUAL 为「当前位置」；无 ACTUAL 时不得拿 EXPECTED 兜底
+  // （会让 UI 主行把未发生的预计事件显示成现状，与本文件 16-18 行自述口径冲突）。
+  const current = actuals.length ? actuals[actuals.length - 1] : null;
   if (current) current.isCurrent = true;
 
   // ETA：优先用网站自己给的「最终交付预计」（raw.containers[].eta_final_delivery），

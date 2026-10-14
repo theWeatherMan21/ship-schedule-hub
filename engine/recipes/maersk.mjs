@@ -17,6 +17,39 @@ import { maerskResolve, maerskQuery, maerskRowsFromRoutings, maerskDeadlines, ma
 // 日期：深链默认窗口 numberOfWeeks=4（起 明天，止 +29 天），与官网一跳一致
 const addDays = (iso, n) => { const t = new Date(`${iso}T00:00:00Z`); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
 
+// ---- 卡片解析（导出供单测；run 内直接复用同一实现）----
+// ---- 卡片解析（官网结果页 innerText 结构，双线实测）----
+export const MAERSK_MONTHS = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
+export const fmtMaerskDate = (s) => { const m = /^(\d{1,2}) (\w{3}) (\d{4})$/.exec(String(s).trim()); return m ? `${m[3]}-${MAERSK_MONTHS[m[2]] || m[2]}-${String(m[1]).padStart(2, '0')}` : s; };
+export const parseMaerskCardsText = (text) => {
+    const out = [];
+    try {
+      const cardRe = /Departure\n\s*(\d{1,2} \w{3} \d{4})\n[^\n]+\nArrival\n\s*(\d{1,2} \w{3} \d{4})\n[^\n]+\nVessel\/Voyage\n([^\n]+?)((?:(\d+[W]?)?))\nTransit Time:(\d+)\s*days?(?:\s+(\d+)\s*hours?)?/gi;
+      const found = [];
+      let cm;
+      while ((cm = cardRe.exec(text)) !== null && found.length < 12) found.push(cm);
+      for (let i = 0; i < found.length; i++) {
+        cm = found[i];
+        const segStart = cm.index + cm[0].length;
+        const segEnd = i + 1 < found.length ? found[i + 1].index : Math.min(text.length, segStart + 1500);
+        const seg = text.slice(segStart, segEnd);
+        const row = {
+          vessel: cm[3].trim(), voyage: cm[4].trim(),
+          etd: fmtMaerskDate(cm[1]), eta: fmtMaerskDate(cm[2]),
+          // 修复（10-14 审阅 P0-1）：正则第5组是航次（如 639W）、第6组才是天数；
+          // 口径与 API 路径对齐：天+小时折算（Math.round((d*24+h)/24)）
+          transitDays: (() => { const d = Number(cm[6]); const h = Number(cm[7]) || 0; return Number.isFinite(d) ? Math.round((d * 24 + h) / 24) : null; })(),
+          via: '', direct: true,
+        };
+        // Deadlines 段（10-13 接）：口径与 API 路径统一（maerskCutoffsFromText，对齐官网 5 行）
+        const cuts = maerskCutoffsFromText(seg);
+        if (cuts) row.detail = { routing: '', legs: [], cutoffs: cuts };
+        out.push(row);
+      }
+    } catch { /* 保持 prefilled */ }
+    return out;
+};
+
 export default {
   id: 'maersk',
   name: 'Maersk 马士基',
@@ -35,35 +68,6 @@ export default {
     const iso = String(q.raw?.date || new Date().toISOString().slice(0, 10));
     const earliest = addDays(iso, 1), latest = addDays(iso, 57);  // ★ 10-09：8 周（原来 4 周）
 
-    // ---- 卡片解析（官网结果页 innerText 结构，双线实测）----
-    const MONTHS = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
-    const fmt = (s) => { const m = /^(\d{1,2}) (\w{3}) (\d{4})$/.exec(String(s).trim()); return m ? `${m[3]}-${MONTHS[m[2]] || m[2]}-${String(m[1]).padStart(2, '0')}` : s; };
-    const parseCards = (text) => {
-      const out = [];
-      try {
-        const cardRe = /Departure\n\s*(\d{1,2} \w{3} \d{4})\n[^\n]+\nArrival\n\s*(\d{1,2} \w{3} \d{4})\n[^\n]+\nVessel\/Voyage\n([^\n]+?)((?:(\d+[W]?)?))\nTransit Time:(\d+) days? (\d+)? hours?/gi;
-        const found = [];
-        let cm;
-        while ((cm = cardRe.exec(text)) !== null && found.length < 12) found.push(cm);
-        for (let i = 0; i < found.length; i++) {
-          cm = found[i];
-          const segStart = cm.index + cm[0].length;
-          const segEnd = i + 1 < found.length ? found[i + 1].index : Math.min(text.length, segStart + 1500);
-          const seg = text.slice(segStart, segEnd);
-          const row = {
-            vessel: cm[3].trim(), voyage: cm[4].trim(),
-            etd: fmt(cm[1]), eta: fmt(cm[2]),
-            transitDays: Number(cm[5]) || cm[5],
-            via: '', direct: true,
-          };
-          // Deadlines 段（10-13 接）：口径与 API 路径统一（maerskCutoffsFromText，对齐官网 5 行）
-          const cuts = maerskCutoffsFromText(seg);
-          if (cuts) row.detail = { routing: '', legs: [], cutoffs: cuts };
-          out.push(row);
-        }
-      } catch { /* 保持 prefilled */ }
-      return out;
-    };
     const pollText = async (msTotal = 48000, step = 3000) => {
       let text = '';
       for (let i = 0; i < Math.ceil(msTotal / step); i++) {
@@ -134,7 +138,7 @@ export default {
         ].join('&');
         await page.goto(deep, { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
         const text = await pollText();
-        const rows = parseCards(text);
+        const rows = parseMaerskCardsText(text);
         if (rows.length) return { msg: mkMsg(rows, `Deep link (${resolved.o.cityName} → ${d.cityName})`), schedules: rows };
       }
     }
@@ -218,7 +222,7 @@ export default {
     if (!(await search.isVisible().catch(() => false))) throw new Error('找不到 Search 按钮');
     await search.click({ timeout: 8000 });
     let text = await pollText();
-    let rows = parseCards(text);
+    let rows = parseMaerskCardsText(text);
     // 官网回「No schedules available」时**先怀疑自己递的港名**（爹地 10-09 实证：Xingang(Tianjin) 明明有 2 条），
     // 换下一种写法重填重查一次，别直接把锅甩给官网。
     if (!rows.length && /no schedules available/i.test(text)) {
@@ -227,7 +231,7 @@ export default {
         if (!p2) continue;
         await search.click({ timeout: 8000 }).catch(() => {});
         text = await pollText();
-        rows = parseCards(text);
+        rows = parseMaerskCardsText(text);
         if (rows.length) { usedWord = w; break; }
         if (!/no schedules available/i.test(text)) break;
       }
