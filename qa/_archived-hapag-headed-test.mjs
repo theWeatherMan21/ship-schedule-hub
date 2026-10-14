@@ -1,3 +1,5 @@
+// [ARCHIVED 2026-10-14] 本探针目标 URL（schedules-by-geography）已 404（Hapag 官网改版）；
+//   CF cookie 复用问题早已由 hapag 追踪适配器解决（无头优先+有头兜底）。保留仅为史料。
 // ⚠️ 10-09 爹地红线：探针不得弹窗。需要真指纹破反爬时，请照 qa/headed-minimized-probe.mjs
 //   那套做（headless:false + CDP Browser.setWindowBounds 最小化 + 回读 AXMinimized 验证）。
 // Hapag 有头实测：真浏览器窗口能否过 CF？过了之后 cookie 能否让无头也通？（婉宜 9-23）
