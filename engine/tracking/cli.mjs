@@ -139,7 +139,13 @@ emit('track-result', result);
 const ms = Date.now() - started;
 if (result.ok) {
   if (CACHE_TTL_MS > 0 && !args['no-cache']) {
-    try { fs.mkdirSync(cacheDir, { recursive: true }); fs.writeFileSync(cachePath, JSON.stringify({ at: Date.now(), result })); } catch { /* 缓存写不了不影响结果 */ }
+    try {
+      fs.mkdirSync(cacheDir, { recursive: true });
+      // 10-14 审阅：原子写（tmp + rename）——直接 writeFileSync 在中断/并发下可能留半截文件
+      const tmp = cachePath + '.tmp' + process.pid;
+      fs.writeFileSync(tmp, JSON.stringify({ at: Date.now(), result }));
+      fs.renameSync(tmp, cachePath);
+    } catch { /* 缓存写不了不影响结果 */ }
   }
 }
 emit('track-exit', { ok: !!result.ok, cached: false, ms });

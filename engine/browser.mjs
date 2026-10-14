@@ -72,7 +72,7 @@ export function launchArgs() {
   ];
 }
 
-/** 启动持久化 Chrome（项目自带 profile，绝不碰爸爸日常 Chrome）。headless 默认 false 是 MSC 能过的前提。 */
+/** 启动持久化 Chrome（项目自带 profile，绝不碰爸爸日常 Chrome）。headless 语义见 launch()（默认 'auto' = 无头新档；有头仅 SSH_ALLOW_HEADED=1）。 */
 // ── 浏览器来源解析（同事机器没装 Chrome 也能跑）─────────────────────────
 // 优先用系统 Chrome；没有则用 Playwright 自带 Chromium；再没有就按需下载一份
 // Chrome for Testing 到数据目录（只下一次，无需管理员权限）。
