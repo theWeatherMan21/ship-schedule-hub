@@ -973,3 +973,31 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 **第三批（候选补充，10-12 爹地圈选后落地）**：10 位纯数字 → COSCO/OOCL 候选、12 位纯数字 → Evergreen 候选（均 0.5、仅候选不自动）。验收：identify 108/0；UI 回放新增断言全绿；实机 5051645160 显示候选提示并拦在前端（不空跑引擎）；裸 10 位真号 `6469105960`（COSU 剥离形）手选 COSCO 直查成功（青岛→梅尔辛 11 事件/5 箱，真网）。
 **ZIM 追踪接入（10-12 中午）**：`engine/tracking/zim.mjs`（页面内 fetch → apigw v2 complete-result；提单/箱号双形态解析）；真实样本 7 号全验、离线单元 23/0、识别器回归 108/0、UI 回放全绿；UI 下拉/说明含 ZIM；实机 selftest `ZIMUBCN10212938`（BARCELONA→NEW YORK · 10 events · Completed）；部署 /Applications（10:44 构建）。识别器 `tracking` 元数据修正（msc/cosco/hmm/one/zim → live）。**追踪线进度：6/11 家**（余 CMA/Evergreen/YM/OOCL 待规划；Hapag 被拦）。
 **技术债**：`engine/track.mjs`（10-10 遗留、无调用、未跟踪）与 lib.rs 817 行 pkill 旧名单——候选清理，不影响功能。另：selftest 程序化填充不触发 input 事件（自检截图看不到动态 hint；真实输入路径经 Playwright 回放验证正常）——建议 selftest 填充处补 dispatch input。
+
+## 2026-10-14 · App 自更新（检查更新 + App 内安装 + 交付前自检）
+
+**需求来源**：爹地「帮我在本地的 app 加一个检查更新的按钮」→ 演进为「我要的是 app 内更新，而不是跳一个 github 页面让我自己下载安装」→ 最终「你能不能自己测试跑通了再交付给我」。
+
+**实现（Tauri v2 官方 updater）**：
+- 检查：启动 5s 后静默检查（24h 节流）+ 标题栏「检查更新」按钮（手动忽略节流）；优先 Tauri updater 插件（纯 Rust HTTP），失败退回匿名 GitHub API → 再退本机 gh 凭据兜底
+- 安装：App 内下载 + 实时进度条（百分比 + MB）+ 自动重启，全程不跳浏览器
+- 签名：minisign 密钥对（`~/.tauri/shipschedulehub.key`，公钥内嵌，私钥存 GitHub Secret `TAURI_SIGNING_PRIVATE_KEY`）
+- CI：构建注入签名 → 产出 `.app.tar.gz`/`.sig`/`.exe.sig` + `latest.json`（三平台清单）
+- 端点：`releases/latest/download/latest.json`（仓库已转 PUBLIC，匿名可读）
+
+**交付前自检机制（本轮最重要的方法论沉淀）**：
+- `SSH_UPDATE_SELFTEST=1|full` 环境变量 → 在**真实 App 进程**内跑 检查→下载→(安装→重启)，逐步写日志后退出；启动即 `window.hide()`，不打扰屏幕
+- 跑法：`.app` 复制到 `/private/tmp/`（**不能是 `/tmp`**，symlink 会被 updater 拒绝）→ 改三处版本号造旧版本 → 运行 binary
+- **实测（1.4.6 → 1.4.7）**：① 发现新版 ✓ ② 下载 45.3MB（进度 10→100%）✓ ③ 安装成功 ✓ ④ 重启后版本变 1.4.7 ✓ —— 四步全通
+- 沉淀：`skills/tauri-desktop-app/references/auto-update-and-selftest.md`
+
+**踩坑清单（本轮）**：
+1. `open_external` 有域名白名单（只放行维运网）→ GitHub Release 地址被静默拒绝，表现为「点立即更新没反应」
+2. `@tauri-apps/plugin-process` 的 `relaunch()` 需 `process:*` 权限，未配报 `not allowed by ACL` → 改用核心 API `app.restart()`（零权限依赖）
+3. **`cargo check` 通过 ≠ 二进制更新**：必须 `npm run tauri build`，并用 `strings -a <binary> | grep <新常量>` 核验（本轮因此对着旧 binary 排查很久）
+4. Tauri updater 版本读**编译期**值（`tauri.conf.json` 的 version 优先级最高）；改 bundle 的 Info.plist 无效
+5. CI：**macOS 必须 `--bundles dmg,app`**，只写 `dmg` 不产 updater 产物；平台产物命名要与 `latest.json` 里查的名字一致（`_arm64` vs `_aarch64` 曾致平台缺失）
+6. 匿名 GitHub API 有共享出口 IP 限流（60/h）→ 本机 gh 凭据兜底（5000/h）
+
+**版本线**：1.4.0（截单）→ 1.4.1（检查更新按钮）→ 1.4.2（验证用）→ 1.4.3（updater 基线）→ 1.4.4（App 内更新可见）→ 1.4.5（修重启）→ 1.4.6（自检通过基线）→ **1.4.7（当前 latest）**
+**本机状态**：`/Applications` = 1.4.6（干净基线，等待爹地验证 1.4.6→1.4.7）
