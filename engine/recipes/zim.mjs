@@ -39,18 +39,17 @@ export default {
         await page.keyboard.type(String(word), { delay: 80 });
         await H.sleep(2500);
         const opts = page.getByRole('option');
-        const texts = [];
+        const texts = [];   // 10-14 审阅 B2：存 {t, idx}——idx 是 opts 原始下标（过滤 Search 占位后仍能对齐）
         for (let i = 0; i < 20; i++) {
           const n = await opts.count().catch(() => 0);
-          for (let j = 0; j < Math.min(n, 10); j++) { const t = (((await opts.nth(j).textContent().catch(() => '')) || (await opts.nth(j).innerText().catch(() => '')) || '')).trim(); if (t && !/^search(ing)?\./i.test(t)) texts.push(t.replace(/\s+/g, ' ')); }
+          for (let j = 0; j < Math.min(n, 10); j++) { const t = (((await opts.nth(j).textContent().catch(() => '')) || (await opts.nth(j).innerText().catch(() => '')) || '')).trim(); if (t && !/^search(ing)?\./i.test(t)) texts.push({ t: t.replace(/\s+/g, ' '), idx: j }); }
           if (texts.length) break;
           await H.sleep(500);
         }
         if (!texts.length) return false;
-        let target = texts.findIndex(nameMatcher);
-        if (target < 0) target = 0;
-        const total = await opts.count().catch(() => 1);
-        await opts.nth(Math.min(target, Math.max(total - 1, 0))).click({ timeout: 5000 }).catch(() => {});
+        const hit = texts.find((x) => nameMatcher(x.t));
+        if (!hit) return false;   // 10-14 审阅 B2：未命中不再盲点第一项（静默选错港口）——交上层换写法/报错
+        await opts.nth(hit.idx).click({ timeout: 5000 }).catch(() => {});
         await H.sleep(1000);
         return true;
       } catch { return false; }

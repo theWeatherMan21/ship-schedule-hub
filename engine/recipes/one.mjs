@@ -83,9 +83,11 @@ export default {
     }, { o: oWord, d: dWord }).catch(() => ({ o: [], d: [] }));
     const pickPt = (list, locode, word) => {
       const l = list || [];
+      // 10-14 审阅 B6：去掉「盲点第一个 CY 候选」兜底（曾静默选中无关港口构造深链）；
+      // 未命中返回 null，调用处退回词典 code/name 兜底（见下方 oP/dP）。
       return l.find((p) => p.termCd === 'Y' && locode && String(p.code || '').toUpperCase() === String(locode).toUpperCase())
         || l.find((p) => p.termCd === 'Y' && word && String(p.name || '').toLowerCase().includes(word.toLowerCase()))
-        || l.find((p) => p.termCd === 'Y') || null;
+        || null;
     };
     // suggest 挂了也别停：退回词典 code/name
     const oP = pickPt(sug.o, oLoc, oWord) || (oLoc ? { code: oLoc, name: String(q._o?.name || oWord).toUpperCase() } : null);
