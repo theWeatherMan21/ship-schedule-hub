@@ -57,8 +57,10 @@ async function jget(path, timeoutMs) {
 export function normalizeOneNumber(raw) {
   let s = String(raw || '').trim().toUpperCase().replace(/\s+/g, '');
   let searchType = 'BKG_NO';
-  if (/^ONE[UY]\d{7}$/.test(s)) searchType = 'CNTR_NO';           // 箱号 ONEU+7
-  if (s.startsWith('ONEY') && !/^ONE[UY]\d{7}$/.test(s)) s = s.slice(4); // BL：剥 ONEY 前缀
+  // 10-14 审阅 C1：ONE 合并了 K Line/MOL/NYK——箱主码除 ONEU/ONEY 外还有 MOAU/NYKU/KKFU/KKTU/KLFU（识别器认 6 个）。
+  // 凡 4 字母+7 数字（ISO 箱号形态）一律按箱号提交；曾经只认 ONE[UY] → NYKU 等真箱号被当提单查询必查不到。
+  if (/^[A-Z]{4}\d{7}$/.test(s)) searchType = 'CNTR_NO';
+  if (s.startsWith('ONEY') && !/^[A-Z]{4}\d{7}$/.test(s)) s = s.slice(4); // BL：剥 ONEY 前缀
   return { value: s, searchType };
 }
 

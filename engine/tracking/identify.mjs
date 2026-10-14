@@ -263,16 +263,6 @@ export function identify(raw) {
       note: `提单前缀 ${four} → ${c.name}${dupCt}` };
   }
 
-  // ②b 4 字母是已知箱主码、但既不是船司提单前缀、形态也不像完整箱号 → 低置信线索
-  const ctId = CT_INDEX4.get(four) || CT_INDEX3.get(n.slice(0, 3));
-  if (/^[A-Z]{4}/.test(n) && ctId && !BL_INDEX.has(four)) {
-    const c = BY_ID.get(ctId);
-    return { ...base, ok: false, carrierId: null, docType: 'container', matchedBy: 'container',
-      confidence: 'low', score: 0.5,
-      candidates: orderCandidates(allCandidates(), ctId),
-      note: `前缀 ${four} 是 ${c.name} 的箱主码，但整体不像完整箱号——请确认后手选船司。` };
-  }
-
   // ③ 订舱号形态（各家不一，仅作线索；够把握的才自动路由）
   for (const c of CARRIERS) {
     for (const b of c.booking) {
@@ -288,6 +278,16 @@ export function identify(raw) {
             : `形态像 ${c.name} 的订舱号（${b.label}），但不唯一——请确认后手选船司` };
       }
     }
+  }
+
+  // ②b（10-14 审阅 C2 后移：订舱形态优先）4 字母是已知箱主码、但既不是船司提单前缀、形态也不像完整箱号 → 低置信线索
+  const ctId = CT_INDEX4.get(four) || CT_INDEX3.get(n.slice(0, 3));
+  if (/^[A-Z]{4}/.test(n) && ctId && !BL_INDEX.has(four)) {
+    const c = BY_ID.get(ctId);
+    return { ...base, ok: false, carrierId: null, docType: 'container', matchedBy: 'container',
+      confidence: 'low', score: 0.5,
+      candidates: orderCandidates(allCandidates(), ctId),
+      note: `前缀 ${four} 是 ${c.name} 的箱主码，但整体不像完整箱号——请确认后手选船司。` };
   }
 
   // ④ 兜底：4 字母但不是海洋船司 SCAC → 可能是货代分单（HBL）

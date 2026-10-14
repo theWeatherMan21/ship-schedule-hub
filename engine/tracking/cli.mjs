@@ -37,15 +37,21 @@ function parseArgs(argv) {
 }
 const args = parseArgs(process.argv.slice(2));
 const emit = (type, obj = {}) => process.stdout.write(JSON.stringify({ type, ...obj }) + '\n');
+// 10-14 审阅 C3：process.exit 不等 stdout 异步 flush → 大结果（>64KB 管道容量）被截断（实测 807KB→64KB）。
+// 空写回调 = 前面所有写都进内核后退出；1.5s 保险丝防 stdout 异常挂死。
+const flushExit = (code) => {
+  process.stdout.write('', () => process.exit(code));
+  setTimeout(() => process.exit(code), 1500).unref();
+};
 
 // ---------- --list：UI 打开页签时用它填充「船司」下拉（只列已接入的） ----------
 if (args.list) {
   emit('track-carriers', { available: availableCarriers().map((id) => ({ id, label: CARRIER_LABELS[id] || id })) });
-  process.exit(0);
+  flushExit(0);
 }
 
 const number = typeof args.number === 'string' ? args.number.trim() : '';
-if (!number) { emit('track-error', { code: 'bad-args', msg: 'need --number <B/L or container number>' }); process.exit(2); }
+if (!number) { emit('track-error', { code: 'bad-args', msg: 'need --number <B/L or container number>' }); flushExit(2); }
 
 // 船司：显式指定（--carrier X）优先；否则自动识别
 let carrier = typeof args.carrier === 'string' ? args.carrier.trim().toLowerCase() : '';
@@ -66,7 +72,7 @@ if (auto) {
         : `Cannot tell which carrier owns "${d.number}" — pick one manually`,
       available: availableCarriers(),
     });
-    process.exit(2);
+    flushExit(2);
   }
   carrier = d.carrier;
 }
@@ -79,7 +85,7 @@ if (!available.includes(carrier)) {
     msg: `Tracking is not wired up for ${CARRIER_LABELS[carrier] || carrier} yet${available.length ? ` (available: ${available.join(', ')})` : ''}`,
     available,
   });
-  process.exit(2);
+  flushExit(2);
 }
 
 const started = Date.now();
@@ -106,7 +112,7 @@ if (CACHE_TTL_MS > 0 && !args['no-cache']) {
       const mins = Math.max(1, Math.round(age / 60000));
       emit('track-result', { ...c.result, cached: true, cachedAgoMin: mins });
       emit('track-exit', { ok: true, cached: true, ms: Date.now() - started });
-      process.exit(0);
+      flushExit(0);
     }
   } catch { /* 没缓存或坏了 → 正常查 */ }
 }
@@ -130,4 +136,4 @@ if (result.ok) {
   }
 }
 emit('track-exit', { ok: !!result.ok, cached: false, ms });
-process.exit(0);
+flushExit(0);
