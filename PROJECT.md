@@ -1018,4 +1018,21 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 修：CI 生成的 `latest.json` 里包地址加镜像前缀；updater `endpoints` 镜像优先 + GitHub 兜底。签名校验不受影响（镜像只转发字节）。
 
 **交付前自检机制（本轮沉淀，已入技能）**：`SSH_UPDATE_SELFTEST=1|full` 环境变量 → 真实 App 进程内跑 检查→下载→安装→重启，窗口自动隐藏、逐步写日志后退出。跑法：复制 `.app` 到 `/private/tmp/`（不能 `/tmp`，symlink 会被 updater 拒）+ 改三处版本号造旧版本。本轮每个版本都这样验过才交付。
-**版本线**：… → 1.4.7 → 1.4.8（镜像）→ **1.4.9（修重复提示；本机与远端均在此版本）**
+**版本线**：… → 1.4.7 → 1.4.8（镜像）→ 1.4.9（修重复提示）→ **1.5.0（全面审阅修复第一批 + 多箱提升，10-14 发布）**
+**本机状态**：`/Applications` = **1.4.9**（等爹地点「检查更新」验收 → 1.5.0）
+
+## 2026-10-14 续 · 全面审阅 + 修复批次一（v1.5.0）
+
+**审阅**（只读，3 路独立并行 + 探针实测 + 行业对照）→ `docs/audit-2026-10-14/AUDIT.md`
+- P0×2 / P1×14 / P2×55+；两个 P0 均由审阅人**亲手复现**（maersk 卡片 transitDays 取成航次号；追踪层把 EXPECTED 误标为「当前位置」）
+- 健康项确认：ISO 6346 校验位算法与标准完全一致；静默红线落实严格
+
+**修复 16 项**（全部带回归，18 套测试全绿；细节见 AUDIT.md §①.5）
+- **P0×2**：maersk transitDays 改取天数段（口径与 API 对齐）；追踪 `current` 只认 ACTUAL（无 ACTUAL 时 null）
+- **P1×13**：CLI 数值参数 fail fast；ONE 箱主码判型放宽（**真网验证 NYKU4974384 从"必查不到"→ ok:true**）；HAMG 单号正确路由 ONE；大结果不再被 64KB 管道截断（flushExit）；追踪总时长硬截止；one/msc eta 形状统一；zim 候选索引对齐；pickOnce/one pickPt 去盲点；OOCL direct 诚实降级（null + UI 三值）；配方超时声明与 60s 上限对齐
+- **拍板四项**（爹地 10-14）：并发无红线 / COSU 不碰 / 60s 足够 / 多箱提升（**Hapag 详情 1→6 箱、YM 4→8 柜**）
+- **P2 三件**：tracking-identify.md 文档漂移修正；缓存原子写（tmp+rename）；browser.mjs 注释对齐
+
+**发布**：v1.5.0 三平台（macOS arm64/x64 + Windows，包址走 gh-proxy 镜像）；**更新自检 1.4.9→1.5.0 全链路四步通过**（检查→下载 47,471,607 bytes→安装→重启，版本已变）
+
+**遗留**（后续批次）：B5 三家（msc/hapag/yangming）DOM 结果页解析（架构级）；A3 运行时被拦自动升级；P2 剩余按主题分批
