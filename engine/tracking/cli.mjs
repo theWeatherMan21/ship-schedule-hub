@@ -122,7 +122,14 @@ let result = null;
 try {
   const fn = await loadTracker(carrier);
   const timeoutMs = Number(process.env.SSH_TRACK_TIMEOUT_MS || args.timeout || 60000);
-  const r = await fn(number, { timeoutMs });
+  // 10-14 审阅 C4：截止兜底 —— 适配器内部各步骤各自吃 timeoutMs，多步骤相加最坏能挂十几分钟
+  // （hapag 实测最坏 ≈10-17 分钟）。给整次追踪加硬截止（默认 timeoutMs×4=4 分钟，SSH_TRACK_DEADLINE_MS 可覆盖）。
+  const deadlineMs = Number(process.env.SSH_TRACK_DEADLINE_MS || 0) || timeoutMs * 4;
+  const trackPromise = Promise.resolve(fn(number, { timeoutMs }));
+  const r = await Promise.race([
+    trackPromise,
+    new Promise((_, rej) => { const t = setTimeout(() => rej(new Error(`track deadline exceeded (${deadlineMs}ms)`)), deadlineMs); if (t.unref) t.unref(); }),
+  ]);
   result = normalizeTracking({ ...(r || {}), carrier: (r && r.carrier) || carrier, number: (r && r.number) || number });
 } catch (e) {
   result = { ok: false, carrier, number, error: String(e?.message || e).slice(0, 300) };
