@@ -165,7 +165,9 @@ export async function trackMsc(number, { timeoutMs = 60000, ctx = null } = {}) {
     const etaEv = [...allEvs].reverse().find((e) => e.isEta)
       || [...allEvs].reverse().find((e) => e.timeType === 'EXPECTED' && /arriv|discharge|deliver|available/i.test(e.activity))
       || null;
-    const eta = (containers.map((x) => x.eta).filter(Boolean).sort().pop()) || (etaEv && etaEv.time) || null;
+    const etaTime = (containers.map((x) => x.eta).filter(Boolean).sort().pop()) || (etaEv && etaEv.time) || null;
+    // 10-14 审阅 C5：统一为对象口径（曾给字符串 → 归一化层只认 r.eta?.time，站点 ETA 被静默丢弃显示 'ETA —'）
+    const eta = etaTime ? { time: etaTime, city: g.ShippedTo || '', terminal: '', activity: 'Estimated arrival', fromSite: true } : null;
     const delivered = containers.length > 0 && containers.every((x) => x.delivered);
     // 归一化层读 raw.status 做 siteStatus/phase —— 给它一个能翻译成人话的状态，
     // 别让它拿到"Empty received at CY"却判成 In Transit（已交付的柜子 phase 应为 Completed）

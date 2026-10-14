@@ -115,7 +115,10 @@ export function normalizeTracking(r) {
   // ETA：优先用网站自己给的「最终交付预计」（raw.containers[].eta_final_delivery），
   // 没有就取第一条「预计」性质的到港/交付事件。**绝不拿已发生的事件当 ETA。**
   let eta = null;
-  if (r.eta?.time) {
+  if (typeof r.eta === 'string' && r.eta) {
+    // 10-14 审阅 C5 防御：个别适配器曾给字符串 → 别再静默丢弃（口径应统一为对象，此处只兜底）
+    eta = { time: r.eta, city: '', terminal: '', activity: 'Estimated arrival', fromSite: false };
+  } else if (r.eta?.time) {
     eta = { ...r.eta, time: r.eta.time, fromSite: !!r.eta.fromSite };
   } else {
     const siteEta = raw?.containers?.find((c) => c.eta_final_delivery)?.eta_final_delivery;
