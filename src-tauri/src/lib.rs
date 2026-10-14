@@ -174,6 +174,62 @@ fn track_selftest() -> Option<String> {
     std::env::var("SSH_TRACK_SELFTEST").ok().map(|s| s.trim().to_string()).filter(|s| !s.is_empty())
 }
 
+// ---------- 更新检查兜底（10-14）----------
+// 匿名 GitHub API 常因**共享出口 IP**被限流（403 rate limit）；本机 gh 已登录 → 走凭据通道（5000 次/小时）。
+const UPDATE_REPO: &str = "theWeatherMan21/ship-schedule-hub";
+
+fn find_gh() -> Option<String> {
+    let mut cands: Vec<PathBuf> = Vec::new();
+    if let Ok(p) = std::env::var("SSH_GH_PATH") {
+        cands.push(PathBuf::from(p));
+    }
+    cands.push(PathBuf::from("/opt/homebrew/bin/gh"));
+    cands.push(PathBuf::from("/usr/local/bin/gh"));
+    if let Some(home) = std::env::var_os("HOME") {
+        cands.push(PathBuf::from(&home).join(".local/bin/gh"));
+    }
+    for c in cands {
+        if c.exists() {
+            return Some(c.to_string_lossy().to_string());
+        }
+    }
+    None
+}
+
+/// 更新检查兜底：本机 gh 凭据查 latest release → {ok, tag, url, body}
+#[tauri::command]
+async fn gh_check_update() -> serde_json::Value {
+    use serde_json::json;
+    let none = json!({ "ok": false });
+    let gh = match find_gh() {
+        Some(g) => g,
+        None => return none,
+    };
+    let out = std::process::Command::new(gh)
+        .args([
+            "api",
+            &format!("repos/{UPDATE_REPO}/releases/latest"),
+            "--jq",
+            "{tag: .tag_name, url: .html_url, body: .body}",
+        ])
+        .output();
+    match out {
+        Ok(o) if o.status.success() => {
+            let txt = String::from_utf8_lossy(&o.stdout).to_string();
+            match serde_json::from_str::<serde_json::Value>(txt.trim()) {
+                Ok(mut v) => {
+                    if let Some(m) = v.as_object_mut() {
+                        m.insert("ok".to_string(), json!(true));
+                    }
+                    v
+                }
+                Err(_) => none,
+            }
+        }
+        _ => none,
+    }
+}
+
 fn find_node(app: Option<&AppHandle>) -> String {
     // ① 显式指定
     if let Ok(p) = std::env::var("SSH_NODE_PATH") {
@@ -918,7 +974,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass])
+        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

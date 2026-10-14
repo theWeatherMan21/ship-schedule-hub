@@ -1250,14 +1250,31 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
           return;
         }
       }
-      // ② 匿名查公开 release（含更新简介 body）
-      const r = await fetch(API, { headers: { accept: 'application/vnd.github+json' } });
-      if (!r.ok) { if (manual) toast('检查更新失败（网络或被限流），稍后再试'); return; }
-      const j = await r.json();
-      const latest = String(j.tag_name || '').replace(/^v/, '');
-      if (!latest) { if (manual) toast('检查更新失败：响应异常'); return; }
+      // ② 先匿名查公开 release；失败（尤其 403 共享 IP 限流）→ 用本机 gh 凭据兜底
+      let latest = '', notes = '', url = '';
+      let viaGh = false;
+      let r = null;
+      try { r = await fetch(API, { headers: { accept: 'application/vnd.github+json' } }); } catch { /* 走兜底 */ }
+      if (r && r.ok) {
+        const j = await r.json();
+        latest = String(j.tag_name || '').replace(/^v/, '');
+        notes = j.body || j.name || '';
+        url = j.html_url || REPO_URL;
+      } else {
+        const g = await invoke('gh_check_update', {}).catch(() => null);
+        if (g && g.ok && g.tag) {
+          latest = String(g.tag).replace(/^v/, '');
+          notes = g.body || '';
+          url = g.url || REPO_URL;
+          viaGh = true;
+        } else {
+          if (manual) toast(r ? `检查更新失败：HTTP ${r.status}${r.status === 403 ? '（共享出口 IP 被 GitHub 限流，约 1 小时后恢复）' : ''}` : '检查更新失败：网络不可达');
+          return;
+        }
+      }
+      if (!latest) { if (manual) toast('检查更新失败：响应里没有版本号'); return; }
       const hasUpdate = isNewer(latest, __APP_VERSION__);
-      const info = { latest, hasUpdate, url: j.html_url || REPO_URL, notes: j.body || j.name || '' };
+      const info = { latest, hasUpdate, url: url || REPO_URL, notes: notes || '' };
       try { localStorage.setItem(STATE_KEY, JSON.stringify({ ts: Date.now(), ...info })); } catch { /* 忽略 */ }
       if (!hasUpdate) {
         if (manual) toast(`已是最新版本（v${__APP_VERSION__}）`);
@@ -1266,7 +1283,7 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
       try { if (localStorage.getItem(SKIP_KEY) === latest) return; } catch { /* 忽略 */ }
       showUpdateDialog(info);
     } catch (e) {
-      if (manual) toast('检查更新失败（离线或网络异常）');
+      if (manual) toast('检查更新失败：' + String((e && (e.message || e)) || 'unknown').slice(0, 90));
     }
   }
 
