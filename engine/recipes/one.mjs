@@ -23,7 +23,7 @@ export default {
   entry: 'https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule',
   urls: ['https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule', 'https://ecomm.one-line.com/'],
   fallbackNote: '船期入口未确认时仅打开页面（suggest API + 带名深链已验证：Total 2 results）',
-  timeoutMs: 140000,
+  timeoutMs: 60000,  // 10-14 拍板：应用层统一 60s 上限（本值须与之一致）
   async run(page, q, H) {
     await H.dismissCookies(page);
     if (await H.isBlockPage(page)) await H.waitThroughChallenge(page, 12000);

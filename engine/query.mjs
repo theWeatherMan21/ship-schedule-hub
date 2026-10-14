@@ -146,7 +146,17 @@ if (args.carriers === undefined || args.carriers === null) {
 }
 const windowMode = args.window || 'minimized'; // minimized(默认静默) | offscreen | onscreen
 const perCarrier = Number(args['per-carrier-timeout'] || 60000);
+// 10-14 审阅 A2：数值参数 fail fast（事故面：--batch 0/-1 主循环永不前进=死循环；--batch abc=NaN 静默丢全部浏览器船司；
+// timeout 非法=withTimeout 立即 reject。照 9-30 校验模式补）。
+if (!Number.isFinite(perCarrier) || perCarrier <= 0) {
+  console.error(JSON.stringify({ type: 'engine-error', msg: `Invalid --per-carrier-timeout (got ${JSON.stringify(args['per-carrier-timeout'])}): must be a positive number of ms` }));
+  process.exit(2);
+}
 const batchSize = Number(args.batch || 1);
+if (!Number.isInteger(batchSize) || batchSize < 1) {
+  console.error(JSON.stringify({ type: 'engine-error', msg: `Invalid --batch (got ${JSON.stringify(args.batch)}): must be a positive integer` }));
+  process.exit(2);
+}
 // 9-30 加固：origin/destination 必须是非空字符串。事故：CLI 参数被 shell 传成布尔/空值时，
 // 垃圾输入会一路走到港口解析（甚至静默查成别的港口）。这里 fail fast，给一句可读的错。
 for (const [k, v] of [['origin', args.origin], ['destination', args.destination]]) {
@@ -178,7 +188,7 @@ for (const [k, v] of [['origin', args.origin], ['destination', args.destination]
 }
 // 串行时复用同一个标签页：newPage() 会把最小化的窗口唤醒成 normal，
 // 复用单页则全程 minimized（有头真指纹 + 屏幕不可见，婉宜 9-23 实测）
-const reusePage = batchSize === 1;      // 红线：每批 ≤3；默认 1（串行）最稳——并发抖动实测（婉宜 9-22）
+const reusePage = batchSize === 1;      // 10-14 拍板：并发无红线，按需求传（App 默认 12）；批量=1 时复用页面最稳
 const keepOpen = !!args['keep-open'];
 const reveal = !!args.reveal;
 const noShots = !!args['no-shots'];
@@ -477,6 +487,7 @@ export async function runCarrier(ctx, carrier) {
       for (let k = 1; k <= attempts; k++) {
         try {
           // 爹地 10-09：短超时撤销 —— 一律给足 60 秒（早放弃反而像"查不到"）
+          // 10-14 拍板：60s 目前足够（应用层统一上限；配方声明的 timeoutMs 已同步为 60000，声明=生效）
           const tmo = Math.min(carrier.timeoutMs || perCarrier, 60000);
           const r = await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), tmo, `Recipe timeout (${tmo}ms)`);
           res.status = 'prefilled';
