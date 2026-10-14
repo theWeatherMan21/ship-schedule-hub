@@ -84,9 +84,11 @@ jobs:
         include:
           - target: aarch64-apple-darwin
             nodearch: arm64
+            arch: aarch64
             name: mac-arm64
           - target: x86_64-apple-darwin
             nodearch: x64
+            arch: x64
             name: mac-intel
     steps:
       - name: 取代码
@@ -135,8 +137,8 @@ jobs:
           cd "src-tauri/target/${{ matrix.target }}/release/bundle/macos"
           V=$(node -p "require('/Users/runner/work/ship-schedule-hub/ship-schedule-hub/package.json').version" 2>/dev/null || echo "0.0.0")
           if [ -f ShipScheduleHub.app.tar.gz ]; then
-            cp ShipScheduleHub.app.tar.gz "ShipScheduleHub_${V}_${{ matrix.nodearch }}.app.tar.gz"
-            cp ShipScheduleHub.app.tar.gz.sig "ShipScheduleHub_${V}_${{ matrix.nodearch }}.app.tar.gz.sig"
+            cp ShipScheduleHub.app.tar.gz "ShipScheduleHub_${V}_${{ matrix.arch }}.app.tar.gz"
+            cp ShipScheduleHub.app.tar.gz.sig "ShipScheduleHub_${V}_${{ matrix.arch }}.app.tar.gz.sig"
           fi
           ls -lh
 
@@ -202,7 +204,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/*
+            dist/**/*.dmg
+            dist/**/*.exe
+            dist/**/*.sig
+            dist/**/*.app.tar.gz
             latest.json
           generate_release_notes: true
           body: |
