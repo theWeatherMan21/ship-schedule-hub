@@ -2,7 +2,7 @@
 
 > 卡片：`【提单追踪】单号识别器 · SCAC 前缀路由表 + 兜底`（kanban t_e66aa5a1）
 > 落地：`engine/tracking/identify.mjs`（单一事实来源）+ `engine/tracking/prefixes.json`（机器可读导出）
-> 测试：`qa/track-identify-test.mjs`（95 条断言）· 演示：`qa/track-who.mjs`
+> 测试：`qa/track-identify-test.mjs`（108 条断言）· 演示：`qa/track-who.mjs`
 
 ## 一句话
 
@@ -21,12 +21,12 @@
 | 船司 | 提单前缀 SCAC | 箱主码（部分） | 追踪适配器 |
 |---|---|---|---|
 | Maersk 马士基 | MAEU（+9 位纯数字） | MSKU MRKU MRSU MIEU MNBU SEAU PONU | **live** |
-| MSC 地中海 | MSCU MEDU | MSCU MEDU MSDU MSMU MSNU MSPU MSYU GTIU | planned |
-| Hapag-Lloyd 赫伯罗特 | HLCU HLUS HPET（+8 位纯数字订舱） | HLCU HLXU HLBU UACU UAEU HAMU | planned |
-| COSCO 中远海运 | COSU COAU COEU | CSNU CBHU CCLU CSLU | planned |
-| HMM 现代商船 | HDMU HMMU | HDMU HMMU | planned |
-| ONE 海洋网联 | ONEY | ONEU MOAU NYKU KKFU KKTU KLFU | planned |
-| ZIM 以星 | ZIMU | ZIMU ZCSU ZMOU | planned |
+| MSC 地中海 | MSCU MEDU | MSCU MEDU MSDU MSMU MSNU MSPU MSYU GTIU | live |
+| Hapag-Lloyd 赫伯罗特 | HLCU HLUS HPET（+8 位纯数字订舱） | HLCU HLXU HLBU UACU UAEU HAMU | live |
+| COSCO 中远海运 | COSU COAU COEU | CSNU CBHU CCLU CSLU | live |
+| HMM 现代商船 | HDMU HMMU | HDMU HMMU | live |
+| ONE 海洋网联 | ONEY | ONEU MOAU NYKU KKFU KKTU KLFU | live |
+| ZIM 以星 | ZIMU | ZIMU ZCSU ZMOU | live |
 | CMA CGM 达飞 | CMDU | CMAU CGMU ECMU APZU APHU CNCU | none |
 | Evergreen 长荣 | EGLV | EGHU EGSU EMCU EISU EITU EGMU EVGU EMEU IMTU LTIU UGMU HMCU | none |
 | OOCL 东方海外 | OOLU | OOLU OOCU | none |
@@ -60,7 +60,7 @@
 
 ```bash
 node qa/track-who.mjs COSU6469105960 HLCU2B9E986E7C5E M237055674   # 直接看归属/候选
-node qa/track-identify-test.mjs                                    # 回归（95 条）
+node qa/track-identify-test.mjs                                    # 回归（108 条）
 node qa/track-identify-test.mjs --sync                             # 改表后重建 prefixes.json
 ```
 
