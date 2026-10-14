@@ -1248,6 +1248,8 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
             }
           });
           ptxt.textContent = '安装完成，正在重启…';
+          // 更新成功 → 清掉检查状态（重启后不会再提示同一个版本）
+          try { localStorage.removeItem(STATE_KEY); localStorage.removeItem(SKIP_KEY); } catch { /* 忽略 */ }
           // 优先自实现（无 ACL 依赖）；失败再退插件版
           try { await invoke('restart_app'); }
           catch { const { relaunch } = await import('@tauri-apps/plugin-process'); await relaunch(); }
@@ -1300,10 +1302,17 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
         try { st = JSON.parse(localStorage.getItem(STATE_KEY) || 'null'); } catch { /* 忽略 */ }
         if (st && st.ts && Date.now() - st.ts < DAY) {
           if (st.hasUpdate && st.latest) {
+            // 关键：缓存是「上次检查时」的判断；App 可能已经更新过了
+            // → 用当前实际版本重新判定一次，避免「更新完还提示同一个版本」
+            if (!isNewer(st.latest, __APP_VERSION__)) {
+              try { localStorage.removeItem(STATE_KEY); } catch { /* 忽略 */ }
+              return;
+            }
             try { if (localStorage.getItem(SKIP_KEY) === st.latest) return; } catch { /* 忽略 */ }
             // 缓存命中：仍要拿到 updater 对象才能 App 内更新
             const upd = await tauriCheck();
-            showUpdateDialog({ ...st, _upd: upd });
+            // upd 可能是 null（网络抖动）；此时退回用缓存展示，但 current 用实时版本
+            showUpdateDialog({ ...st, current: __APP_VERSION__, _upd: upd });
           }
           return;
         }
