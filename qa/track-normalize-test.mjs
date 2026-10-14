@@ -31,4 +31,32 @@ const nYm = normalizeTracking(rawYm);
 assert.equal(nYm.phase, 'Completed', 'YM empty return means completed');
 assert.equal(nYm.current.activity, 'Gate In Of Empty Equipment By Truck At Depot', 'YM current stays last actual');
 
+
+// ── 10-14 审阅 P0-2 回归：全 EXPECTED（无任何 ACTUAL）时 current 必须为 null ──
+// 场景：新订舱/仅计划事件的票 —— 之前会把未来的预计事件标成「当前位置」显示在 UI 主行
+const rawAllExpected = {
+  ok: true, carrier: 'test', number: 'PLAN1',
+  containers: [{ num: 'TCLU3054360', status: 'PLANNED' }],
+  events: [
+    { time: '2026-11-26T06:00:00.000', activity: 'Container Arrival', city: 'GDANSK', timeType: 'EXPECTED', container: 'TCLU3054360' },
+    { time: '2026-11-30T06:00:00.000', activity: 'Container Delivery', city: 'GDANSK', timeType: 'EXPECTED', container: 'TCLU3054360' },
+  ],
+};
+const nAllExp = normalizeTracking(rawAllExpected);
+assert.equal(nAllExp.current, null, 'P0-2: 全 EXPECTED 时 current 必须为 null（不得拿预计事件当现状）');
+assert.equal(nAllExp.events.some((e) => e.isCurrent), false, 'P0-2: 任何 EXPECTED 事件都不得被标 isCurrent');
+
+// 对照：有 ACTUAL 时仍取最后一条 ACTUAL（回归保护，防修过头）
+const rawMixed = {
+  ok: true, carrier: 'test', number: 'MIX1',
+  containers: [{ num: 'TCLU3054360', status: '' }],
+  events: [
+    { time: '2026-11-01T06:00:00.000', activity: 'Discharged', city: 'GDANSK', timeType: 'ACTUAL', container: 'TCLU3054360' },
+    { time: '2026-11-30T06:00:00.000', activity: 'Delivery', city: 'GDANSK', timeType: 'EXPECTED', container: 'TCLU3054360' },
+  ],
+};
+const nMixed = normalizeTracking(rawMixed);
+assert.equal(nMixed.current.activity, 'Discharged', 'P0-2 对照：有 ACTUAL 时 current 仍是最后 ACTUAL');
+assert.equal(nMixed.current.timeType, 'ACTUAL', 'P0-2 对照：current 的 timeType 必须为 ACTUAL');
+
 console.log('tracking normalize regression tests passed');
