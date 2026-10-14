@@ -193,7 +193,7 @@ async function runFlow(ctx, { num, mode, timeoutMs }) {
       const nonEmpty = (r.cells || []).filter(Boolean);
       if (nonEmpty.length >= 3) { rec.status = nonEmpty[nonEmpty.length - 3] || ''; rec.place = nonEmpty[nonEmpty.length - 1] || ''; }
 
-      if (r.detailsBtnId && i === 0) {   // v1：详情抓第一箱（多箱时其余先列号，后续可扩）
+      if (r.detailsBtnId && i < 6) {     // 10-14 提升：详情抓前 6 箱（普通票 1-4 箱全覆盖；>6 箱的极端票其余仅列号，防单票拖爆）
         let detailed = false;
         for (let attempt = 1; attempt <= 3 && !detailed; attempt++) {
           if (attempt > 1) {
