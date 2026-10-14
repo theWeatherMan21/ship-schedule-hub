@@ -1001,3 +1001,21 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 
 **版本线**：1.4.0（截单）→ 1.4.1（检查更新按钮）→ 1.4.2（验证用）→ 1.4.3（updater 基线）→ 1.4.4（App 内更新可见）→ 1.4.5（修重启）→ 1.4.6（自检通过基线）→ **1.4.7（当前 latest）**
 **本机状态**：`/Applications` = 1.4.6（干净基线，等待爹地验证 1.4.6→1.4.7）
+
+## 2026-10-14 续 · 更新体验三个 bug（爹地逐个实测报出）
+
+**① 「检查更新」点了没反应** —— `open_external` 有域名白名单（只放行维运网），GitHub 地址被**静默拒绝**，且前端 `.catch(() => {})` 吞了错误。
+修：白名单加本项目 GitHub 域名 + 失败路径给出可见提示。
+
+**② 更新完安装成功但没重启** —— `@tauri-apps/plugin-process` 的 `relaunch()` 需要 `process:*` ACL 权限，未配报 `Command plugin:process|restart not allowed by ACL`。
+修：改用核心 API `app.restart()`（零权限依赖），另加 Rust `restart_app` command。
+
+**③ 更新完还提示「发现新版本 vX」（与当前版本相同）** —— **检查结果缓存 24h**；更新到新版本后缓存未失效，启动时直接拿旧 `hasUpdate` 弹窗。
+修：缓存命中路径用**当前实际版本**重新判定（不再新则清缓存不弹）+ 更新安装成功后清 `STATE_KEY`/`SKIP_KEY`。
+单测补「缓存陈旧」场景 → update-check **11/0**。
+
+**④ 下载慢（国内直连 GitHub 被限速到 ~13 KB/s）** —— 实测 6 家镜像：`gh-proxy.com` 3+ MB/s 最快（另外 3 家连不上）。
+修：CI 生成的 `latest.json` 里包地址加镜像前缀；updater `endpoints` 镜像优先 + GitHub 兜底。签名校验不受影响（镜像只转发字节）。
+
+**交付前自检机制（本轮沉淀，已入技能）**：`SSH_UPDATE_SELFTEST=1|full` 环境变量 → 真实 App 进程内跑 检查→下载→安装→重启，窗口自动隐藏、逐步写日志后退出。跑法：复制 `.app` 到 `/private/tmp/`（不能 `/tmp`，symlink 会被 updater 拒）+ 改三处版本号造旧版本。本轮每个版本都这样验过才交付。
+**版本线**：… → 1.4.7 → 1.4.8（镜像）→ **1.4.9（修重复提示；本机与远端均在此版本）**
