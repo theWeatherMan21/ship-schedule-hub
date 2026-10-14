@@ -161,7 +161,10 @@ export default {
       const etd = stamp(r.etdRaw, Date.now());
       const eta = stamp(r.etaRaw, etd ? Date.parse(etd + 'T00:00:00Z') : Date.now());
       return {
-        vessel: r.vessel, voyage: r.voyage, etd, eta, transitDays: r.days, via: '', direct: true,
+        // 10-14 审阅 B4：页面行只含 from/etd/to/eta/days/vessel——无中转字段可解析。
+        // 曾硬编码 direct:true（把未知宣称成直达）；改 null = 未知，UI 不显示徽章（诚实降级）。
+        // 若未来解析器能从行内提取 Direct/Transship 字样，再改回三值解析。
+        vessel: r.vessel, voyage: r.voyage, etd, eta, transitDays: r.days, via: '', direct: null,
         detail: Object.keys(r.cutoffs || {}).length
           ? { service: '', routing: 'Direct', co2: '', legs: [], cutoffs: r.cutoffs }
           : undefined,

@@ -401,9 +401,11 @@ function etdKey(s) {
 
 function scheduleRowHTML(r, accent) {
   const q = lastQuery || { origin: '', destination: '' };
-  const pill = r.direct
+  const pill = r.direct === true
     ? '<span class="pill direct">Direct</span>'
-    : `<span class="pill trans">转${r.via ? ' ' + r.via : ''}</span>`;
+    : r.direct === false
+      ? `<span class="pill trans">转${r.via ? ' ' + r.via : ''}</span>`
+      : '';  // null/undefined = 未知（页面未提供中转信息）→ 不显示徽章，不猜测
   const det = r.detail || null;
   const cuts = det ? Object.entries(det.cutoffs || {}) : [];
   const hasDet = !!(det && ((det.legs || []).length || cuts.length));
