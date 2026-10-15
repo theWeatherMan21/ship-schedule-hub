@@ -1051,3 +1051,31 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 **(A)** 本地 `ditto` 部署到 `/Applications`（即时能看到，但会绕过 updater 的版本叙事）；
 **(B)** 版本升到 v1.5.1 → CI 三平台发布 → 爹地点「检查更新」验收（沿用 1.4.9→1.5.0 那条已验证的路）。
 当前 local build 的 `dist/` 已是批次二源码；`/Applications` 未改动。
+
+## 2026-10-15 · 更新下载 403 事故 + 多镜像兜底（v1.5.1，已发布并装机）
+
+**爹地实报**：弹窗「发现新版本 v1.5.0 / 当前版本 v1.4.9」→ 点更新 **`Download request failed with status: 403 Forbidden`**。
+
+**根因（当场实测复现，不是代码 bug）**：`gh-proxy.com` 对项目**全部**资源整体 403
+（`Access to this resource is forbidden.`，连 `latest.json` 都拿不到）；而 GitHub 直连在国内超时 →
+App 原本 endpoints = [gh-proxy 优先, GitHub 兜底]，**两条链路同时死** → 下载必 403。
+（自检当时能通过，只是因为那一刻镜像还活着 —— **单镜像押注把风险留到了用户点更新的那一秒**。）
+
+**修法（结构，不是换一家继续单点）**：
+- CI 每次发版生成**3 份清单**：`latest.json`（GitHub 原始）/ `latest-ghfast.json` / `latest-ghproxy.json`，
+  每份把包地址写成**自己**镜像的前缀（所有镜像转发的是同一份文件，清单里写死别家前缀会照样失败）
+- App `endpoints` 依次兜底：`ghfast.top` → `ghproxy.net` → GitHub 原始
+- 踩点实测（10-15）：ghfast.top 206 ✅ / ghproxy.net 206 ✅ / gh-proxy 403 ❌ / gitproxy.click 302
+
+**发布与装机**：
+- CI 首跑失败（我改脚本时漏 `import os` → `NameError`），tag 未产出资产 → 按纪律删 tag → 修 → 重打同名 tag
+- 第二次 CI **success**，资产齐（3 份清单 + 2 dmg + 2 tar.gz + exe + sig）
+- **旧版 endpoints 已编译进二进制、指向死镜像 → 自动更新永远走不通** ⇒ 手动装给爹地：
+  从 `ghfast.top` 下载 45.2MB（4.2 MB/s）→ `ditto` 进 `/Applications`（旧版备份 `ShipScheduleHub.app.bak-1.4.9`）
+  → `xattr -dr` → ad-hoc 重签 → 清 WebKit LocalStorage 检查节流
+- **交付前自检**：1.5.1 本体跑 `SSH_UPDATE_SELFTEST=1` → 「① 检查成功：当前已是最新版」✓（走新镜像读到清单）；
+  三条 endpoints 实测全 302 可达；二进制内 `ghfast.top` 存在；屏幕窗口/残留进程 **0**
+
+**版本线**：… → 1.5.0（审阅修复批次一）→ **1.5.1（多镜像兜底 + 批次二 P2 九项，10-15 发布并已装本机）**
+**本机状态**：`/Applications` = **1.5.1**（三态对齐：本机/源码/远端 latest 全 1.5.1，git `0 0`）
+**顺手清理**：`/Applications` 里 20 个调试残留 `ShipScheduleHub.app.tmp-*`（约 1.5G）已删
