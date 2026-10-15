@@ -28,6 +28,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { launch, launchHeadedQuiet, sleep, EVIDENCE_DIR } from '../browser.mjs';
 
+// 10-15 爹地拍板：本家整次追踪的硬截止放宽到 400s（默认公式 timeoutMs×4=240s 常态撞线）。
+// 依据：CF 双模（无头→挑战→有头过盾→刷新凭证）流程实测 137s-480s+（Mac 137.6s 成功样本、
+// Windows 连续多次 >240s），这是站侧反爬流程的固有耗时，不是卡死。
+export const deadlineMs = 400000;
+
 export const BOOKING_URL = 'https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution-legacy.html';
 export const FIELD = { booking: 'tracing_by_booking_f:hl12', bl: 'tracing_by_booking_f:hl16', find: 'tracing_by_booking_f:hl18' };
 

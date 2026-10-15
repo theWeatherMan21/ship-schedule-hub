@@ -21,7 +21,7 @@ import { createHash } from 'node:crypto';
 import { EVIDENCE_DIR } from '../browser.mjs';
 import { pruneEvidence, keepFromEnv } from '../lib/reclaim.mjs';
 import { detectCarrier, describeShape, CARRIER_LABELS } from './detect.mjs';
-import { loadTracker, availableCarriers } from './registry.mjs';
+import { loadTracker, availableCarriers, computeDeadlineMs } from './registry.mjs';
 import { normalizeTracking } from './normalize.mjs';
 
 function parseArgs(argv) {
@@ -124,11 +124,17 @@ if (CACHE_TTL_MS > 0 && !args['no-cache']) {
 // ---------- 实查 ----------
 let result = null;
 try {
-  const fn = await loadTracker(carrier);
+  const { fn, deadlineMs: carrierDeadline } = await loadTracker(carrier);
   const timeoutMs = Number(process.env.SSH_TRACK_TIMEOUT_MS || args.timeout || 60000);
   // 10-14 审阅 C4：截止兜底 —— 适配器内部各步骤各自吃 timeoutMs，多步骤相加最坏能挂十几分钟
-  // （hapag 实测最坏 ≈10-17 分钟）。给整次追踪加硬截止（默认 timeoutMs×4=4 分钟，SSH_TRACK_DEADLINE_MS 可覆盖）。
-  const deadlineMs = Number(process.env.SSH_TRACK_DEADLINE_MS || 0) || timeoutMs * 4;
+  // （hapag 实测最坏 ≈10-17 分钟）。给整次追踪加硬截止。
+  // 10-15 爹地拍板：支持「按家放宽」——优先级 env(SSH_TRACK_DEADLINE_MS) > 适配器声明的
+  // deadlineMs（Hapag 自declare 400000：CF 双模流程常态 2-8 分钟） > timeoutMs×4=240s。
+  const deadlineMs = computeDeadlineMs({
+    envOverride: Number(process.env.SSH_TRACK_DEADLINE_MS || 0),
+    carrierDeadline,
+    timeoutMs,
+  });
   const trackPromise = Promise.resolve(fn(number, { timeoutMs }));
   const r = await Promise.race([
     trackPromise,
