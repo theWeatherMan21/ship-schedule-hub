@@ -281,6 +281,130 @@ fn log_cb(path: &str, msg: String) {
     let _ = std::io::stdout().flush();
 }
 
+// ---------- 更新残留自清（v1.5.7，爹地 2026-10-15 要求）----------
+// 背景：Tauri updater 把更新包下载到系统临时目录的 `ShipScheduleHub-<版本>-updater-<随机>`
+// 子目录，然后启动安装器；Windows 上安装器会先结束旧进程——旧进程里的「临时目录清理」
+// 代码根本不会执行，于是**每更新一次就在 TEMP 里留下一份 ~29MB 安装包副本且永不清理**
+// （实测：4 次更新 = 116MB。macOS 侧实测无残留）。
+//
+// 爹地红线：「每次更新以后要自动检查，但不要出现误判」→ 判定极度保守，
+// **只有全部满足**下列条件的目录才会被删除（任一不满足一律跳过）：
+//   ① 位于本进程的系统临时目录直下（std::env::temp_dir()；Windows=%TEMP%，macOS=$TMPDIR）
+//   ② 是**目录**（symlink_metadata 判定：不碰文件、不跟随符号链接）
+//   ③ 目录名逐段精确匹配 `ShipScheduleHub-<x.y.z>-updater-<纯字母数字随机串>`
+//      （含路径穿越字符（`.` `/` `\` 等）的名字直接判不匹配）
+//   ④ 目标版本 x.y.z **不高于**当前 App 版本（更高 = 未来版本，绝不碰）
+//   ⑤ 最后修改时间距今 **≥ 30 分钟**（正在进行/刚下载完的更新目录，一律留给下次启动）
+// 删除失败静默跳过；全程不 panic、不阻塞启动（后台线程）；结果写 update-cleanup.log。
+fn parse_updater_dir_version(name: &str) -> Option<(u64, u64, u64)> {
+    let rest = name.strip_prefix("ShipScheduleHub-")?;
+    let (ver, rand) = rest.split_once("-updater-")?;
+    if rand.is_empty() || rand.len() > 64 || !rand.chars().all(|c| c.is_ascii_alphanumeric()) {
+        return None;
+    }
+    let parts: Vec<&str> = ver.split('.').collect();
+    if parts.len() != 3 { return None; }
+    let mut nums = [0u64; 3];
+    for (i, p) in parts.iter().enumerate() {
+        if p.is_empty() || p.len() > 6 || !p.chars().all(|c| c.is_ascii_digit()) { return None; }
+        nums[i] = p.parse().ok()?;
+    }
+    Some((nums[0], nums[1], nums[2]))
+}
+
+fn current_app_version() -> (u64, u64, u64) {
+    let mut it = env!("CARGO_PKG_VERSION").split('.').map(|p| p.parse::<u64>().unwrap_or(0));
+    (it.next().unwrap_or(0), it.next().unwrap_or(0), it.next().unwrap_or(0))
+}
+
+/// 纯判定（便于单元测试）：目录名 + 距今年龄（秒）→ 是否应清理
+fn should_clean_updater_dir(name: &str, age_secs: u64) -> bool {
+    if age_secs < 1800 { return false; }                       // ⑤ 太新 → 绝不碰
+    match parse_updater_dir_version(name) {
+        Some(v) => v <= current_app_version(),                 // ③④ 名字合法且不高于当前版本
+        None => false,                                         // ③ 名字不合模式 → 绝不碰
+    }
+}
+
+fn update_cleanup_log_path() -> Option<std::path::PathBuf> {
+    let base = if cfg!(windows) {
+        std::env::var("LOCALAPPDATA").ok().map(|p| std::path::PathBuf::from(p).join("ShipScheduleHub"))
+    } else {
+        std::env::var("HOME").ok().map(|h| std::path::PathBuf::from(h).join("Library/Application Support/ShipScheduleHub"))
+    };
+    base.map(|d| {
+        let _ = std::fs::create_dir_all(&d);
+        d.join("update-cleanup.log")
+    })
+}
+
+fn dir_size_bytes(p: &std::path::Path) -> u64 {
+    let mut total = 0u64;
+    if let Ok(rd) = std::fs::read_dir(p) {
+        for e in rd.flatten() {
+            if let Ok(m) = e.metadata() {
+                if m.is_dir() { total += dir_size_bytes(&e.path()); } else { total += m.len(); }
+            }
+        }
+    }
+    total
+}
+
+/// 扫描 + 清理，返回 (删除数, 跳过数, 释放字节)
+fn cleanup_update_leftovers() -> (usize, usize, u64) {
+    let mut removed = 0usize;
+    let mut skipped = 0usize;
+    let mut freed = 0u64;
+    let tmp = std::env::temp_dir();
+    let entries = match std::fs::read_dir(&tmp) { Ok(e) => e, Err(_) => return (0, 0, 0) };
+    for ent in entries.flatten() {
+        let name = ent.file_name().to_string_lossy().to_string();
+        if !name.starts_with("ShipScheduleHub-") { continue; }
+        // ② 只目录，且不跟随符号链接（symlink_metadata）
+        let md = match std::fs::symlink_metadata(ent.path()) { Ok(m) => m, Err(_) => continue };
+        if !md.is_dir() { continue; }
+        let age = md.modified().ok()
+            .and_then(|m| std::time::SystemTime::now().duration_since(m).ok())
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        if !should_clean_updater_dir(&name, age) {
+            if parse_updater_dir_version(&name).is_some() { skipped += 1; }
+            continue;
+        }
+        let sz = dir_size_bytes(&ent.path());
+        if std::fs::remove_dir_all(ent.path()).is_ok() {
+            removed += 1;
+            freed += sz;
+        } else {
+            skipped += 1;   // 占用/权限问题 → 静默跳过，绝不影响启动
+        }
+    }
+    (removed, skipped, freed)
+}
+
+fn run_update_cleanup_background() {
+    std::thread::spawn(|| {
+        let (removed, skipped, freed) = cleanup_update_leftovers();
+        let mb = (freed as f64) / 1_048_576.0;
+        let ts = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        let msg = format!("[update-cleanup] ts={} 清理 {} 个 / 保留 {} 个 / 释放 {:.1} MB", ts, removed, skipped, mb);
+        if let Some(p) = update_cleanup_log_path() {
+            use std::io::Write;
+            // 覆盖写：只保留最近一次结果（防这个日志自己膨胀）
+            if let Ok(mut f) = std::fs::File::create(&p) {
+                let _ = writeln!(f, "{}", msg);
+            }
+        }
+        eprintln!("{}", msg);
+        if let Ok(lp) = std::env::var("SSH_UPDATE_SELFTEST_LOG") {
+            log_cb(&lp, format!("【更新残留自清】{}", msg));
+        }
+    });
+}
+
 fn chrono_like_now() -> String {
     std::process::Command::new("date")
         .output()
@@ -1082,6 +1206,10 @@ pub fn run() {
             if std::env::var("SSH_UPDATE_SELFTEST").is_ok() {
                 update_selftest_run(app.handle().clone());
             }
+            // 更新残留自清（v1.5.7）：每次启动后台扫一次系统临时目录，
+            // 清掉历史更新遗留的安装包副本（严格判定，详见 cleanup_update_leftovers 注释）
+            #[cfg(desktop)]
+            run_update_cleanup_background();
             // Windows 玻璃效果（婉宜 10-08，真机迭代三轮定稿）
             // 背景：config 的 windowEffects 写的是 macOS 材质名(hudWindow)，Windows 不认 → 必须运行时设。
             // 三档用 SSH_GLASS 切换（不重编即可 A/B）：
@@ -1147,7 +1275,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::{fix_root, normalize_path, strip_verbatim};
+    use super::{fix_root, normalize_path, strip_verbatim, parse_updater_dir_version, should_clean_updater_dir, current_app_version, cleanup_update_leftovers};
     use std::path::PathBuf;
 
     #[test]
@@ -1188,5 +1316,73 @@ mod tests {
         assert_eq!(fix_root(PathBuf::from("D:\\Apps\\X")), PathBuf::from("D:\\Apps\\X"));
         assert_eq!(fix_root(PathBuf::from("/usr/local/bin")), PathBuf::from("/usr/local/bin"));
         assert_eq!(fix_root(PathBuf::from("D:\\")), PathBuf::from("D:\\"));
+    }
+
+    // ---- 更新残留自清（v1.5.7）：「防误判」边界全覆盖 ----
+    #[test]
+    fn updater_dir_名字解析_严格匹配() {
+        assert_eq!(parse_updater_dir_version("ShipScheduleHub-1.5.5-updater-aB3xYz"), Some((1, 5, 5)));
+        assert_eq!(parse_updater_dir_version("ShipScheduleHub-1.5-updater-abc"), None);         // 版本段数不对
+        assert_eq!(parse_updater_dir_version("ShipScheduleHub-1.5.5-updater-"), None);         // 随机段为空
+        assert_eq!(parse_updater_dir_version("ShipScheduleHub-1.5.5-updater-a!b"), None);      // 非法字符
+        assert_eq!(parse_updater_dir_version("ShipScheduleHub-1.5.5-updater-../evil"), None);  // 路径穿越
+        assert_eq!(parse_updater_dir_version("ShipScheduleHub-1.5.5.6-updater-abc"), None);    // 四段版本
+        assert_eq!(parse_updater_dir_version("OtherApp-1.5.5-updater-abc"), None);             // 别家产品
+        assert_eq!(parse_updater_dir_version("ShipScheduleHub-notes"), None);                  // 完全不合模式
+        assert_eq!(parse_updater_dir_version("ShipScheduleHub-1.5.5-updater-abc-extra"), None); // 随机段多余横杠
+    }
+
+    #[test]
+    fn updater_清理_只删安全目标() {
+        let (a, b, c) = current_app_version();
+        let mk = |v: (u64, u64, u64)| format!("ShipScheduleHub-{}.{}.{}-updater-x7Kp2Q", v.0, v.1, v.2);
+        // 应删：旧版本残留 / 同版本但已过期（>30 分钟）
+        assert!(should_clean_updater_dir(&mk((a, b, c.saturating_sub(1))), 7200), "旧版本残留应删");
+        assert!(should_clean_updater_dir(&mk((a, b, c)), 7200), "同版本+已过期应删");
+        // 绝不删：未来版本（例如降级后留下的更高版本目录）
+        assert!(!should_clean_updater_dir(&mk((a, b, c + 1)), 7200), "未来版本绝不删");
+        // 绝不删：刚创建/正在进行中的更新
+        assert!(!should_clean_updater_dir(&mk((a, b, c)), 1799), "30 分钟内绝不删");
+        assert!(!should_clean_updater_dir(&mk((a, b, c)), 0), "全新目录绝不删");
+        // 30 分钟边界（>=1800 才删）
+        assert!(should_clean_updater_dir(&mk((a, b, c)), 1800), "恰达 30 分钟可删");
+        // 绝不删：非本产品 / 名称不合模式
+        assert!(!should_clean_updater_dir("OtherApp-1.0.0-updater-abc", 7200), "别家产品绝不删");
+        assert!(!should_clean_updater_dir("ShipScheduleHub-附件", 7200), "非更新目录绝不删");
+    }
+
+    /// 端到端：在真实临时目录造样本 → 跑真实清理 → 断言「不该删的一个都没删」→ 自清现场。
+    /// （「该删的能删」分支在 Windows 真机用 shell 造老目录验证——见发版验证流程）
+    #[test]
+    fn updater_清理_端到端_不误删() {
+        let tmp = std::env::temp_dir();
+        let (a, b, c) = current_app_version();
+        let samples: Vec<String> = vec![
+            format!("ShipScheduleHub-{a}.{b}.{c}-updater-E2ENEW1"),          // 当前版本但刚创建（<30 分钟）
+            format!("ShipScheduleHub-{a}.{b}.{}-updater-E2EFUT1", c + 1),    // 未来版本
+            "OtherApp-1.0.0-updater-E2EOTH1".to_string(),                    // 别家产品
+            "ShipScheduleHub-not-an-updater-dir".to_string(),                // 名字不合模式
+        ];
+        for s in &samples {
+            let p = tmp.join(s);
+            let _ = std::fs::remove_dir_all(&p);
+            std::fs::create_dir_all(&p).unwrap();
+            let _ = std::fs::write(p.join("payload.bin"), b"x");
+        }
+        // 同名「普通文件」（不是目录）——绝不能被当残留删除
+        let f = tmp.join(format!("ShipScheduleHub-{a}.{b}.{}-updater-E2EFILE", c.saturating_sub(1)));
+        let _ = std::fs::remove_file(&f);
+        std::fs::write(&f, b"not a dir").unwrap();
+
+        let _ = cleanup_update_leftovers();
+
+        for s in &samples {
+            assert!(tmp.join(s).is_dir(), "不该删的目录被删了: {s}");
+        }
+        assert!(f.exists(), "同名普通文件被删了");
+
+        // 自清现场
+        for s in &samples { let _ = std::fs::remove_dir_all(tmp.join(s)); }
+        let _ = std::fs::remove_file(&f);
     }
 }
