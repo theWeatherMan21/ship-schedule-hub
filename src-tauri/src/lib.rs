@@ -698,10 +698,28 @@ fn run_query(
     cmd.env_remove("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD");
     // 给引擎一个确定可用的临时目录（系统 TEMP 被指到盘符根等异常位置时的兜底）
     {
-        let tmp = project_root(Some(&app)).join("engine").join(".tmp");
-        let _ = std::fs::create_dir_all(&tmp);
-        let ts = tmp.display().to_string();
-        cmd.env("TMPDIR", &ts).env("TMP", &ts).env("TEMP", &ts);
+        // 10-15 Windows 审查 W-1/W-4：原实现把 tmp 建在**安装目录**（engine/.tmp）且
+        // `let _ =` 吞掉失败——非管理员 + per-machine 装 Program Files 时建不出来，
+        // TEMP/TMP/TMPDIR 仍被指到**不存在**的目录 → Playwright mkdtemp ENOENT →
+        // 浏览器类船司全灭（实测复现：0 条 + 引擎 exit 1，对照 14 条）。现改为：
+        // ① 优先数据目录（LOCALAPPDATA/ShipScheduleHub 或 ~/Library/Application Support/…），永远可写；
+        // ② 只有真的建成功才覆盖环境变量；建不出来就**不动**系统 TEMP（留系统默认，绝不指向死目录）。
+        let data_dir: Option<std::path::PathBuf> = if cfg!(windows) {
+            std::env::var("LOCALAPPDATA")
+                .ok()
+                .map(|p| std::path::PathBuf::from(p).join("ShipScheduleHub"))
+        } else {
+            std::env::var("HOME")
+                .ok()
+                .map(|h| std::path::PathBuf::from(h).join("Library/Application Support/ShipScheduleHub"))
+        };
+        if let Some(dd) = data_dir {
+            let tmp = dd.join(".tmp");
+            if std::fs::create_dir_all(&tmp).is_ok() {
+                let ts = tmp.display().to_string();
+                cmd.env("TMPDIR", &ts).env("TMP", &ts).env("TEMP", &ts);
+            }
+        }
     }
     // Windows：GUI 程序 spawn console 子进程会弹黑框 —— 必须加 CREATE_NO_WINDOW(0x0800_0000)
     #[cfg(windows)]
@@ -866,10 +884,28 @@ fn run_track(
     cmd.env_remove("PLAYWRIGHT_BROWSERS_PATH");
     cmd.env_remove("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD");
     {
-        let tmp = project_root(Some(&app)).join("engine").join(".tmp");
-        let _ = std::fs::create_dir_all(&tmp);
-        let ts = tmp.display().to_string();
-        cmd.env("TMPDIR", &ts).env("TMP", &ts).env("TEMP", &ts);
+        // 10-15 Windows 审查 W-1/W-4：原实现把 tmp 建在**安装目录**（engine/.tmp）且
+        // `let _ =` 吞掉失败——非管理员 + per-machine 装 Program Files 时建不出来，
+        // TEMP/TMP/TMPDIR 仍被指到**不存在**的目录 → Playwright mkdtemp ENOENT →
+        // 浏览器类船司全灭（实测复现：0 条 + 引擎 exit 1，对照 14 条）。现改为：
+        // ① 优先数据目录（LOCALAPPDATA/ShipScheduleHub 或 ~/Library/Application Support/…），永远可写；
+        // ② 只有真的建成功才覆盖环境变量；建不出来就**不动**系统 TEMP（留系统默认，绝不指向死目录）。
+        let data_dir: Option<std::path::PathBuf> = if cfg!(windows) {
+            std::env::var("LOCALAPPDATA")
+                .ok()
+                .map(|p| std::path::PathBuf::from(p).join("ShipScheduleHub"))
+        } else {
+            std::env::var("HOME")
+                .ok()
+                .map(|h| std::path::PathBuf::from(h).join("Library/Application Support/ShipScheduleHub"))
+        };
+        if let Some(dd) = data_dir {
+            let tmp = dd.join(".tmp");
+            if std::fs::create_dir_all(&tmp).is_ok() {
+                let ts = tmp.display().to_string();
+                cmd.env("TMPDIR", &ts).env("TMP", &ts).env("TEMP", &ts);
+            }
+        }
     }
     #[cfg(windows)]
     {

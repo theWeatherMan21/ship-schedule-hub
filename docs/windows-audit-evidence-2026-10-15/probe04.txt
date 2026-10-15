@@ -1,0 +1,227 @@
+﻿=== PROBE 04 ===
+time=2026-10-15T11:42:40
+
+--- process tree (all non-system procs, with parent + start) ---
+  pid=6392 ppid=7556 (sshd-session.exe) name=powershell.exe start=10/15/2026 11:41:55 cmd="c:\windows\system32\windowspowershell\v1.0\powershell.exe" -c "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Users\Administrator\ssh-probe\query.ps1"
+  pid=16016 ppid=6392 (powershell.exe) name=conhost.exe start=10/15/2026 11:41:55 cmd=\??\C:\Windows\system32\conhost.exe 0x4
+  pid=3596 ppid=6392 (powershell.exe) name=powershell.exe start=10/15/2026 11:41:55 cmd="C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Users\Administrator\ssh-probe\query.ps1
+  pid=16168 ppid=3596 (powershell.exe) name=node.exe start=10/15/2026 11:41:55 cmd="C:\Program Files\ShipScheduleHub\engine\node-bin\node.exe" "C:\Program Files\ShipScheduleHub\engine\query.mjs" --origin Ningbo --destination Istanbul --batch 12 --no-cache
+  pid=12676 ppid=11316 (sshd-session.exe) name=powershell.exe start=10/15/2026 11:42:40 cmd="c:\windows\system32\windowspowershell\v1.0\powershell.exe" -c "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Users\Administrator\ssh_review\probe04_who.ps1"
+  pid=11424 ppid=12676 (powershell.exe) name=conhost.exe start=10/15/2026 11:42:40 cmd=\??\C:\Windows\system32\conhost.exe 0x4
+  pid=10708 ppid=12676 (powershell.exe) name=powershell.exe start=10/15/2026 11:42:40 cmd="C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Users\Administrator\ssh_review\probe04_who.ps1
+
+--- ssh-probe dir ---
+  C:\Users\Administrator\ssh-probe\diag-log.txt 1886 2026-10-15T11:41:37
+  C:\Users\Administrator\ssh-probe\diag.ps1 2121 2026-10-15T11:41:24
+  C:\Users\Administrator\ssh-probe\install-log.txt 169 2026-10-15T11:41:09
+  C:\Users\Administrator\ssh-probe\install.ps1 1291 2026-10-15T11:41:01
+  C:\Users\Administrator\ssh-probe\query-log.txt 294 2026-10-15T11:41:55
+  C:\Users\Administrator\ssh-probe\query.ps1 1363 2026-10-15T11:41:55
+  C:\Users\Administrator\ssh-probe\recon-out.txt 1012 2026-10-15T11:40:08
+  C:\Users\Administrator\ssh-probe\recon.ps1 3749 2026-10-15T11:40:01
+  C:\Users\Administrator\ssh-probe\setup-151.exe 30379729 2026-10-15T11:40:45
+
+--- CONTENT: C:\Users\Administrator\ssh-probe\diag.ps1 ---
+  | 
+  | $ErrorActionPreference = 'Continue'
+  | $log = 'C:\Users\Administrator\ssh-probe\diag-log.txt'
+  | function W($s) { $s | Out-File $log -Append -Encoding UTF8 }
+  | 
+  | "=== 0. 清理旧日志 $(Get-Date -Format 'HH:mm:ss') ===" | Out-File $log -Encoding UTF8
+  | 
+  | $root = 'C:\Program Files\ShipScheduleHub'
+  | W "=== 1. 安装目录顶层 ==="
+  | Get-ChildItem $root -ErrorAction SilentlyContinue | ForEach-Object { W ($_.Name + $(if ($_.PSIsContainer) { '\' } else { '  ' + $_.Length })) }
+  | 
+  | W "=== 2. exe 版本 ==="
+  | $exe = Get-ChildItem $root -Filter '*.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
+  | if ($exe) { W ($exe.FullName + " => v" + $exe.VersionInfo.FileVersion) } else { W "未找到 exe" }
+  | 
+  | W "=== 3. engine 目录 ==="
+  | $eng = Join-Path $root 'engine'
+  | if (Test-Path $eng) {
+  |   W ("engine 存在")
+  |   $nb = Join-Path $eng 'node-bin\node.exe'
+  |   if (Test-Path $nb) { W ("node-bin: " + $nb); W ("node 版本: " + (& $nb --version 2>&1)) } else { W "内嵌 node: 无" }
+  |   W ("query.mjs: " + (Test-Path (Join-Path $eng 'query.mjs')))
+  |   W ("recipes 数量: " + (Get-ChildItem (Join-Path $eng 'recipes') -ErrorAction SilentlyContinue | Measure-Object).Count)
+  |   W ("tracking 数量: " + (Get-ChildItem (Join-Path $eng 'tracking') -ErrorAction SilentlyContinue | Measure-Object).Count)
+  |   $db = Join-Path $eng '..\db\ports.db'
+  |   W ("ports.db: " + (Test-Path $db) + $(if (Test-Path $db) { " (" + (Get-Item $db).Length + " bytes)" } else { "" }))
+  | } else { W "engine 目录不存在！" }
+  | 
+  | W "=== 4. 找 ports.db（全盘找相对位置） ==="
+  | Get-ChildItem $root -Recurse -Filter 'ports.db' -ErrorAction SilentlyContinue | ForEach-Object { W ($_.FullName + "  " + $_.Length) }
+  | 
+  | W "=== 5. 引擎诊断（node --diagnose） ==="
+  | if ((Test-Path $nb) -and (Test-Path (Join-Path $eng 'query.mjs'))) {
+  |   W ("工作目录: " + (Get-Location))
+  |   # 模拟 App 的调用方式（在什么 cwd 下）
+  |   $env:TEMP = "$env:LOCALAPPDATA\Temp"
+  |   $out = & $nb (Join-Path $eng 'query.mjs') '--diagnose' 2>&1 | Out-String
+  |   W $out
+  | } else { W "跳过（缺 node 或引擎）" }
+  | 
+  | "=== DONE ===" | Out-File $log -Append -Encoding UTF8
+  | Write-Host "OK"
+
+--- CONTENT: C:\Users\Administrator\ssh-probe\install.ps1 ---
+  | 
+  | $ErrorActionPreference = 'Continue'
+  | $log = 'C:\Users\Administrator\ssh-probe\install-log.txt'
+  | "=== 安装开始 $(Get-Date -Format 'HH:mm:ss') ===" | Out-File $log -Encoding UTF8
+  | if (-not (Test-Path 'C:\Users\Administrator\ssh-probe\setup-151.exe')) {
+  |   "缺少安装包" | Out-File $log -Append -Encoding UTF8
+  |   Write-Host "NO_PKG"; exit 1
+  | }
+  | $p = Start-Process -FilePath 'C:\Users\Administrator\ssh-probe\setup-151.exe' -ArgumentList '/S' -Wait -PassThru
+  | "NSIS 退出码: $($p.ExitCode)" | Out-File $log -Append -Encoding UTF8
+  | Start-Sleep 3
+  | $found = $false
+  | foreach ($x in @("$env:LOCALAPPDATA\Programs\ShipScheduleHub", "$env:ProgramFiles\ShipScheduleHub", "${env:ProgramFiles(x86)}\ShipScheduleHub", "$env:LOCALAPPDATA\ShipScheduleHub")) {
+  |   if (Test-Path $x) { "FOUND: $x" | Out-File $log -Append -Encoding UTF8; $found = $true }
+  | }
+  | if (-not $found) { "未找到安装目录！" | Out-File $log -Append -Encoding UTF8 }
+  | Get-ItemProperty 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match 'Ship' } | ForEach-Object { "Uninstall: $($_.DisplayName) | $($_.DisplayVersion) | $($_.InstallLocation)" | Out-File $log -Append -Encoding UTF8 }
+  | "=== DONE ===" | Out-File $log -Append -Encoding UTF8
+  | Write-Host "OK"
+
+--- CONTENT: C:\Users\Administrator\ssh-probe\query.ps1 ---
+  | 
+  | $ErrorActionPreference = 'Continue'
+  | $log = 'C:\Users\Administrator\ssh-probe\query-log.txt'
+  | function W($s) { $s | Out-File $log -Append -Encoding UTF8 }
+  | 
+  | "=== 会话状态 $(Get-Date -Format 'HH:mm:ss') ===" | Out-File $log -Encoding UTF8
+  | W ("查询用户: " + (query user 2>&1 | Out-String))
+  | 
+  | W "=== 引擎全量查询 Ningbo -> Istanbul（11 家，无头） ==="
+  | $node = 'C:\Program Files\ShipScheduleHub\engine\node-bin\node.exe'
+  | $engine = 'C:\Program Files\ShipScheduleHub\engine\query.mjs'
+  | $env:TEMP = "$env:LOCALAPPDATA\Temp"
+  | $sw = [System.Diagnostics.Stopwatch]::StartNew()
+  | $out = & $node $engine --origin Ningbo --destination Istanbul --batch 12 --no-cache 2>&1 | Out-String
+  | $sw.Stop()
+  | W ("耗时: " + [math]::Round($sw.Elapsed.TotalSeconds,1) + "s")
+  | # 只保留事件行（过滤 ExperimentalWarning 等）
+  | $lines = $out -split "`r?`n" | Where-Object { $_ -match '^\{' }
+  | W ("事件行数: " + $lines.Count)
+  | foreach ($l in $lines) {
+  |   try {
+  |     $j = $l | ConvertFrom-Json
+  |     if ($j.type -eq 'carrier-status') {
+  |       W ("[" + $j.carrier + "] status=" + $j.status + " 条数=" + $(if ($j.schedules) { $j.schedules.Count } else { 0 }))
+  |     } elseif ($j.type -eq 'summary' -or $j.type -eq 'engine-exit') {
+  |       W ($l.Substring(0, [Math]::Min(300, $l.Length)))
+  |     }
+  |   } catch { }
+  | }
+  | "=== DONE ===" | Out-File $log -Append -Encoding UTF8
+  | Write-Host "OK"
+
+--- CONTENT: C:\Users\Administrator\ssh-probe\recon.ps1 ---
+  | 
+  | $ErrorActionPreference = 'SilentlyContinue'
+  | $o = New-Object System.Collections.Generic.List[string]
+  | function L($s) { $o.Add([string]$s) }
+  | 
+  | L "=== 1. OS ==="
+  | L ("Caption : " + (Get-CimInstance Win32_OperatingSystem).Caption)
+  | L ("Version : " + (Get-CimInstance Win32_OperatingSystem).Version)
+  | L ("Arch    : " + $env:PROCESSOR_ARCHITECTURE)
+  | L ("User    : " + [System.Environment]::UserName)
+  | L ("IsAdmin : " + ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
+  | 
+  | L "=== 2. ShipScheduleHub 安装位置 ==="
+  | $cands = @()
+  | foreach ($root in @($env:LOCALAPPDATA + '\Programs', $env:ProgramFiles, ${env:ProgramFiles(x86)}, 'C:\', 'D:\')) {
+  |   $cands += Get-ChildItem -Path $root -Filter 'ShipScheduleHub*' -Directory -ErrorAction SilentlyContinue
+  | }
+  | if ($cands.Count -eq 0) { L "未找到 ShipScheduleHub 目录" } else { foreach ($c in $cands) { L $c.FullName } }
+  | 
+  | L "=== 3. 已安装程序（卸载注册表）==="
+  | $paths = @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*', 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*')
+  | foreach ($p in $paths) {
+  |   Get-ItemProperty $p -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -match 'Ship' } | ForEach-Object { L ($_.DisplayName + " | " + $_.DisplayVersion + " | " + $_.InstallLocation) }
+  | }
+  | 
+  | L "=== 4. exe 实际版本 ==="
+  | $exes = @()
+  | foreach ($c in $cands) { $exes += Get-ChildItem -Path $c.FullName -Recurse -Filter 'shipschedulehub.exe' -ErrorAction SilentlyContinue | Select-Object -First 2 }
+  | if ($exes.Count -eq 0) { L "未找到 exe" } else { foreach ($e in $exes) { L ($e.FullName + " => v" + $e.VersionInfo.FileVersion) } }
+  | 
+  | L "=== 5. 依赖（node/chrome/edge/WebView2）==="
+  | L ("node   : " + $(if (Get-Command node -ErrorAction SilentlyContinue) { (Get-Command node).Source } else { '无' }))
+  | $chrome = @("$env:ProgramFiles\Google\Chrome\Application\chrome.exe", "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe", "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+  | L ("chrome : " + $(if ($chrome) { $chrome } else { '无' }))
+  | $edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+  | L ("edge   : " + $(if ($edge) { $edge } else { '无' }))
+  | $wv = (Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}' -ErrorAction SilentlyContinue).pv
+  | if (-not $wv) { $wv = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}' -ErrorAction SilentlyContinue).pv }
+  | L ("WebView2: " + $(if ($wv) { $wv } else { '未装/未找到' }))
+  | 
+  | L "=== 6. 数据目录 ==="
+  | $dd = "$env:LOCALAPPDATA\com.ross.shipschedulehub"
+  | $dd2 = "$env:LOCALAPPDATA\ShipScheduleHub"
+  | foreach ($d in @($dd, $dd2)) { if (Test-Path $d) { L ("存在: " + $d) } else { L ("不存在: " + $d) } }
+  | $ev = "$env:APPDATA\ShipScheduleHub"
+  | if (Test-Path $ev) { L ("存在: " + $ev) }
+  | 
+  | L "=== 7. 当前进程 ==="
+  | Get-Process | Where-Object { $_.ProcessName -match 'ship|node|chrome|msedge' } | ForEach-Object { L ($_.ProcessName + " PID=" + $_.Id) }
+  | 
+  | L "=== 8. PATH / TEMP 健康 ==="
+  | L ("TEMP    : " + $env:TEMP)
+  | L ("TMP     : " + $env:TMP)
+  | L ("NODE_PATH: " + $(if ($env:NODE_PATH) { $env:NODE_PATH } else { '(空)' }))
+  | L ("NODE_OPTIONS: " + $(if ($env:NODE_OPTIONS) { $env:NODE_OPTIONS } else { '(空)' }))
+  | 
+  | $o | Out-File -FilePath 'C:\Users\Administrator\ssh-probe\recon-out.txt' -Encoding UTF8
+  | Write-Host "DONE"
+
+--- ssh_review dir ---
+  probe01.txt 7677 2026-10-15T11:41:27
+  probe01_env.ps1 6074 2026-10-15T11:41:22
+  probe02.txt 4276 2026-10-15T11:41:45
+  probe02_install.ps1 4139 2026-10-15T11:41:44
+  probe03.txt 10754 2026-10-15T11:42:20
+  probe03_why.ps1 3901 2026-10-15T11:42:17
+  probe04_who.ps1 3474 2026-10-15T11:42:40
+
+--- scheduled tasks (non-microsoft) ---
+  \MicrosoftEdgeUpdateTaskMachineCore state=Ready lastRun=10/15/2026 09:21:21 nextRun=10/16/2026 09:21:21 lastResult=0
+      action: C:\Program Files (x86)\Microsoft\EdgeUpdate\MicrosoftEdgeUpdate.exe /c
+  \MicrosoftEdgeUpdateTaskMachineUA state=Ready lastRun=10/15/2026 10:58:58 nextRun=10/15/2026 11:51:51 lastResult=0
+      action: C:\Program Files (x86)\Microsoft\EdgeUpdate\MicrosoftEdgeUpdate.exe /ua /installsource scheduler
+  \OneDrive Reporting Task-S-1-5-21-751843933-3971895492-4069867974-500 state=Ready lastRun=10/15/2026 09:56:56 nextRun=10/16/2026 09:56:56 lastResult=0
+      action: %localappdata%\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe /reporting
+  \OneDrive Standalone Update Task-S-1-5-21-751843933-3971895492-4069867974-500 state=Ready lastRun=11/30/1999 00:00:00 nextRun=10/16/2026 11:26:26 lastResult=267011
+      action: %localappdata%\Microsoft\OneDrive\OneDriveStandaloneUpdater.exe 
+  \OneDrive Startup Task-S-1-5-21-751843933-3971895492-4069867974-500 state=Ready lastRun=10/13/2026 08:55:55 nextRun= lastResult=0
+      action: C:\Users\Administrator\AppData\Local\Microsoft\OneDrive\26.183.0920.0005\OneDriveLauncher.exe /startInstances
+  \WpsUpdateLogonTask_Administrator state=Ready lastRun=10/15/2026 09:17:17 nextRun= lastResult=0
+      action: D:\Users\Administrator\AppData\Local\Kingsoft\WPS Office\ksolaunch.exe /wpsupdate -from=task -source=task
+  \WpsUpdateTask_Administrator state=Ready lastRun=10/15/2026 11:07:07 nextRun=10/15/2026 12:07:07 lastResult=0
+      action: D:\Users\Administrator\AppData\Local\Kingsoft\WPS Office\ksolaunch.exe /wpsupdate -from=task -source=task
+  \WpsWakeWnsLogonTask state=Ready lastRun=10/15/2026 08:56:56 nextRun= lastResult=0
+      action: "D:\Users\Administrator\AppData\Local\Kingsoft\WPS Office\\ksolaunch.exe" Run addons/kpluginwrapper/kpluginwrapper.dll run_plugin -plugin_name=kmessagepushcenter -dll_name=kmessagepushcenter wake_wns
+  \GoogleSystem\GoogleUpdater\GoogleUpdaterTaskSystem156.0.8067.0{25B3B5BD-94BC-47B6-9CF7-10E3BC915823} state=Ready lastRun=10/15/2026 11:08:08 nextRun=10/15/2026 12:08:08 lastResult=0
+      action: "C:\Program Files (x86)\Google\GoogleUpdater\156.0.8067.0\updater.exe" --wake --system
+  \GoogleUserPEH\RunPlatformExperienceHelper_Daily state=Ready lastRun=10/15/2026 09:10:10 nextRun=10/16/2026 09:12:12 lastResult=0
+      action: "C:\Program Files\Google\Chrome\Application\PlatformExperienceHelper\platform_experience_helper.exe" 
+  \GoogleUserPEH\RunPlatformExperienceHelper_Metrics state=Ready lastRun=07/13/2026 08:58:58 nextRun= lastResult=0
+      action: "C:\Program Files\Google\Chrome\Application\PlatformExperienceHelper\platform_experience_helper.exe" --chrome-upload-metrics
+
+--- schtasks CSV fallback (filter) ---
+
+--- Downloads / Desktop recent files ---
+
+--- evidence runs today ---
+  run-2026-10-15T03-41-56-439Z.ndjson 10861 lines=4 2026-10-15T11:41:59
+  run-2026-10-08T08-01-45-050Z.ndjson 91426 lines=14 2026-10-08T16:02:43
+  run-2026-10-08T07-37-10-956Z.ndjson 48802 lines=14 2026-10-08T15:40:21
+  run-2026-10-08T07-33-55-274Z.ndjson 79451 lines=14 2026-10-08T15:34:59
+  run-2026-10-08T07-28-53-856Z.ndjson 5088 lines=4 2026-10-08T15:29:08
+  run-2026-10-08T07-27-34-321Z.ndjson 4196 lines=4 2026-10-08T15:27:51
+  run-2026-10-08T07-20-27-238Z.ndjson 2882 lines=5 2026-10-08T15:22:25
+  run-2026-10-08T07-18-31-031Z.ndjson 2299 lines=4 2026-10-08T15:18:50

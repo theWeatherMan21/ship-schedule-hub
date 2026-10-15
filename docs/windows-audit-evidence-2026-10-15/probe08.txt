@@ -1,0 +1,43 @@
+﻿=== PROBE08 2026-10-15T11:59:19 ===
+baseline visible windows=13
+    196690|13316|Shell_TrayWnd|0,1040,1920,1080|
+    263552|13316|ApplicationFrameWindow|0,0,1920,1040|
+    131274|5852|ApplicationFrameWindow|40,32,1256,973|照片
+    196994|6360|Windows.UI.Core.CoreWindow|0,1,1200,933|照片
+    65890|13316|DummyDWMListenerWindow|0,0,0,0|
+    65882|13316|EdgeUiInputTopWndClass|15,0,1920,4|
+    65846|13316|DummyDWMListenerWindow|0,0,0,0|
+    65844|13316|DummyDWMListenerWindow|0,0,0,0|
+    131650|21780|Windows.UI.Core.CoreWindow|0,0,1920,1080|Microsoft Text Input Application
+    1442392|22488|Chrome_WidgetWin_1|-32000,-32000,-31840,-31972|QQ
+    66668|16976|TApplication|-32000,-32000,-31840,-31972|Foxmail
+    65796|13316|Progman|0,0,1920,1080|Program Manager
+    1115706|15100|SoPY_Status|1778,635,1928,785|
+launched pid=13560
+processes named shipschedulehub=1 (pids 13560)
+app hwnd=722686 rect=78,78,1374,917 窗口标题含 ShipScheduleHub 的可见窗口数=1
+  shot: C:\Users\Administrator\ssh_review\app-4-clean.png (1296x839)
+
+--- UIA ---
+  name=ShipScheduleHub — 船期聚合驾驶舱 class=Tauri Window
+  invoking 检查更新
+  update-related UIA text: 检查更新
+  shot: C:\Users\Administrator\ssh_review\app-5-update.png (1296x839)
+
+--- tray probe (Shell_TrayWnd descendants named like the app) ---
+  tray descendants=14  app-related=0 
+
+--- close behaviour (invoke window close pattern) ---
+  shipschedulehub processes after close: 0 (pids )
+  leftover chrome with app profile: 0
+
+--- restore host windows minimized during earlier probes (QQ / Foxmail) ---
+  restored hwnd=1442392 title=QQ newRect=427,176,1280,949
+  restored hwnd=66668 title=Foxmail newRect=960,540,960,540
+
+--- cleanup scheduled tasks ---
+  delete SSHREV05 -> 成功: 计划的任务 "SSHREV05" 被成功删除。
+  delete SSHREV06 -> 成功: 计划的任务 "SSHREV06" 被成功删除。
+  delete SSHREV07 -> 成功: 计划的任务 "SSHREV07" 被成功删除。
+SELF-PROOF: final visible=14 baseline=13 powershell visible windows=0
+=== PROBE08 DONE ===

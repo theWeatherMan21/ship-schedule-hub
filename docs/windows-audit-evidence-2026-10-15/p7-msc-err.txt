@@ -1,0 +1,8 @@
+[ports] 码形态别名 311 条（300 港）已加载
+[ports] 船司专属码头码 48 条已加载
+[chrome] 使用 system: C:\Program Files\Google\Chrome\Application\chrome.exe
+ϵͳ�Ҳ���ָ����·����
+(node:3180) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[chrome] 弹窗盾已装（拦截同意/推送 SDK）
+[fastpath] MSC 港口表 580 港已加载

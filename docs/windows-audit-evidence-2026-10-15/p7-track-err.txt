@@ -1,0 +1,3 @@
+[chrome] 使用 system: C:\Program Files\Google\Chrome\Application\chrome.exe
+ϵͳ�Ҳ���ָ����·����
+[chrome] 弹窗盾已装（拦截同意/推送 SDK）

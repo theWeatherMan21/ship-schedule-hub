@@ -1,0 +1,95 @@
+﻿=== PROBE 02 INSTALL INVENTORY ===
+time=2026-10-15T11:41:45
+
+--- C:\Program Files\ShipScheduleHub (top level) ---
+  db                                       <dir>  mtime=2026-10-15T11:41:02
+  engine                                   <dir>  mtime=2026-10-15T11:41:05
+  shipschedulehub.exe                      13212672  mtime=2026-10-15T10:09:56
+  uninstall.exe                            84951  mtime=2026-10-15T11:41:05
+
+--- exe version info ---
+  shipschedulehub.exe ProductVersion=1.5.1 FileVersion=1.5.1 Product=ShipScheduleHub size=13212672
+  uninstall.exe ProductVersion=1.5.1 FileVersion=1.5.1 Product=ShipScheduleHub size=84951
+
+--- resources tree (depth 3, dirs + file counts) ---
+  (no resources dir)
+
+--- engine files (top 2 levels) ---
+  ==C:\Program Files\ShipScheduleHub\engine
+    lib  <dir>
+    node-bin  <dir>
+    node_modules  <dir>
+    recipes  <dir>
+    tracking  <dir>
+    browser.mjs  19992
+    chrome.mjs  9110
+    fastpath.mjs  70998
+    package-lock.json  793
+    package.json  307
+    portdb.mjs  9887
+    query.mjs  52152
+    registry.mjs  1657
+    node-bin/node.exe 86973768
+
+--- bundled node --version ---
+  C:\Program Files\ShipScheduleHub\engine\node-bin\node.exe -> v22.23.3
+
+--- app data dir C:\Users\Administrator\AppData\Local\ShipScheduleHub ---
+  browser-profile <dir> mtime=2026-10-08T16:02:43
+  evidence <dir> mtime=2026-10-08T16:01:45
+  glass.log 47 mtime=2026-10-08T17:03:34
+
+--- glass.log tail 60 ---
+  | glass off锛堢獥鍙ｆ晥鏋滃叧闂?+ CSS 瀹炲簳锛?
+  glass.log size=47 lines=1
+
+--- evidence (recent 25) ---
+  \evidence\run-2026-10-08T08-01-45-050Z.ndjson 91426 2026-10-08T16:02:43
+  \evidence\cache\d08256db2a926589.json 85728 2026-10-08T16:02:43
+  \evidence\cma.png 55951 2026-10-08T16:02:43
+  \evidence\oocl.png 145974 2026-10-08T16:02:41
+  \evidence\hmm.png 69293 2026-10-08T16:02:17
+  \evidence\zim.png 848221 2026-10-08T16:02:14
+  \evidence\evergreen.png 122208 2026-10-08T16:02:09
+  \evidence\hapag.png 47959 2026-10-08T16:02:03
+  \evidence\cosco.png 188124 2026-10-08T16:02:02
+  \evidence\maersk.png 138453 2026-10-08T16:01:59
+  \evidence\msc.png 87356 2026-10-08T16:01:57
+  \evidence\run-2026-10-08T07-37-10-956Z.ndjson 48802 2026-10-08T15:40:21
+  \evidence\cache\4da8b241069a50ab.json 43753 2026-10-08T15:40:21
+  \evidence\cache <dir> 2026-10-08T15:40:21
+  \evidence\run-2026-10-08T07-33-55-274Z.ndjson 79451 2026-10-08T15:34:59
+  \evidence\cache\dd38a26169d9da42.json 73598 2026-10-08T15:34:59
+  \evidence\run-2026-10-08T07-28-53-856Z.ndjson 5088 2026-10-08T15:29:08
+  \evidence\cache\d6245263f400d9ea.json 4168 2026-10-08T15:29:08
+  \evidence\run-2026-10-08T07-27-34-321Z.ndjson 4196 2026-10-08T15:27:51
+  \evidence\cache\91d0916f9c5db56c.json 3268 2026-10-08T15:27:51
+  \evidence\cache\d4b52fe8a1bf93ea.json 1576 2026-10-08T15:22:25
+  \evidence\run-2026-10-08T07-20-27-238Z.ndjson 2882 2026-10-08T15:22:25
+  \evidence\run-2026-10-08T07-18-31-031Z.ndjson 2299 2026-10-08T15:18:50
+  \evidence\cache\aa79a7eb560d3b0d.json 1359 2026-10-08T15:18:50
+  \evidence\run-2026-10-08T07-17-33-548Z.ndjson 1688 2026-10-08T15:17:37
+
+--- browser-profile top ---
+  component_crx_cache mtime=2026-10-08T15:20:37
+  Crashpad mtime=2026-10-08T15:18:31
+  Default mtime=2026-10-08T16:02:43
+  extensions_crx_cache mtime=2026-10-08T15:18:50
+  GPUPersistentCache mtime=2026-10-08T15:18:31
+  GrShaderCache mtime=2026-10-08T15:39:17
+  OptimizationGuideModelsManifest mtime=2026-10-08T15:18:41
+  Safe Browsing mtime=2026-10-08T15:18:31
+  segmentation_platform mtime=2026-10-08T15:40:21
+  ShaderCache mtime=2026-10-08T15:18:31
+  BrowserMetrics-spare.pma mtime=2026-10-08T15:21:57
+  CrashpadMetrics-active.pma mtime=2026-10-08T16:01:46
+  CrashpadMetrics.pma mtime=2026-10-08T15:40:12
+  first_party_sets.db mtime=2026-10-08T16:02:43
+  first_party_sets.db-journal mtime=2026-10-08T16:02:43
+
+--- recent files under data dir (last 2h) ---
+
+--- Shortcut / start menu entries ---
+  C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\ShipScheduleHub.lnk exists=False
+  C:\ProgramData\Microsoft\Windows\Start Menu\Programs\ShipScheduleHub.lnk exists=True
+  C:\Users\Administrator\Desktop\ShipScheduleHub.lnk exists=False

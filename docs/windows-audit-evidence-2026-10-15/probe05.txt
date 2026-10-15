@@ -1,0 +1,102 @@
+﻿=== PROBE05 2026-10-15T11:48:46 ===
+user=Administrator interactive=True
+isAdmin(elevated)=True
+--- baseline windows (before any probe action) : total=279 visible=15
+    hwnd=459818 pid=16976 ex=0x90008 class=TNewMailNotifier.UnicodeClass rect=1610,970,1920,1040 title=
+    hwnd=196690 pid=13316 ex=0x88 class=Shell_TrayWnd rect=0,1040,1920,1080 title=
+    hwnd=66754 pid=16976 ex=0x10100 class=TFoxMainFrm.UnicodeClass rect=-8,-8,1928,1048 title=
+    hwnd=66668 pid=16976 ex=0x100 class=TApplication rect=960,540,960,540 title=Foxmail
+    hwnd=1442392 pid=22488 ex=0x100 class=Chrome_WidgetWin_1 rect=427,176,1280,949 title=QQ
+    hwnd=263552 pid=13316 ex=0x200100 class=ApplicationFrameWindow rect=0,0,1920,1040 title=
+    hwnd=131274 pid=5852 ex=0x200100 class=ApplicationFrameWindow rect=40,32,1256,973 title=照片
+    hwnd=196994 pid=6360 ex=0x200000 class=Windows.UI.Core.CoreWindow rect=0,1,1200,933 title=照片
+    hwnd=65890 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=65882 pid=13316 ex=0x8200080 class=EdgeUiInputTopWndClass rect=15,0,1920,4 title=
+    hwnd=65846 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=65844 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=131650 pid=21780 ex=0x200000 class=Windows.UI.Core.CoreWindow rect=0,0,1920,1080 title=Microsoft Text Input Application
+    hwnd=65796 pid=13316 ex=0x80 class=Progman rect=0,0,1920,1080 title=Program Manager
+    hwnd=198422 pid=20556 ex=0x8080088 class=SoPY_Status rect=1778,635,1928,785 title=
+
+--- .tmp dir the Rust spawn sets TEMP/TMP/TMPDIR to ---
+  exists=False
+  create: OK -> exists=True
+  write probe: OK
+  exeDir write probe: OK
+
+--- engine run (isolated profile, App-like TEMP) ---
+  cmd: node C:\Program Files\ShipScheduleHub\engine\query.mjs --origin Shanghai --destination Rotterdam --carriers one,yangming,msc,evergreen --batch 4 --no-cache
+  exit= duration=2.1s maxVisibleWindowsDuringRun=15
+  browser windows seen during run: 1
+    1442392|22488|1|100|Chrome_WidgetWin_1|427,176,1280,949|QQ
+  --- stderr (first 25 lines) ---
+    | node:internal/modules/cjs/loader:1433
+    |   throw err;
+    |   ^
+    | 
+    | Error: Cannot find module 'C:\Program'
+    |     at Function._resolveFilename (node:internal/modules/cjs/loader:1430:15)
+    |     at defaultResolveImpl (node:internal/modules/cjs/loader:1040:19)
+    |     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1045:22)
+    |     at Function._load (node:internal/modules/cjs/loader:1216:25)
+    |     at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    |     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+    |     at node:internal/main/run_main_module:36:49 {
+    |   code: 'MODULE_NOT_FOUND',
+    |   requireStack: []
+    | }
+    | 
+    | Node.js v22.23.3
+  --- carrier events ---
+
+--- tracking cli.mjs --number 276759780 (Maersk) ---
+  exit= duration=2s maxVisibleWindows=15
+    ERR| node:internal/modules/cjs/loader:1433
+    ERR|   throw err;
+    ERR|   ^
+    ERR| 
+    ERR| Error: Cannot find module 'C:\Program'
+    ERR|     at Function._resolveFilename (node:internal/modules/cjs/loader:1430:15)
+    ERR|     at defaultResolveImpl (node:internal/modules/cjs/loader:1040:19)
+    ERR|     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1045:22)
+
+--- update endpoints (Range 0-1023) ---
+  latest-ghfast    302 12.370184s 0B
+  latest-ghproxy   302 3.830663s 0B
+  latest-github    302 1.139714s 0B
+  exe-ghfast       206 6.026087s 1024B
+  exe-ghproxy      206 1.140588s 1024B
+  exe-github       302 0.744756s 0B
+
+--- api.github.com rate limit from this machine ---
+  rate_limit query failed
+
+--- leftover chrome with our profile ---
+  count=9
+    pid=16392 "C:\Program Files\Google\Chrome\Application\chrome.exe" --disable-field-trial-config --disable-background-networking --disable-background-ti
+    pid=9036 "C:\Program Files\Google\Chrome\Application\chrome.exe" --type=crashpad-handler --user-data-dir=C:\Users\Administrator\AppData\Local\ShipSch
+    pid=10212 "C:\Program Files\Google\Chrome\Application\chrome.exe" --type=utility --utility-sub-type=network.mojom.NetworkService --lang=zh-CN --servic
+    pid=19320 "C:\Program Files\Google\Chrome\Application\chrome.exe" --type=utility --utility-sub-type=storage.mojom.StorageService --lang=zh-CN --servic
+    pid=7972 "C:\Program Files\Google\Chrome\Application\chrome.exe" --type=renderer --top-chrome-webui --noerrdialogs --user-data-dir="C:\Users\Administ
+    pid=6108 "C:\Program Files\Google\Chrome\Application\chrome.exe" --type=renderer --noerrdialogs --user-data-dir="C:\Users\Administrator\AppData\Local
+    pid=20364 "C:\Program Files\Google\Chrome\Application\chrome.exe" --type=gpu-process --gpu-recent-crash-count=1 --no-sandbox --disable-breakpad --head
+    pid=10508 "C:\Program Files\Google\Chrome\Application\chrome.exe" --type=renderer --noerrdialogs --user-data-dir="C:\Users\Administrator\AppData\Local
+    pid=14704 "C:\Program Files\Google\Chrome\Application\chrome.exe" --type=renderer --noerrdialogs --user-data-dir="C:\Users\Administrator\AppData\Local
+--- final windows (after cleanup) : total=279 visible=15
+    hwnd=459818 pid=16976 ex=0x90008 class=TNewMailNotifier.UnicodeClass rect=1610,970,1920,1040 title=
+    hwnd=196690 pid=13316 ex=0x88 class=Shell_TrayWnd rect=0,1040,1920,1080 title=
+    hwnd=66754 pid=16976 ex=0x10100 class=TFoxMainFrm.UnicodeClass rect=-8,-8,1928,1048 title=
+    hwnd=66668 pid=16976 ex=0x100 class=TApplication rect=960,540,960,540 title=Foxmail
+    hwnd=1442392 pid=22488 ex=0x100 class=Chrome_WidgetWin_1 rect=427,176,1280,949 title=QQ
+    hwnd=263552 pid=13316 ex=0x200100 class=ApplicationFrameWindow rect=0,0,1920,1040 title=
+    hwnd=131274 pid=5852 ex=0x200100 class=ApplicationFrameWindow rect=40,32,1256,973 title=照片
+    hwnd=196994 pid=6360 ex=0x200000 class=Windows.UI.Core.CoreWindow rect=0,1,1200,933 title=照片
+    hwnd=65890 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=65882 pid=13316 ex=0x8200080 class=EdgeUiInputTopWndClass rect=15,0,1920,4 title=
+    hwnd=65846 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=65844 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=131650 pid=21780 ex=0x200000 class=Windows.UI.Core.CoreWindow rect=0,0,1920,1080 title=Microsoft Text Input Application
+    hwnd=65796 pid=13316 ex=0x80 class=Progman rect=0,0,1920,1080 title=Program Manager
+    hwnd=198422 pid=20556 ex=0x8080088 class=SoPY_Status rect=1778,635,1928,785 title=
+SELF-PROOF: powershell processes with a visible window title = 0
+=== PROBE05 DONE ===

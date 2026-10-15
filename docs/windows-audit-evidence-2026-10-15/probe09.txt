@@ -1,0 +1,47 @@
+﻿=== PROBE09 2026-10-15T12:03:21 ===
+baseline visible=14
+launched pid=15472 with SSH_TRACK_SELFTEST=276759780
+
+--- tracking tab: result detected=True
+  relevant UI text (8):
+    检查更新
+    提单/箱号
+    提单号 / 订舱号 / 箱号
+    提单/订舱号（9 位数字） → Maersk（auto）
+    • 单号按前缀自动识别归属
+    Maersk / MSC / COSCO / HMM / ONE / ZIM / Hapag-Lloyd / Evergreen / Yang Ming / CMA CGM
+    追踪结果
+    Maersk 276759780 Details ▾ XINGANG (CN) TIANJIN PORT SECOND CNTR TERMINAL → GDANSK (PL) GDANSK BALTIC HUB TERMINAL Container Departure · 10-08 @ XINGANG · MATZ MAERSK 639W ETA 11-26 GDANSK (PL) GDANSK BALTIC HUB TERMINAL · In Transit
+  shot: C:\Users\Administrator\ssh_review\app-6-track.png
+
+--- update check (manual click, polling for toast) ---
+  shot: C:\Users\Administrator\ssh_review\app-7-update.png
+  toast/dialog detected: 已是最新版本（v1.5.1）
+  evidence screenshot: app-7-update.png
+
+--- close + cleanup ---
+  processes after close: 0
+  leftover chrome with app profile: 0
+  leftover node: 0
+  del SSHREV08 -> 成功: 计划的任务 "SSHREV08" 被成功删除。
+  del SSHREV09 -> 成功: 计划的任务 "SSHREV09" 被成功删除。
+  del SSHREV05 -> 错误: 系统找不到指定的文件。 System.Management.Automation.RemoteException
+  del SSHREV06 -> 错误: 系统找不到指定的文件。 System.Management.Automation.RemoteException
+  del SSHREV07 -> 错误: 系统找不到指定的文件。 System.Management.Automation.RemoteException
+  remaining SSHREV tasks: 
+final visible=13 baseline=14
+    196690|13316|Shell_TrayWnd|0,1040,1920,1080|
+    66754|16976|TFoxMainFrm.UnicodeClass|-8,-8,1928,1048|
+    66668|16976|TApplication|960,540,960,540|Foxmail
+    1442392|22488|Chrome_WidgetWin_1|427,176,1280,949|QQ
+    263552|13316|ApplicationFrameWindow|0,0,1920,1040|
+    131274|5852|ApplicationFrameWindow|40,32,1256,973|照片
+    196994|6360|Windows.UI.Core.CoreWindow|0,1,1200,933|照片
+    65890|13316|DummyDWMListenerWindow|0,0,0,0|
+    65882|13316|EdgeUiInputTopWndClass|15,0,1920,4|
+    65846|13316|DummyDWMListenerWindow|0,0,0,0|
+    65844|13316|DummyDWMListenerWindow|0,0,0,0|
+    131650|21780|Windows.UI.Core.CoreWindow|0,0,1920,1080|Microsoft Text Input Application
+    65796|13316|Progman|0,0,1920,1080|Program Manager
+SELF-PROOF: powershell visible windows=0
+=== PROBE09 DONE ===
