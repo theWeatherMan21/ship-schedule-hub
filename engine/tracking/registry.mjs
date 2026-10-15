@@ -37,7 +37,8 @@ export function availableCarriers() {
   } catch { return []; }
 }
 
-/** 装载某家的 tracker 函数（找不到就抛，由调用方转成人类可读的错误） */
+/** 装载某家的 tracker 函数（找不到就抛，由调用方转成人类可读的错误）。
+ *  返回 { fn, deadlineMs }：deadlineMs 是该模块可选的 `export const deadlineMs`（0=未声明）。 */
 export async function loadTracker(carrierId) {
   const id = String(carrierId || '').toLowerCase();
   if (!/^[a-z0-9_-]+$/.test(id)) throw new Error(`bad carrier id: ${carrierId}`);
@@ -47,5 +48,14 @@ export async function loadTracker(carrierId) {
   let fn = entries.find(([k]) => /^track/i.test(k));
   if (!fn && entries.length === 1) fn = entries[0];           // 单函数导出也接受
   if (!fn) throw new Error(`${id}.mjs exports no tracker function (expected a name starting with "track")`);
-  return fn[1];
+  return { fn: fn[1], deadlineMs: Number(mod.deadlineMs) || 0 };
+}
+
+/** 整次追踪的硬截止（毫秒）计算——10-15 爹地拍板「按家可放宽」。
+ *  优先级：环境变量覆盖 > 适配器声明的 deadlineMs > timeoutMs × 4（默认）。
+ *  （背景：Hapag 的 CF 双模流程常态 2-8 分钟，240s 常态撞线；它自己声明 400s。） */
+export function computeDeadlineMs({ envOverride = 0, carrierDeadline = 0, timeoutMs = 60000 } = {}) {
+  if (Number(envOverride) > 0) return Number(envOverride);
+  if (Number(carrierDeadline) > 0) return Number(carrierDeadline);
+  return timeoutMs * 4;
 }
