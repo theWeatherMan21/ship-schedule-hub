@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "ShipScheduleHub",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "identifier": "com.ross.shipschedulehub",
   "build": {
     "beforeDevCommand": "npm install && npm run dev",
