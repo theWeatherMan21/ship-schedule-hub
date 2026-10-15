@@ -1,0 +1,73 @@
+﻿=== PROBE06 2026-10-15T11:51:21 ===
+--- baseline windows : total=279 visible=15
+    hwnd=459818 pid=16976 ex=0x90008 class=TNewMailNotifier.UnicodeClass rect=1610,970,1920,1040 title=
+    hwnd=196690 pid=13316 ex=0x88 class=Shell_TrayWnd rect=0,1040,1920,1080 title=
+    hwnd=66754 pid=16976 ex=0x10100 class=TFoxMainFrm.UnicodeClass rect=-8,-8,1928,1048 title=
+    hwnd=66668 pid=16976 ex=0x100 class=TApplication rect=960,540,960,540 title=Foxmail
+    hwnd=1442392 pid=22488 ex=0x100 class=Chrome_WidgetWin_1 rect=427,176,1280,949 title=QQ
+    hwnd=263552 pid=13316 ex=0x200100 class=ApplicationFrameWindow rect=0,0,1920,1040 title=
+    hwnd=131274 pid=5852 ex=0x200100 class=ApplicationFrameWindow rect=40,32,1256,973 title=照片
+    hwnd=196994 pid=6360 ex=0x200000 class=Windows.UI.Core.CoreWindow rect=0,1,1200,933 title=照片
+    hwnd=65890 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=65882 pid=13316 ex=0x8200080 class=EdgeUiInputTopWndClass rect=15,0,1920,4 title=
+    hwnd=65846 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=65844 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=131650 pid=21780 ex=0x200000 class=Windows.UI.Core.CoreWindow rect=0,0,1920,1080 title=Microsoft Text Input Application
+    hwnd=65796 pid=13316 ex=0x80 class=Progman rect=0,0,1920,1080 title=Program Manager
+    hwnd=526132 pid=17300 ex=0x8080088 class=SoPY_Status rect=1778,635,1928,785 title=
+
+--- launching app with SSH_SELFTEST=1 (auto fills Ningbo->Istanbul and clicks) ---
+  app pid=21972
+  app window hwnd=329494 pid= exstyle=0x class= rect= title=
+  shot saved: C:\Users\Administrator\ssh_review\app-1-initial.png (1296x839)
+
+--- selftest query finished=True runFile=run-2026-10-15T03-52-12-387Z.ndjson
+  lines=5 size=11790
+    engine-started windowMode=minimized
+    [one] status=done ms=1074 rows=10 http=200
+    [yangming] status=done ms=567 rows=6 http=200
+    SUMMARY total=2 prefilled=2 failed=0
+  shot saved: C:\Users\Administrator\ssh_review\app-2-results.png (1296x839)
+
+--- UIA ---
+  UIA window name=ShipScheduleHub — 船期聚合驾驶舱 class=Tauri Window
+  descendants=1029
+  found 诊断 button, invoking
+  post-diagnose descendants=1186
+  shot saved: C:\Users\Administrator\ssh_review\app-3-diagnose.png (1296x839)
+  clipboard captured, 1868 chars
+
+--- trace log (new lines) ---
+  total lines=4
+    | [1791445030] run_query ENTER origin="ningbo" dest="Izmit" carriers=msc,maersk,cma,cosco,hapag,one,evergreen,yangming,hmm,zim,oocl 
+    | [1791446502] run_query ENTER origin="Ningbo" dest="Mersin" carriers=msc,maersk,cma,cosco,hapag,one,evergreen,yangming,hmm,zim,oocl 
+    | [1792036287] run_query ENTER origin="Ningbo" dest="Istanbul" carriers=msc,maersk,cma,cosco,hapag,one,evergreen,yangming,hmm,zim,oocl 
+    | [1792036331] run_query ENTER origin="Ningbo" dest="Istanbul" carriers=msc,maersk,cma,cosco,hapag,one,evergreen,yangming,hmm,zim,oocl 
+--- glass.log ---
+  | glass off锛堢獥鍙ｆ晥鏋滃叧闂?+ CSS 瀹炲簳锛?glass off锛堢獥鍙ｆ晥鏋滃叧闂?+ CSS 瀹炲簳锛?glass off锛堢獥鍙ｆ晥鏋滃叧闂?+ CSS 瀹炲簳锛?glass off锛堢獥鍙ｆ晥鏋滃叧闂?+ CSS 瀹炲簳锛?
+--- app data dir ---
+  browser-profile 2026-10-15T11:52:24
+  evidence 2026-10-15T11:52:12
+  glass.log 2026-10-15T11:52:09
+
+--- cleanup ---
+  killing app pid=3404
+  killing app pid=21972
+  app windows still visible after kill: 0
+  leftover chrome with app profile: 0
+--- final windows : total=287 visible=13
+    hwnd=196690 pid=13316 ex=0x88 class=Shell_TrayWnd rect=0,1040,1920,1080 title=
+    hwnd=263552 pid=13316 ex=0x200100 class=ApplicationFrameWindow rect=0,0,1920,1040 title=
+    hwnd=131274 pid=5852 ex=0x200100 class=ApplicationFrameWindow rect=40,32,1256,973 title=照片
+    hwnd=196994 pid=6360 ex=0x200000 class=Windows.UI.Core.CoreWindow rect=0,1,1200,933 title=照片
+    hwnd=65890 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=65882 pid=13316 ex=0x8200080 class=EdgeUiInputTopWndClass rect=15,0,1920,4 title=
+    hwnd=65846 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=65844 pid=13316 ex=0x8200080 class=DummyDWMListenerWindow rect=0,0,0,0 title=
+    hwnd=131650 pid=21780 ex=0x200000 class=Windows.UI.Core.CoreWindow rect=0,0,1920,1080 title=Microsoft Text Input Application
+    hwnd=1442392 pid=22488 ex=0x100 class=Chrome_WidgetWin_1 rect=-32000,-32000,-31840,-31972 title=QQ
+    hwnd=66668 pid=16976 ex=0x100 class=TApplication rect=-32000,-32000,-31840,-31972 title=Foxmail
+    hwnd=65796 pid=13316 ex=0x80 class=Progman rect=0,0,1920,1080 title=Program Manager
+    hwnd=66648 pid=13316 ex=0x8080088 class=SoPY_Status rect=1778,635,1928,785 title=
+SELF-PROOF: powershell visible windows = 0 | baselineVisible=15 finalVisible=13
+=== PROBE06 DONE ===

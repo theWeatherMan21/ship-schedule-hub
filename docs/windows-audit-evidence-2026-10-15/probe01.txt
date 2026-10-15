@@ -1,0 +1,76 @@
+﻿=== PROBE 01 ENV RECON ===
+time=2026-10-15T11:41:25
+host=PC-20260212GEZA user=administrator
+isAdmin=True
+os=Microsoft Windows 10 专业版 | version=10.0.19045 | build=19045 | arch=64 位
+lastBoot=08/24/2026 17:55:02
+interactiveSession=False
+
+--- SYSTEM32 PRESENT ---
+C:\Windows\System32\cmd.exe exists=True
+C:\Windows\System32\where.exe exists=True
+C:\Windows\System32\taskkill.exe exists=True
+C:\Windows\System32\net.exe exists=True
+C:\Windows\System32\reg.exe exists=True
+C:\Windows\System32\powershell.exe exists=False
+PATH=C:\Program Files\OpenSSH;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\Tailscale\;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;
+TEMP=C:\Users\Administrator\AppData\Local\Temp TMP=C:\Users\Administrator\AppData\Local\Temp TMPDIR=
+NODE_PATH= | NODE_OPTIONS= | PLAYWRIGHT_BROWSERS_PATH=
+HTTP_PROXY= HTTPS_PROXY= NO_PROXY=
+LOCALAPPDATA=C:\Users\Administrator\AppData\Local
+APPDATA=C:\Users\Administrator\AppData\Roaming
+ProgramFiles=C:\Program Files | ProgramFiles(x86)=C:\Program Files (x86)
+
+--- WEBVIEW2 ---
+WebView2[HKLM-WOW-x64-client]=155.0.4283.45
+WebView2[HKLM-client]=<absent>
+WebView2[HKCU-client]=<absent>
+WebView2 dir C:\Program Files (x86)\Microsoft\EdgeWebView\Application -> 155.0.4283.45,SetupMetrics
+WebView2 dir C:\Program Files\Microsoft\EdgeWebView\Application -> absent
+
+--- BROWSERS ---
+browser[Chrome-PF]=C:\Program Files\Google\Chrome\Application\chrome.exe version=154.0.8037.93
+browser[Chrome-PFx86]=absent
+browser[Chrome-LocalAppData]=absent
+browser[Edge-PFx86]=C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe version=155.0.4283.45
+browser[Edge-PF]=absent
+where node -> 
+
+--- SHIPSCHEDULEHUB INSTALLATIONS ---
+install-candidate: C:\Program Files\ShipScheduleHub
+install-candidate: C:\Program Files\ShipScheduleHub\shipschedulehub.exe
+install-candidate: C:\Users\Administrator\AppData\Local\com.ross.shipschedulehub
+install-candidate: C:\Users\Administrator\AppData\Local\ShipScheduleHub
+install-candidate: C:\Program Files\ShipScheduleHub
+uninstall-entry: name=ShipScheduleHub ver=1.5.1 loc="C:\Program Files\ShipScheduleHub" unins="C:\Program Files\ShipScheduleHub\uninstall.exe"
+
+--- APP DATA DIRS ---
+appdata-dir absent: C:\Users\Administrator\AppData\Local\com.shipschedulehub.app
+appdata-dir EXISTS: C:\Users\Administrator\AppData\Local\ShipScheduleHub
+  children: browser-profile, evidence, glass.log
+appdata-dir absent: C:\Users\Administrator\AppData\Roaming\com.shipschedulehub.app
+appdata-dir absent: C:\Users\Administrator\AppData\Roaming\ShipScheduleHub
+appdata-dir absent: C:\Users\Administrator\AppData\Local\com.shipschedule.desktop
+
+--- RUNNING PROCESSES OF INTEREST ---
+proc: pid=1388 name=msedge.exe cmd="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --no-startup-window /prefetch:5
+proc: pid=16772 name=msedge.exe cmd="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --type=crashpad-handler "--user-data-dir=C:\Users\Administrator\AppData\Local\Microsoft\Edge\User Data" /prefetch:4 --monitor-self-annotation=ptype=crashpad-handler "--database=C:\Users\Administrator\AppData\Local\Microsoft\Edge\User Data\Crashpad" --annotation=IsOfficialBuild=1 --annotation=channel= --annotation=chromium-version=155.0.8059.40 "--annotation=exe=C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --annotation=plat=Win64 --annotation=prod=Edge --annotation=ver=155.0.4283.45 --initial-client-data=0x25c,0x260,0x264,0x258,0x26c,0x7ffddad083e0,0x7ffddad083f0,0x7ffddad08400
+proc: pid=15776 name=msedge.exe cmd="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --type=gpu-process --gpu-recent-crash-count=0 --gpu-preferences=WAAAAAAAAADgAAAEAAAAAAAAAAAAAGAAQAAAAAAAAAADAAAAAAAAADgAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAKAAAAAAAAAAoAAAAAAAAAAgAAAAAAAAAEAAAAAIAAAABAAAAAAAAAAgAAAAAAAAACAAAAAAAAAA= --startup-read-main-dll --metrics-shmem-handle=2672,i,9594159243298496297,7715285488886441163,262144 --field-trial-handle=2888,i,7194633902236913926,8233258176461151469,262144 --variations-seed-version --pseudonymization-salt-handle=2932,i,17162529703182001859,17053674921838103375,4 --trace-process-track-uuid=3190708988185955192 --mojo-platform-channel-handle=2864 /prefetch:2
+proc: pid=6628 name=msedge.exe cmd="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --type=utility --utility-sub-type=network.mojom.NetworkService --lang=zh-CN --service-sandbox-type=none --startup-read-main-dll --metrics-shmem-handle=2840,i,14888001194047170229,13111923682747658621,524288 --field-trial-handle=2888,i,7194633902236913926,8233258176461151469,262144 --variations-seed-version --pseudonymization-salt-handle=2932,i,17162529703182001859,17053674921838103375,4 --trace-process-track-uuid=3190708989122997041 --mojo-platform-channel-handle=2984 /prefetch:3
+proc: pid=12268 name=msedge.exe cmd="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --type=utility --utility-sub-type=storage.mojom.StorageService --lang=zh-CN --service-sandbox-type=service --startup-read-main-dll --metrics-shmem-handle=3368,i,10727617102063414547,85702107002595479,524288 --field-trial-handle=2888,i,7194633902236913926,8233258176461151469,262144 --variations-seed-version --pseudonymization-salt-handle=2932,i,17162529703182001859,17053674921838103375,4 --trace-process-track-uuid=3190708990060038890 --mojo-platform-channel-handle=3232 /prefetch:8
+proc: pid=12264 name=msedge.exe cmd="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --type=renderer --pdf-upsell-enabled --video-capture-use-gpu-memory-buffer --lang=zh-CN --js-flags --device-scale-factor=1 --num-raster-threads=2 --enable-main-frame-before-activation --renderer-client-id=7 --skip-read-main-dll --launch-time-ticks=4464065239769 --metrics-shmem-handle=6108,i,18043240545650743925,10791224987756535727,1048576 --field-trial-handle=2888,i,7194633902236913926,8233258176461151469,262144 --variations-seed-version --pseudonymization-salt-handle=2932,i,17162529703182001859,17053674921838103375,4 --trace-process-track-uuid=3190708992871164437 --mojo-platform-channel-handle=6136 /prefetch:1
+proc: pid=9820 name=msedge.exe cmd="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --type=renderer --pdf-upsell-enabled --video-capture-use-gpu-memory-buffer --lang=zh-CN --js-flags --device-scale-factor=1 --num-raster-threads=2 --enable-main-frame-before-activation --renderer-client-id=9 --skip-read-main-dll --launch-time-ticks=4464065405369 --metrics-shmem-handle=6684,i,17664790940656306662,5879757026427208313,1048576 --field-trial-handle=2888,i,7194633902236913926,8233258176461151469,262144 --variations-seed-version --pseudonymization-salt-handle=2932,i,17162529703182001859,17053674921838103375,4 --trace-process-track-uuid=3190708994745248135 --mojo-platform-channel-handle=6720 /prefetch:1
+
+--- DISK ---
+disk C: freeGB=152.1 totalGB=200
+disk D: freeGB=452.9 totalGB=731.2
+
+--- TAILSCALE / SSH ---
+tailscale: 100.117.117.31  pc-20260212geza  grcqrh4ngn@  windows  -                                                          
+100.93.4.124    leviathanmbp     grcqrh4ngn@  macOS    active; direct 192.168.0.95:41641, tx 1890640 rx 32446808  
+100.68.218.24   leviathanprime   grcqrh4ngn@  windows  offline, last seen 3d ago                                  
+
+
+--- LOGGED ON SESSIONS ---
+queryuser: 用户名                会话名             ID  状态    空闲时间   登录时间
+queryuser: administrator         console            27  运行中      17:33  2026/10/15 8:55

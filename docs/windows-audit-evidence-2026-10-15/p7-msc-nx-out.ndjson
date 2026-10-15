@@ -1,0 +1,5 @@
+{"type":"engine-started","t":"2026-10-15T03:55:46.737Z","origin":"Shanghai","destination":"Rotterdam","date":"","carriers":["msc"],"windowMode":"minimized"}
+{"type":"fastpath-partial","fast":[],"browser":["msc"]}
+{"type":"engine-error","t":"2026-10-15T03:55:46.839Z","msg":"browserType.launchPersistentContext: ENOENT: no such file or directory, mkdtemp 'C:\\Users\\Administrator\\ssh_review\\nx-tmp-not-created\\playwright-artifacts-XXXXXX'\n    at async tryDir (C:\\Program Files\\ShipScheduleHub\\engine\\browser.mjs:232:45)\n    at async launchCtxWithLockFallback (C:\\Program Files\\ShipScheduleHub\\engine\\browser.mjs:233:23)\n    at async launch (C:\\Program Files\\ShipScheduleHub\\engine\\browser.mjs:126:19)\n    at async file:///C:/Program%20Files/ShipScheduleHub/engine/query.mjs:73"}
+{"type":"summary","origin":"Shanghai","destination":"Rotterdam","date":"","total":0,"prefilled":0,"opened":0,"failed":0,"carriers":[],"ndjson":"C:\\Users\\Administrator\\AppData\\Local\\ShipScheduleHub\\evidence\\run-2026-10-15T03-55-46-735Z.ndjson"}
+{"type":"engine-exit","t":"2026-10-15T03:55:46.841Z","total":0,"prefilled":0,"opened":0,"failed":0}

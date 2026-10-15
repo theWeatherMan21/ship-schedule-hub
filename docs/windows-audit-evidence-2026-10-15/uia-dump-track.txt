@@ -1,0 +1,39 @@
+﻿UIA names (track view)
+ShipScheduleHub — 船期聚合驾驶舱
+ShipScheduleHub — 船期聚合驾驶舱 - Web 内容
+ShipScheduleHub — 船期聚合驾驶舱
+海运蓝
+午夜蓝
+石墨灰
+暖沙
+☀
+空闲（上次已完成）
+诊断
+复制诊断
+检查更新
+船期
+提单/箱号
+提单号 / 订舱号 / 箱号
+e.g. HLCU… / COSU… / 276759780
+提单/订舱号（9 位数字） → Maersk（auto）
+船司（留「自动识别」即可）
+查询
+停止
+说明
+• 单号按前缀自动识别归属
+
+
+• 已接通：
+Maersk / MSC / COSCO / HMM / ONE / ZIM / Hapag-Lloyd / Evergreen / Yang Ming / CMA CGM
+
+
+• Hapag 走真浏览器验证，偶发被拦时重试即可
+
+
+• 结果一行摘要 → 点击展开时间线
+
+
+• 浅色行 = 预计（未发生）
+追踪结果
+1 container(s) · 7 events · cached (7 min ago)
+Maersk 276759780 Details ▾ XINGANG (CN) TIANJIN PORT SECOND CNTR TERMINAL → GDANSK (PL) GDANSK BALTIC HUB TERMINAL Container Departure · 10-08 @ XINGANG · MATZ MAERSK 639W ETA 11-26 GDANSK (PL) GDANSK BALTIC HUB TERMINAL · In Transit

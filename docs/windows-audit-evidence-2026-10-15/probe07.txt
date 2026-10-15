@@ -1,0 +1,91 @@
+﻿=== PROBE07 2026-10-15T11:55:35 ===
+baseline visible windows=13
+node exists=True  appTmp exists=True
+nxTmp exists (should be False)=False
+
+--- [UA] what UA does the engine actually use on this machine? ---
+    UA=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36
+    FALLBACK=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36
+    UA-stderr| 系统锟揭诧拷锟斤拷指锟斤拷锟斤拷路锟斤拷锟斤拷
+
+--- [p7-msc] node query.mjs --origin Shanghai --destination Rotterdam --carriers msc --batch 1 --no-cache --window minimized
+    TEMP=C:\Program Files\ShipScheduleHub\engine\.tmp (exists=True)  PROFILE=C:\Users\Administrator\ssh_review\profile07a
+    exit= duration=9.2s maxVisibleWindows=13 chromeVisibleWindows=0
+    EV engine-started windowMode=minimized rows=0 
+    EV fastpath-partial rows=0 
+    EV window rows=0 
+    EV batch-start rows=0 
+    EV window-final rows=0 
+    EV summary rows=0 
+    EV engine-exit rows=0 
+    stderr lines=6
+      | [ports] 鐮佸舰鎬佸埆鍚?311 鏉★紙300 娓級宸插姞杞?[ports] 鑸瑰徃涓撳睘鐮佸ご鐮?48 鏉″凡鍔犺浇
+      | [chrome] 浣跨敤 system: C:\Program Files\Google\Chrome\Application\chrome.exe
+      | 系统锟揭诧拷锟斤拷指锟斤拷锟斤拷路锟斤拷锟斤拷
+      | (node:3180) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+      | (Use `node --trace-warnings ...` to show where the warning was created)
+      | [chrome] 寮圭獥鐩惧凡瑁咃紙鎷︽埅鍚屾剰/鎺ㄩ€?SDK锛?[fastpath] MSC 娓彛琛?580 娓凡鍔犺浇
+
+--- [p7-msc-nx] node query.mjs --origin Shanghai --destination Rotterdam --carriers msc --batch 1 --no-cache --window minimized
+    TEMP=C:\Users\Administrator\ssh_review\nx-tmp-not-created (exists=False)  PROFILE=C:\Users\Administrator\ssh_review\profile07b
+    exit= duration=3.1s maxVisibleWindows=13 chromeVisibleWindows=0
+    EV engine-started windowMode=minimized rows=0 
+    EV fastpath-partial rows=0 
+    EV engine-error rows=0 browserType.launchPersistentContext: ENOENT: no such file or directory, mkdtemp 'C:\Users\Administrator\ssh_review\nx-tmp-not-created\playwright-artif
+    EV summary rows=0 
+    EV engine-exit rows=0 
+    stderr lines=14
+      | [ports] 鐮佸舰鎬佸埆鍚?311 鏉★紙300 娓級宸插姞杞?[ports] 鑸瑰徃涓撳睘鐮佸ご鐮?48 鏉″凡鍔犺浇
+      | [chrome] 浣跨敤 system: C:\Program Files\Google\Chrome\Application\chrome.exe
+      | 系统锟揭诧拷锟斤拷指锟斤拷锟斤拷路锟斤拷锟斤拷
+      | (node:17268) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+      | (Use `node --trace-warnings ...` to show where the warning was created)
+      | [engine] fatal: browserType.launchPersistentContext: ENOENT: no such file or directory, mkdtemp 'C:\Users\Administrator\ssh_review\nx-tmp-not-created\playwright-artifacts-XXXXXX'
+      |     at async tryDir (C:\Program Files\ShipScheduleHub\engine\browser.mjs:232:45)
+      |     at async launchCtxWithLockFallback (C:\Program Files\ShipScheduleHub\engine\browser.mjs:233:23)
+      |     at async launch (C:\Program Files\ShipScheduleHub\engine\browser.mjs:126:19)
+      |     at async file:///C:/Program%20Files/ShipScheduleHub/engine/query.mjs:731:16 {
+      |   log: [],
+      |   name: 'Error'
+      | }
+      | [engine] 閫€鍑虹爜 1锛氳嚧鍛介敊璇笖闆剁粨鏋?
+
+--- [p7-yangming] node query.mjs --origin Shanghai --destination Rotterdam --carriers yangming --batch 1 --no-cache --window minimized
+    TEMP=C:\Program Files\ShipScheduleHub\engine\.tmp (exists=True)  PROFILE=C:\Users\Administrator\ssh_review\profile07c
+    exit= duration=3.1s maxVisibleWindows=13 chromeVisibleWindows=0
+    EV engine-started windowMode=minimized rows=0 
+    EV carrier-status [yangming] status=done rows=11 API: 11 schedules: ONE TRIBUTE FE42642W ETD 2026/10/22 鈫?2026/11/28 37 days Direct | YM TARGET FP22629AD ETD 2026/11/10 鈫?2026/12/17 37 days Direct | 
+    EV summary rows=0 
+    EV engine-exit rows=0 
+    stderr lines=4
+      | [ports] 鐮佸舰鎬佸埆鍚?311 鏉★紙300 娓級宸插姞杞?[ports] 鑸瑰徃涓撳睘鐮佸ご鐮?48 鏉″凡鍔犺浇
+      | 系统锟揭诧拷锟斤拷指锟斤拷锟斤拷路锟斤拷锟斤拷
+      | (node:15800) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+      | (Use `node --trace-warnings ...` to show where the warning was created)
+
+--- [p7-track] node tracking\cli.mjs --number 276759780 --carrier maersk
+    TEMP=C:\Program Files\ShipScheduleHub\engine\.tmp (exists=True)  PROFILE=C:\Users\Administrator\ssh_review\profile07d
+    exit= duration=9.2s maxVisibleWindows=13 chromeVisibleWindows=0
+    EV track-started [maersk] rows=0 
+    EV track-result [maersk] rows=0 
+    EV track-exit rows=0 
+    stderr lines=3
+      | [chrome] 浣跨敤 system: C:\Program Files\Google\Chrome\Application\chrome.exe
+      | 系统锟揭诧拷锟斤拷指锟斤拷锟斤拷路锟斤拷锟斤拷
+      | [chrome] 寮圭獥鐩惧凡瑁咃紙鎷︽埅鍚屾剰/鎺ㄩ€?SDK锛?
+
+--- leftovers ---
+
+--- appTmp content after runs ---
+
+--- evidence dirs ---
+  cache 1 2026-10-15T11:56:01
+  run-2026-10-15T03-55-49-843Z.ndjson 7512 2026-10-15T11:55:50
+  run-2026-10-15T03-55-46-735Z.ndjson 931 2026-10-15T11:55:46
+  run-2026-10-15T03-55-37-364Z.ndjson 13420 2026-10-15T11:55:44
+  msc.png 86918 2026-10-15T11:55:44
+  run-2026-10-15T03-51-28-118Z.ndjson 67108 2026-10-15T11:52:24
+  oocl.png 149432 2026-10-15T11:52:24
+  run-2026-10-15T03-52-12-387Z.ndjson 11790 2026-10-15T11:52:14
+SELF-PROOF: final visible=13 baseline=13 powershell visible windows=0
+=== PROBE07 DONE ===

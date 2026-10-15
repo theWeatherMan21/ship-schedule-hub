@@ -1,0 +1,136 @@
+﻿=== PROBE 03 ===
+time=2026-10-15T11:42:18
+APP dir CreationTime=2026-10-15T11:41:02 LastWriteTime=2026-10-15T11:41:05
+  db CreationTime=2026-10-15T11:41:02 LastWrite=2026-10-15T11:41:02
+  engine CreationTime=2026-10-15T11:41:02 LastWrite=2026-10-15T11:41:05
+
+--- all files under APP sorted by mtime desc (top 30) ---
+  2026-10-15T11:41:05       84951  \uninstall.exe
+  2026-10-15T10:09:56    13212672  \shipschedulehub.exe
+  2026-10-15T10:08:12    86973768  \engine\node-bin\node.exe
+  2026-10-15T10:08:10        3180  \engine\node_modules\playwright-core\lib\tools\skills\playwright-component-testing\references\vue.md
+  2026-10-15T10:08:10        2921  \engine\node_modules\playwright-core\lib\tools\skills\playwright-component-testing\references\react.md
+  2026-10-15T10:08:10        4260  \engine\node_modules\playwright-core\lib\tools\utils\extension.js
+  2026-10-15T10:08:10        4712  \engine\node_modules\playwright-core\lib\tools\skills\playwright-trace\SKILL.md
+  2026-10-15T10:08:10       10027  \engine\node_modules\playwright-core\lib\tools\skills\playwright-component-testing\SKILL.md
+  2026-10-15T10:08:10        1078  \engine\node_modules\playwright-core\lib\vite\dashboard\index.html
+  2026-10-15T10:08:10        4758  \engine\node_modules\playwright-core\lib\tools\skills\playwright-component-testing\references\migration.md
+  2026-10-15T10:08:10        6199  \engine\node_modules\playwright-core\lib\tools\skills\playwright-component-testing\references\gallery-spec.md
+  2026-10-15T10:08:10        9280  \engine\node_modules\playwright-core\lib\vite\dashboard\assets\firefox-beta-k3eOH_eK.svg
+  2026-10-15T10:08:10        7488  \engine\node_modules\playwright-core\lib\vite\dashboard\assets\firefox-1bWoP6pv.svg
+  2026-10-15T10:08:10      324278  \engine\node_modules\playwright-core\lib\vite\dashboard\assets\index-CyWAfh-p.js
+  2026-10-15T10:08:10        9143  \engine\node_modules\playwright-core\lib\vite\dashboard\assets\firefox-nightly-Cp5nfeDT.svg
+  2026-10-15T10:08:10      131922  \engine\node_modules\playwright-core\lib\vite\dashboard\assets\index-DhC616m4.css
+  2026-10-15T10:08:10        3317  \engine\node_modules\playwright-core\lib\tools\utils\socketConnection.js
+  2026-10-15T10:08:10       80340  \engine\node_modules\playwright-core\lib\vite\dashboard\assets\codicon-DCmgc-ay.ttf
+  2026-10-15T10:08:10        5645  \engine\node_modules\playwright-core\lib\vite\dashboard\playwright-logo.svg
+  2026-10-15T10:08:10       18945  \engine\node_modules\playwright-core\lib\tools\dashboard\appIcon.png
+  2026-10-15T10:08:10        9519  \engine\node_modules\playwright-core\lib\tools\cli-client\session.js
+  2026-10-15T10:08:10         665  \engine\node_modules\playwright-core\lib\tools\skills\playwright-cli\references\element-attributes.md
+  2026-10-15T10:08:10       12587  \engine\node_modules\playwright-core\lib\tools\skills\playwright-cli\SKILL.md
+  2026-10-15T10:08:10       11703  \engine\node_modules\playwright-core\lib\tools\cli-client\output.js
+  2026-10-15T10:08:10        4106  \engine\node_modules\playwright-core\lib\tools\cli-client\minimist.js
+  2026-10-15T10:08:10        6662  \engine\node_modules\playwright-core\lib\tools\cli-client\registry.js
+  2026-10-15T10:08:10       16059  \engine\node_modules\playwright-core\lib\tools\cli-client\program.js
+  2026-10-15T10:08:10       16114  \engine\node_modules\playwright-core\lib\tools\skills\playwright-cli\references\test-generation.md
+  2026-10-15T10:08:10        5198  \engine\node_modules\playwright-core\lib\tools\skills\playwright-cli\references\storage-state.md
+  2026-10-15T10:08:10        5387  \engine\node_modules\playwright-core\lib\tools\skills\playwright-cli\references\video-recording.md
+
+--- db dir ---
+  aliases-shanghai.sql 1987 2026-10-15T10:06:48
+  ports.db 2150400 2026-10-15T10:06:48
+
+--- engine subdirs ---
+  engine\lib files=6 lastWrite=2026-10-15T11:41:02
+     dom.mjs 4491
+     events.mjs 408
+     portsolve.mjs 3728
+     reclaim.mjs 2839
+     ua.mjs 1952
+     utils.mjs 23472
+  engine\recipes files=11 lastWrite=2026-10-15T11:41:05
+     cma.mjs 11819
+     cosco.mjs 8522
+     evergreen.mjs 11587
+     hapag.mjs 3985
+     hmm.mjs 11633
+     maersk.mjs 16278
+     msc.mjs 2778
+     one.mjs 9455
+     oocl.mjs 10071
+     yangming.mjs 4319
+     zim.mjs 5856
+  engine\tracking files=16 lastWrite=2026-10-15T11:41:05
+     cli.mjs 7642
+     cma.mjs 9483
+     cosco.mjs 17238
+     detect.mjs 3288
+     evergreen.mjs 6496
+     hapag.mjs 16679
+     hmm.mjs 14092
+     identify.mjs 18187
+     maersk.mjs 3476
+     msc.mjs 11073
+     normalize.mjs 10769
+     one.mjs 11906
+     prefixes.json 3956
+     registry.mjs 2807
+     yangming.mjs 13739
+     zim.mjs 9591
+  engine\node_modules files=115 lastWrite=2026-10-15T11:41:05
+     .bin <dir>
+     playwright-core <dir>
+     .package-lock.json 573
+
+--- installer / antivirus / agent processes ---
+  pid=12380 tailscaled.exe | "C:\Program Files\Tailscale\tailscaled.exe"
+  pid=4712 tailscaled.exe | "C:\Program Files\Tailscale\tailscaled.exe" /subproc f59808b549620b0ac65a01cf878592e82a7bd288a0818ebecf78d42c5dd0add3
+  pid=7424 tailscale-ipn.exe | "C:\Program Files\Tailscale\tailscale-ipn.exe" 
+  pid=14148 MsMpEng.exe | 
+  pid=8704 MpDefenderCoreService.exe | 
+  pid=18048 DefenderSessionHelper.exe | 
+  pid=6392 powershell.exe | "c:\windows\system32\windowspowershell\v1.0\powershell.exe" -c "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Users\Administrator\ssh-probe\query.ps1"
+  pid=3596 powershell.exe | "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Users\Administrator\ssh-probe\query.ps1
+  pid=16168 node.exe | "C:\Program Files\ShipScheduleHub\engine\node-bin\node.exe" "C:\Program Files\ShipScheduleHub\engine\query.mjs" --origin Ningbo --destination Istanbul --batch 12 --no-cache
+  pid=21784 TrustedInstaller.exe | C:\Windows\servicing\TrustedInstaller.exe
+  pid=15232 powershell.exe | "c:\windows\system32\windowspowershell\v1.0\powershell.exe" -c "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Users\Administrator\ssh_review\probe03_why.ps1"
+  pid=22128 powershell.exe | "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File C:\Users\Administrator\ssh_review\probe03_why.ps1
+
+--- hermes on windows? ---
+  C:\Users\Administrator\.hermes exists=False
+  C:\Users\Administrator\.hermes\kanban.db exists=False
+  C:\Users\Administrator\.hermes\config.json exists=False
+
+--- recently modified files in C:\Program Files (last 2h) ---
+  2026-10-15T11:41:05 C:\Program Files\ShipScheduleHub\uninstall.exe
+  2026-10-15T10:09:56 C:\Program Files\ShipScheduleHub\shipschedulehub.exe
+  2026-10-15T10:08:12 C:\Program Files\ShipScheduleHub\engine\node-bin\node.exe
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\tools\skills\playwright-component-testing\references\vue.md
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\tools\skills\playwright-component-testing\references\react.md
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\tools\utils\extension.js
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\tools\skills\playwright-trace\SKILL.md
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\tools\skills\playwright-component-testing\SKILL.md
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\vite\dashboard\index.html
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\tools\skills\playwright-component-testing\references\migration.md
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\tools\skills\playwright-component-testing\references\gallery-spec.md
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\vite\dashboard\assets\firefox-beta-k3eOH_eK.svg
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\vite\dashboard\assets\firefox-1bWoP6pv.svg
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\vite\dashboard\assets\index-CyWAfh-p.js
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\vite\dashboard\assets\firefox-nightly-Cp5nfeDT.svg
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\vite\dashboard\assets\index-DhC616m4.css
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\tools\utils\socketConnection.js
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\vite\dashboard\assets\codicon-DCmgc-ay.ttf
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\vite\dashboard\playwright-logo.svg
+  2026-10-15T10:08:10 C:\Program Files\ShipScheduleHub\engine\node_modules\playwright-core\lib\tools\dashboard\appIcon.png
+
+--- start menu lnk target ---
+  target=C:\Program Files\ShipScheduleHub\shipschedulehub.exe | args= | workdir=C:\Program Files\ShipScheduleHub
+
+--- last evidence ndjson: which run, how many lines ---
+  run-2026-10-15T03-41-56-439Z.ndjson lines=4 mtime=2026-10-15T11:41:56
+  run-2026-10-08T08-01-45-050Z.ndjson lines=14 mtime=2026-10-08T16:02:43
+  run-2026-10-08T07-37-10-956Z.ndjson lines=14 mtime=2026-10-08T15:40:21
+  --- first 3 lines of run-2026-10-15T03-41-56-439Z.ndjson ---
+    {"type":"engine-started","origin":"Ningbo","destination":"Istanbul","date":"","carriers":["msc","maersk","zim","cma","cosco","hapag","one","evergreen","yangming","hmm","oocl"],"windowMode":"minimized"}
+    {"type":"carrier-status","carrier":"one","name":"ONE 娴锋磱缃戣仈","status":"done","level":1,"url":"https://ecomm.one-line.com/one-ecom/schedule/point-to-point-schedule","httpStatus":200,"msg":"API: 10 schedules","shots":[],"ms":1919,"schedules":[{"vessel":"MSC DANIELA","voyage":"DCLT0640W","etd":"2026-10
+    {"type":"carrier-status","carrier":"yangming","name":"Yang Ming 闃虫槑","status":"done","level":1,"url":"https://www.yangming.com/esolution/schedule/point_to_point_search?lang=en-us","httpStatus":200,"msg":"API: 6 schedules","shots":[],"ms":897,"schedules":[{"vessel":"MSC DANIELA","voyage":"MD32640W","

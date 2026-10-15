@@ -1,0 +1,44 @@
+﻿{
+ "时间": "2026-10-15T03:52:32.535Z",
+ "平台": "Win32",
+ "引擎状态": "空闲（上次已完成）",
+ "最近查询": {
+  "origin": "Ningbo",
+  "destination": "Istanbul"
+ },
+ "诊断": {
+  "HTTPS_PROXY": "",
+  "HTTP_PROXY": "",
+  "NODE_OPTIONS": "",
+  "NODE_PATH": "",
+  "NO_PROXY": "",
+  "TEMP": "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+  "TMP": "C:\\Users\\Administrator\\AppData\\Local\\Temp",
+  "TMPDIR": "",
+  "arch": "x86_64",
+  "browsers": [
+   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+   "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
+  ],
+  "chrome": "system → C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "dataDir": "C:\\Users\\Administrator\\AppData\\Local\\ShipScheduleHub",
+  "elevated": true,
+  "engineDir": "C:\\Program Files\\ShipScheduleHub\\engine",
+  "engineExit": 0,
+  "engineStderr": "(node:5472) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+  "exeDir": "C:\\Program Files\\ShipScheduleHub",
+  "exeDirWritable": true,
+  "node": "v22.23.3",
+  "nodeExists": true,
+  "platform": "windows",
+  "playwrightCore": "ok",
+  "portsDb": "ok (2.1 MB)",
+  "resourceDir": "\\\\?\\C:\\Program Files\\ShipScheduleHub",
+  "script": "C:\\Program Files\\ShipScheduleHub\\engine\\query.mjs",
+  "scriptExists": true,
+  "webview2": "155.0.4283.45"
+ },
+ "引擎stderr尾部": [
+  "[ports] 码形态别名 311 条（300 港）已加载\n[ports] 船司专属码头码 48 条已加载\nϵͳ�Ҳ���ָ����·����\n(node:13840) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n[chrome] 使用 system: C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\nϵͳ�Ҳ���ָ����·����\n[chrome] 弹窗盾已装（拦截同意/推送 SDK）\n[fastpath] MSC 港口表 580 港已加载"
+ ]
+}

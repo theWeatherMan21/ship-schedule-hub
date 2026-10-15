@@ -1,0 +1,15 @@
+[ports] 码形态别名 311 条（300 港）已加载
+[ports] 船司专属码头码 48 条已加载
+[chrome] 使用 system: C:\Program Files\Google\Chrome\Application\chrome.exe
+ϵͳ�Ҳ���ָ����·����
+(node:17268) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[engine] fatal: browserType.launchPersistentContext: ENOENT: no such file or directory, mkdtemp 'C:\Users\Administrator\ssh_review\nx-tmp-not-created\playwright-artifacts-XXXXXX'
+    at async tryDir (C:\Program Files\ShipScheduleHub\engine\browser.mjs:232:45)
+    at async launchCtxWithLockFallback (C:\Program Files\ShipScheduleHub\engine\browser.mjs:233:23)
+    at async launch (C:\Program Files\ShipScheduleHub\engine\browser.mjs:126:19)
+    at async file:///C:/Program%20Files/ShipScheduleHub/engine/query.mjs:731:16 {
+  log: [],
+  name: 'Error'
+}
+[engine] 退出码 1：致命错误且零结果
