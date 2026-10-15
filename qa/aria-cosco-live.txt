@@ -27,7 +27,7 @@
 - img "Banner-2-update-compression.png"
 - button
 - text: Special Features
-- button "Previous slide"
+- button "Previous slide" [disabled]
 - img "New Booking"
 - link "Provide faster, comprehensive and quality booking services":
   - /url: javascript:void(0)
@@ -58,7 +58,7 @@
   - /url: javascript:void(0)
 - link "Shipment Folder":
   - /url: javascript:void(0)
-- button "Next slide" [disabled]
+- button "Next slide"
 - button "Go to slide 1"
 - button "Go to slide 2"
 - text:  Email Hotline 4009 601919 (China)
@@ -89,13 +89,6 @@
 - img
 - link "上海工商":
   - /url: http://wap.scjgj.sh.gov.cn/businessCheck/verifKey.do?showType=extShow&serial=9031000020200709093534000006070085-SAIC_SHOW_310000-20200928105913857526&signData=MEUCIQDqAvUJpVMTTb+nqhKQxGRVZlqZg5/gRZ57cbs+OVvVhgIgIeTr6k4xGvFV2bJ75eDF97xgk05XZPH6k4/DfyT1H8Q=
-- text: Cookie Notice
-- paragraph: Cookies are used by the website and third parties to provide website functionality, to analyze site usage and measure performance, and to personalize content. The information gained from this helps us to improve our products and our website and to adapt it to better meet the needs of our users. An overview of which service providers set cookies in your browser on the website can be found by clicking the “MANAGE PREFERENCE” button below.
-- paragraph: You can withdraw your consent at any time by clicking the “MANAGE PREFERENCE” button below, and by changing the cookie selections shown.
-- button "MANAGE PREFERENCE"
-- button "Allow All"
-- button "Reject All"
-- button "Read More"
 - text: Please read and confirm the terms of use
 - heading "Terms of Use" [level=2]
 - paragraph: Any USER's access to and use of the COSCO SHIPPING Lines Co., Ltd. ("COSCO SHIPPING Lines") Web Site (Including Mobile APP，same hereinafter) is subject to the following Terms of Use. By accessing, browsing and/or using this COSCO SHIPPING Lines web site ("Web Site"), USER acknowledges that he has read, understood, and agreed to be bound by these Terms of Use and agrees to comply with all applicable laws and regulations. If USER does not agree to these terms, do not use this Web Site. COSCO SHIPPING Lines may at any time revise these Terms of Use, and USER will be bound by such revisions and should therefore periodically visit the Web Site to review any updating of the Terms of Use.
