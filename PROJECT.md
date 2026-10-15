@@ -1112,3 +1112,29 @@ App 原本 endpoints = [gh-proxy 优先, GitHub 兜底]，**两条链路同时�
   已修 `3845433`：新增「2数+2纯字母」分支，LEN_OK 命中时按长度读；42GP/45G1 保持 ISO 语义）；
   ③ Hapag 截止放宽建议（240→400s，待拍板）
 
+## 2026-10-15 续 · v1.5.3（Windows 审查修复批次）+ 全功能双端验证收官
+
+**背景**：`t_d3517020` 卡被 dispatcher 派了独立 worker 并行审查同一台 Windows（它用独立目录
+`ssh_review\`，与主线 `ssh-probe\` 零互污）。合并两边成果后产出 2 个我漏掉的真 P1：
+
+- **W-1 [P1]** 引擎临时目录兜底静默失败（`lib.rs` 两处 `let _ = create_dir_all(engine/.tmp)`）：
+  非管理员 + per-machine 装 Program Files → 建不出 → TEMP 指向死目录 → Playwright
+  `ENOENT mkdtemp` → **浏览器类船司全灭**（worker 复现 + 主线亲复现：对照 7 条 vs 0 条 exit 1）。
+  修：tmp 移到数据目录（LOCALAPPDATA|~/Library/Application Support）+ 建失败不再覆盖系统 TEMP。
+- **W-2 [P1]** `ua.mjs` 硬编码 macOS Chrome 路径 → Windows 每次重跑失败命令 + 回退 Mac UA。
+  修：命令路径/UA 模板/兜底串三者按平台分支。
+- W-3/4/5（P2）：诊断面板噪音随 W-2 消失；.tmp 移出 Program Files（随 W-1）；清
+  `tauri.windows.conf.json` 的 macOS 死配置。
+- 另：45GP 箱型显示修复（`3845433`，45 尺柜曾标 40'GP）。
+
+**发布与验证（v1.5.3）**：
+- 全量回归 22/22 + one-deep 单验通过；cargo check ✓
+- **Windows 自动更新第 3 次实测**：1.5.2→1.5.3（36s，走 ghfast.top）
+- **复验四连**：版本 1.5.3 ✓ / **UA 已是 Windows 串** ✓ / **数据目录 .tmp 由 App 创建**（mtime 实测）✓ /
+  **包内引擎纯函数 `45GP→45'GP`** ✓ / 船期单家 14 条健康 ✓
+- Hapag 实网在 Windows 侧连续 4 次撞 240s 截止（Mac 侧 1 次 137.6s 成功）→ 站侧对该机器网络慢，
+  列为观察项（如需要可把 Hapag 截止放宽，待爹地拍板）
+- 收尾：计划任务/进程/我们的 Chrome 全部清零、工作目录（两个 66MB）已删、光标归位
+
+**版本线**：… → 1.5.2（版本号+勾选记忆）→ **1.5.3（Windows 审查修复批次，10-15 发布装机）**
+
