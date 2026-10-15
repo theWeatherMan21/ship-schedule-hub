@@ -173,32 +173,45 @@ jobs:
       - name: 生成 latest.json（App 内更新清单）
         run: |
           V="${GITHUB_REF_NAME#v}"
-          # 国内镜像加速（直连 GitHub 常被限速到十几 KB/s；gh-proxy.com 实测 3+ MB/s）
-          BASE="https://gh-proxy.com/https://github.com/theWeatherMan21/ship-schedule-hub/releases/download/v${V}"
-          python3 - "$V" "$BASE" <<'PYEOF'
-          import json, os, sys, glob
-          v, base = sys.argv[1], sys.argv[2]
-          plats = {}
+          # 国内多镜像（10-15：gh-proxy.com 曾整体 403「Access to this resource is forbidden」，
+          # 单一镜像挂了 = 全体用户更新不了 → 改为「每镜像一份 latest.json + App 端 endpoints 依次兜底」）
+          python3 - "$V" <<'PYEOF'
+          import json, sys, glob, datetime
+          v = sys.argv[1]
+          GH = f'https://github.com/theWeatherMan21/ship-schedule-hub/releases/download/v{v}'
+          # (文件名, 镜像前缀)；空前缀 = GitHub 原始（最终兜底）
+          MIRRORS = [
+              ('latest.json', ''),                              # GitHub 原始
+              ('latest-ghfast.json', 'https://ghfast.top/'),     # 镜像1（10-15 实测可用 206）
+              ('latest-ghproxy.json', 'https://ghproxy.net/'),   # 镜像2（10-15 实测可用 206）
+          ]
           def sig_of(name):
               for f in glob.glob('dist/**/' + name + '.sig', recursive=True) + glob.glob('dist/' + name + '.sig'):
                   return open(f).read().strip()
               return None
-          # macOS
-          for arch, key in (('aarch64', 'darwin-aarch64'), ('x64', 'darwin-x86_64')):
-              fn = f'ShipScheduleHub_{v}_{arch}.app.tar.gz'
-              s = sig_of(fn)
-              if s:
-                  plats[key] = {'signature': s, 'url': f'{base}/{fn}'}
-          # Windows（NSIS 的 updater 产物就是 setup.exe）
-          for f in glob.glob('dist/**/*setup.exe', recursive=True):
-              fn = os.path.basename(f)
-              s = sig_of(fn)
-              if s:
-                  plats['windows-x86_64'] = {'signature': s, 'url': f'{base}/{fn}'}
-          out = {'version': v, 'pub_date': __import__('datetime').datetime.now(__import__('datetime').timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'platforms': plats}
-          json.dump(out, open('latest.json', 'w'), indent=2, ensure_ascii=False)
-          print('latest.json:\n', json.dumps(out, indent=2)[:600])
-          print('平台数:', len(plats))
+          made = []
+          for fname, prefix in MIRRORS:
+              base = prefix + GH
+              plats = {}
+              # macOS
+              for arch, key in (('aarch64', 'darwin-aarch64'), ('x64', 'darwin-x86_64')):
+                  fn = f'ShipScheduleHub_{v}_{arch}.app.tar.gz'
+                  s = sig_of(fn)
+                  if s:
+                      plats[key] = {'signature': s, 'url': f'{base}/{fn}'}
+              # Windows（NSIS 的 updater 产物就是 setup.exe）
+              for f in glob.glob('dist/**/*setup.exe', recursive=True):
+                  fn = os.path.basename(f)
+                  s = sig_of(fn)
+                  if s:
+                      plats['windows-x86_64'] = {'signature': s, 'url': f'{base}/{fn}'}
+              out = {'version': v, 'pub_date': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'), 'platforms': plats}
+              json.dump(out, open(fname, 'w'), indent=2, ensure_ascii=False)
+              made.append((fname, prefix or 'GitHub', len(plats)))
+          for fname, who, n in made:
+              print(f'{fname:24s} <- {who:16s} 平台数 {n}')
+          if not all(n > 0 for _, _, n in made):
+              raise SystemExit('某个 latest.json 平台数为 0，请检查产物')
           PYEOF
 
       - name: 发布 Release
@@ -210,6 +223,8 @@ jobs:
             dist/**/*.sig
             dist/**/*.app.tar.gz
             latest.json
+            latest-ghfast.json
+            latest-ghproxy.json
           generate_release_notes: true
           body: |
             船期聚合驾驶舱 · ShipScheduleHub
