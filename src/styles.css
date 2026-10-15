@@ -495,9 +495,10 @@ html[data-platform="win"][data-mode="dark"] {
    否则四角留下透明缝隙，看着像"一圈奇怪的半透明边框"。 */
 html[data-platform="win"] .app { border-radius: 0 !important; }
 html[data-platform="win"] .topbar { padding-left: 18px; height: 48px; }
-/* Windows 有系统标题栏，应用头部再写一遍产品名 = 两行标题冗余 → 隐藏副标题 */
-html[data-platform="win"] .topbar h1,
-html[data-platform="win"] .topbar .sub { display: none; }   /* 名字交给系统标题栏，应用头部不再重复 */
+/* Windows 有系统标题栏，应用头部再写一遍产品名 = 两行标题冗余 → 隐藏主标题。
+   但版本号不是冗余信息（10-15 爹地实报 Windows 看不到版本号）→ .sub 保留，
+   Windows 上其文案在 main.js 平台标记处被改写为纯版本号（如 v1.5.1）。 */
+html[data-platform="win"] .topbar h1 { display: none; }
 /* 透明底上次要文字要提一点对比度，否则玻璃底上发灰难读 */
 html[data-platform="win"] { --ink-2: #3b4a5d; }
 html[data-platform="win"][data-mode="dark"] { --ink-2: #b9c6da; }

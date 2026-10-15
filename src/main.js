@@ -900,7 +900,14 @@ listenEngineEvents();
 // 平台标记：Windows 与 macOS 的毛玻璃强度/标题栏布局不同，CSS 据此分流（婉宜 10-08）
 {
   const ua = navigator.userAgent || '';
-  document.documentElement.dataset.platform = /Windows/i.test(ua) ? 'win' : (/Mac/i.test(ua) ? 'mac' : 'other');
+  const plat = /Windows/i.test(ua) ? 'win' : (/Mac/i.test(ua) ? 'mac' : 'other');
+  document.documentElement.dataset.platform = plat;
+  // 10-15：Windows 的系统标题栏已含产品名，应用头部不再重复名称——但版本号要留
+  //（爹地实报 Windows 全界面找不到版本号）。顶栏只显示「v1.5.1」。
+  if (plat === 'win') {
+    const sub = document.querySelector('.topbar .sub');
+    if (sub) sub.textContent = 'v' + __APP_VERSION__;
+  }
 }
 
 // ---------- 外观：配色主题 / 深色浅色 / 点击涟漪（婉宜 10-08，爹地要求）----------
