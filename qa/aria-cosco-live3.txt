@@ -25,7 +25,7 @@
 - text: Earliest Departure Date
 - radio "Latest Arrival Date"
 - text: Latest Arrival Date 
-- textbox "Earliest Departure Date": 2026-09-21
+- textbox "Earliest Departure Date": 2026-10-15
 - text: Weeks to Display Four Weeks  Cargo Nature Both 
 - button "Search"
 - text: Related Function
@@ -67,10 +67,3 @@
 - img
 - link "上海工商":
   - /url: http://wap.scjgj.sh.gov.cn/businessCheck/verifKey.do?showType=extShow&serial=9031000020200709093534000006070085-SAIC_SHOW_310000-20200928105913857526&signData=MEUCIQDqAvUJpVMTTb+nqhKQxGRVZlqZg5/gRZ57cbs+OVvVhgIgIeTr6k4xGvFV2bJ75eDF97xgk05XZPH6k4/DfyT1H8Q=
-- text: Cookie Notice
-- paragraph: Cookies are used by the website and third parties to provide website functionality, to analyze site usage and measure performance, and to personalize content. The information gained from this helps us to improve our products and our website and to adapt it to better meet the needs of our users. An overview of which service providers set cookies in your browser on the website can be found by clicking the “MANAGE PREFERENCE” button below.
-- paragraph: You can withdraw your consent at any time by clicking the “MANAGE PREFERENCE” button below, and by changing the cookie selections shown.
-- button "MANAGE PREFERENCE"
-- button "Allow All"
-- button "Reject All"
-- button "Read More"

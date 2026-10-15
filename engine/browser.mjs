@@ -97,6 +97,7 @@ async function chromeOpts(extra = {}) {
 //   窗口检查（onscreen）看不到这一层。这里按 pid 精确隐藏「我们 profile 的那个 Chrome」，
 //   绝不碰爹地自己的 Chrome。osascript 用 System Events 的 unix id 定位，多实例不会误伤。
 function hideChromeFromDock(userDataDir) {
+  if (process.platform !== 'darwin') return 0;   // 仅 macOS 需要 Dock 隐藏；Windows 窗口由 CDP minimize 覆盖
   try {
     const out = execSync('ps -eo pid,command', { encoding: 'utf8', timeout: 5000 });
     const pids = out.split('\n')
@@ -196,11 +197,18 @@ export async function quietWindow(ctx, mode = 'minimized') {
 function killStaleProfileChrome() {
   try {
     if (process.platform === 'win32') {
-      const ps = `Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | Where-Object { $_.CommandLine -like '*${PROFILE_DIR.replace(/\\/g, '\\\\')}*' } | Select-Object -ExpandProperty ProcessId`;
-      const out = execSync(`"${PS_EXE}" -NoProfile -NonInteractive -Command "${ps}"`, { encoding: 'utf8', timeout: 20000 }).trim();
-      if (!out) return 0;
+      // 用 -EncodedCommand（UTF-16LE Base64）传脚本，彻底避开多层引号转义。
+      // 旧写法（-Command "… -Filter \\\"Name='chrome.exe'\\\" …"）经 execSync→cmd→PowerShell
+      // 三层转义后引号被吃 → “无效查询” → 杀 0 个 → 撞车时清不掉残留（10-15 实测）。
+      const dirEsc = PROFILE_DIR.replace(/'/g, "''");
+      // 注：-EncodedCommand 传参，脚本内部直接写标准 PS 语法（不经任何 shell 转义）。
+      // 安全性：dirEsc 来自内部常量 PROFILE_DIR（非用户输入），且仅作 -like 匹配串。
+      const psScript = `Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | `
+        + `Where-Object { $_.CommandLine -like '*${dirEsc}*' } | `
+        + `ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue; $_.ProcessId }`;
+      const b64 = Buffer.from(psScript, 'utf16le').toString('base64');
+      const out = execSync(`"${PS_EXE}" -NoProfile -NonInteractive -EncodedCommand ${b64}`, { encoding: 'utf8', timeout: 20000 }).trim();
       const pids = out.split(/\s+/).map((x) => Number(x)).filter((n) => Number.isFinite(n) && n > 0);
-      for (const pid of pids) { try { execSync(`"${TASKKILL_EXE}" /F /PID ${pid}`, { stdio: 'ignore', timeout: 10000 }); } catch { /* 已退出 */ } }
       if (pids.length) console.error(`[engine] 清理残留 profile 进程 ${pids.length} 个（windows）`);
       return pids.length;
     }
@@ -233,7 +241,10 @@ async function launchCtxWithLockFallback(opts) {
   try { return { ctx: await tryDir(PROFILE_DIR), dir: PROFILE_DIR }; }
   catch (e) {
     const msg = String((e && e.message) || e);
-    if (!/ProcessSingleton|already in use|profile directory/i.test(msg)) throw e;
+    // 10-15 血训：Playwright 在「profile 被占、Chrome 随即退出」时抛的实际消息是
+    // "Target page, context or browser has been closed"（不含 ProcessSingleton 字样）——
+    // 旧正则匹配不到 → 清理护栏不触发 → 整批查询直接挂（爹地 10-15 实测 total=2）。
+    if (!/ProcessSingleton|already in use|profile directory|Target page, context or browser has been closed/i.test(msg)) throw e;
     console.error('[chrome] profile 被占用（另一个引擎实例或残留 Chrome）：' + msg.split('\n')[0]);
     try { killStaleProfileChrome(); } catch { /* no-op */ }
     await sleep(2000);

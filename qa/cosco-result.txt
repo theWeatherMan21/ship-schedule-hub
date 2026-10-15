@@ -16,7 +16,7 @@ Container
 Reefer
 Subscr
 Sailing Schedules
-Shortest Transit Time: 26 Days
+Shortest Transit Time: 31 Days
 Ningbo,Ningbo,Zhejiang,China  Istanbul: :Istanbul:Turkey
 Estimated time of departure: 2026-09-28 Four Weeks
   
@@ -40,24 +40,24 @@ Cargo Nature	Cut Off
 	OB Haulage	IB Haulage	More Info
 GC,RF
 	
-2026-10-02
+2026-09-28
 20:00
 	
-CSCL VENUS
-/AEM3/090W
+TEXAS TRIUMPH
+/AEM3/039W
 	
 
-2026-10-03
+2026-09-29
 
-19:00(Sat.)
+09:20(Tue.)
 
-2026-10-29
+2026-11-11
 
-16:00(Thu.)
+16:00(Wed.)
 
 NO
 NO
- Transit 26 Days
+ Transit 43 Days
 Direct
 NO
 NO
@@ -66,8 +66,8 @@ Ningbo
  Safiport
 Istanbul
 	
-2026-10-31
-04:00
+2026-11-13
+16:00
 	
 CY/DOOR
 	
@@ -78,24 +78,24 @@ More Info
 
 GC,RF
 	
-2026-10-02
+2026-09-28
 20:00
 	
-CSCL VENUS
-/AEM3/090W
+TEXAS TRIUMPH
+/AEM3/039W
 	
 
-2026-10-03
+2026-09-29
 
-19:00(Sat.)
+09:20(Tue.)
 
-2026-10-31
+2026-11-12
 
-12:00(Sat.)
+18:00(Thu.)
 
 NO
 NO
- Transit 28 Days
+ Transit 44 Days
 Direct
 NO
 NO
@@ -104,8 +104,8 @@ Ningbo
  Istanbul
 Istanbul
 	
-2026-11-01
-18:00
+2026-11-14
+00:00
 	
 CY/DOOR
 	
@@ -116,20 +116,20 @@ More Info
 
 GC,RF
 	
-2026-10-04
+2026-10-03
 20:00
 	
-CSCL JUPITER
-/AEM3/095W
+CSCL VENUS
+/AEM3/090W
 	
 
-2026-10-05
+2026-10-04
 
-18:00(Mon.)
+12:35(Sun.)
 
-2026-11-05
+2026-11-04
 
-16:00(Thu.)
+07:00(Wed.)
 
 NO
 NO
@@ -142,7 +142,7 @@ Ningbo
  Safiport
 Istanbul
 	
-2026-11-07
+2026-11-05
 04:00
 	
 CY/DOOR
@@ -154,20 +154,20 @@ More Info
 
 GC,RF
 	
-2026-10-04
+2026-10-03
 20:00
 	
-CSCL JUPITER
-/AEM3/095W
+CSCL VENUS
+/AEM3/090W
 	
 
-2026-10-05
+2026-10-04
 
-18:00(Mon.)
+12:35(Sun.)
 
-2026-11-07
+2026-11-06
 
-12:00(Sat.)
+17:00(Fri.)
 
 NO
 NO
@@ -181,7 +181,7 @@ Ningbo
 Istanbul
 	
 2026-11-08
-18:00
+09:00
 	
 CY/DOOR
 	
@@ -195,21 +195,21 @@ GC,RF
 2026-10-07
 20:00
 	
-COSCO SPAIN
-/AEM3/080W
+CSCL JUPITER
+/AEM3/095W
 	
 
 2026-10-08
 
-07:00(Thu.)
+11:17(Thu.)
 
-2026-11-12
+2026-11-10
 
-16:00(Thu.)
+13:00(Tue.)
 
 NO
 NO
- Transit 35 Days
+ Transit 33 Days
 Direct
 NO
 NO
@@ -218,7 +218,7 @@ Ningbo
  Safiport
 Istanbul
 	
-2026-11-14
+2026-11-11
 04:00
 	
 CY/DOOR
@@ -233,13 +233,89 @@ GC,RF
 2026-10-07
 20:00
 	
-COSCO SPAIN
-/AEM3/080W
+CSCL JUPITER
+/AEM3/095W
 	
 
 2026-10-08
 
-07:00(Thu.)
+11:17(Thu.)
+
+2026-11-12
+
+09:00(Thu.)
+
+NO
+NO
+ Transit 35 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Istanbul
+Istanbul
+	
+2026-11-13
+15:00
+	
+CY/DOOR
+	
+CY/DOOR
+	
+More Info
+
+
+GC,RF
+	
+2026-10-10
+20:00
+	
+COSCO SPAIN
+/AEM3/080W
+	
+
+2026-10-11
+
+17:28(Sun.)
+
+2026-11-12
+
+16:00(Thu.)
+
+NO
+NO
+ Transit 32 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Safiport
+Istanbul
+	
+2026-11-18
+04:00
+	
+CY/DOOR
+	
+DOOR
+	
+More Info
+
+
+GC,RF
+	
+2026-10-10
+20:00
+	
+COSCO SPAIN
+/AEM3/080W
+	
+
+2026-10-11
+
+17:28(Sun.)
 
 2026-11-14
 
@@ -247,7 +323,7 @@ COSCO SPAIN
 
 NO
 NO
- Transit 37 Days
+ Transit 34 Days
 Direct
 NO
 NO
@@ -271,46 +347,8 @@ GC,RF
 2026-10-21
 20:00
 	
-CSCL STAR
-/AEM3/094W
-	
-
-2026-10-22
-
-07:00(Thu.)
-
-2026-11-26
-
-16:00(Thu.)
-
-NO
-NO
- Transit 35 Days
-Direct
-NO
-NO
-Ningbo
- Ningbo
- Safiport
-Istanbul
-	
-2026-11-28
-04:00
-	
-CY/DOOR
-	
-DOOR
-	
-More Info
-
-
-GC,RF
-	
-2026-10-21
-20:00
-	
-CSCL STAR
-/AEM3/094W
+COSCO SHIPPING KILIMANJARO
+/AEM3/046W
 	
 
 2026-10-22
@@ -338,6 +376,44 @@ Istanbul
 CY/DOOR
 	
 CY/DOOR
+	
+More Info
+
+
+GC,RF
+	
+2026-10-21
+20:00
+	
+COSCO SHIPPING KILIMANJARO
+/AEM3/046W
+	
+
+2026-10-22
+
+07:00(Thu.)
+
+2026-11-26
+
+16:00(Thu.)
+
+NO
+NO
+ Transit 35 Days
+Direct
+NO
+NO
+Ningbo
+ Ningbo
+ Safiport
+Istanbul
+	
+2026-11-28
+04:00
+	
+CY/DOOR
+	
+DOOR
 	
 More Info
 Related Function
