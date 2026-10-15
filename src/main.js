@@ -332,18 +332,37 @@ document.getElementById('btnDiag').onclick = async () => {
   else renderDiagnostics();
 };
 
-// ---------- 船司列表 ----------
+// ---------- 船司列表（10-15：记住上次勾选状态——爹地要求）
+// 查询侧 collectQuery() 直读 DOM（第 604 行 selected 收集），本处只管渲染与持久化。
+const CARRIER_SEL_KEY = 'ssh.carrierSel';
+const savedCarrierSel = (() => {
+  try {
+    const arr = JSON.parse(localStorage.getItem(CARRIER_SEL_KEY) || 'null');
+    // 空集不是合法选择态（查询至少一家）→ 视同首次，回全选
+    return Array.isArray(arr) && arr.length ? new Set(arr) : null;
+  } catch { return null; }
+})();
 const listEl = document.getElementById('carrierList');
 for (const c of CARRIERS) {
   const row = document.createElement('label');
   row.className = 'carrier-row';
-  row.innerHTML = `<input type="checkbox" checked data-id="${c.id}" /><span class="name">${c.name}</span><span class="code">${c.id.toUpperCase().slice(0, 4)}</span>`;
+  const on = savedCarrierSel ? savedCarrierSel.has(c.id) : true;
+  row.innerHTML = `<input type="checkbox" ${on ? 'checked' : ''} data-id="${c.id}" /><span class="name">${c.name}</span><span class="code">${c.id.toUpperCase().slice(0, 4)}</span>`;
   listEl.appendChild(row);
 }
+function persistCarrierSel() {
+  try {
+    const sel = [...listEl.querySelectorAll('input:checked')].map((b) => b.dataset.id);
+    localStorage.setItem(CARRIER_SEL_KEY, JSON.stringify(sel));
+  } catch { /* 无痕模式忽略 */ }
+}
+// 事件委托：任何勾选变更即存（含键盘操作触发的 change）
+listEl.addEventListener('change', persistCarrierSel);
 document.getElementById('selAll').onclick = () => {
   const boxes = [...listEl.querySelectorAll('input')];
   const anyOff = boxes.some(b => !b.checked);
   boxes.forEach(b => (b.checked = anyOff));
+  persistCarrierSel();
 };
 
 // ---------- Tauri invoke ----------
