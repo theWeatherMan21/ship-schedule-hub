@@ -12,6 +12,8 @@ const cases = [
   ['yangming（type=40HQ）', { size: '40', type: '40HQ' }, "40'HC"],
   ['zim（size=type=40HC）', { size: '40HC', type: '40HC' }, "40'HC"],
   ['hapag（size=type=42GP）', { size: '42GP', type: '42GP' }, "40'GP"],
+  ['hapag 45 尺柜（size=type=45GP，10-15 双端实测真单：曾错为 40\'GP）', { size: '45GP', type: '45GP' }, "45'GP"],
+  ['45 尺短写（45HC）', { size: '45HC', type: '45HC' }, "45'HC"],
   ['hmm（type=货类 DRY）', { size: '40', type: 'DRY' }, "40'GP"],
   ['evergreen（size=type=40，无箱型信息）', { size: '40', type: '40' }, "40'"],
   ['只有 iso 码（22G1）', { size: '', type: '', iso: '22G1' }, "20'GP"],

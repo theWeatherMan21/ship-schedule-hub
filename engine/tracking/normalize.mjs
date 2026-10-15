@@ -124,6 +124,12 @@ function containerLength(size, type, iso) {
   const s = A_(size);
   const t = A_(type);
   if (/^\d{2}$/.test(s)) return LEN_OK.has(s) ? s : (LEN_FROM_ISO[s[0]] || '');   // 22 这类 ISO 尺寸码前两位 → 20
+  // 「2 数字 + 2 纯字母」直拼写法（Hapag 实测 "45GP"）：数字段命中合法长度时按长度读（45GP → 45'GP）。
+  // 与 4 位 ISO 码的区分：45G1 是「数字+字母数字」混合（G1 含数字），不匹配本分支，仍走 ISO（45→40 族）；
+  // 42GP 的数字段 42 不是合法长度（LEN_OK）→ 同样落回 ISO 分支（42→40 族）。10-15 双端测试发现
+  // （Windows/Mac 同病）：45GP 曾被当 ISO 码读成 40'GP。
+  const m2 = /^(\d{2})([A-Z]{2})$/.exec(s);
+  if (m2 && LEN_OK.has(m2[1])) return m2[1];
   // 4 位 ISO 尺寸/箱型码（22G1 / 42GP / 45G1）→ 首字符定长度。**必须排在「取开头两位」之前**：
   // 45G1 的 "45" 是「40 尺 + 高箱」，当长度读会变成 45 尺（错）。
   if (/^[0-9A-Z]{4}$/.test(s) && LEN_FROM_ISO[s[0]]) return LEN_FROM_ISO[s[0]];
