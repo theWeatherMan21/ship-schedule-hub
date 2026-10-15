@@ -176,7 +176,7 @@ jobs:
           # 国内多镜像（10-15：gh-proxy.com 曾整体 403「Access to this resource is forbidden」，
           # 单一镜像挂了 = 全体用户更新不了 → 改为「每镜像一份 latest.json + App 端 endpoints 依次兜底」）
           python3 - "$V" <<'PYEOF'
-          import json, sys, glob, datetime
+          import json, os, sys, glob, datetime
           v = sys.argv[1]
           GH = f'https://github.com/theWeatherMan21/ship-schedule-hub/releases/download/v{v}'
           # (文件名, 镜像前缀)；空前缀 = GitHub 原始（最终兜底）
