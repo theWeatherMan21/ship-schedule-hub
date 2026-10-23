@@ -54,8 +54,8 @@ async function probeState(page) {
     const title = document.title || '';
     if (/Security Check|Interactive Challenge|Just a moment/i.test(title + t.slice(0, 400))) return { kind: 'challenge' };
     if (/Container No\./.test(t) && /Status/.test(t)) return { kind: 'result' };
-    if (/DOCUMENT does not exist|Tracking information could not be found/i.test(t)) {
-      return { kind: 'notfound', msg: (t.match(/DOCUMENT does not exist[^\n]*/) || ['Tracking information could not be found'])[0] };
+    if (/DOCUMENT does not exist|Tracking information could not be found|Shipment not found/i.test(t)) {
+      return { kind: 'notfound', msg: (t.match(/DOCUMENT does not exist[^\n]*|Shipment not found[^\n]*/) || ['Tracking information could not be found'])[0] };
     }
     if (/short maintenance|currently not available/i.test(t)) return { kind: 'maintenance' };
     return { kind: 'loading', len: t.length };
@@ -138,6 +138,35 @@ const detailReady = (page) => page.evaluate(() => {
 }).catch(() => ({ ready: false }));
 
 /** 完整流程（在给定 ctx 上跑；ctx 生命周期由调用方管理）。 */
+
+/**
+ * 在 legacy 页面真正提交一次查询。
+ * 页面双输入框：hl12 = Booking No.，hl16 = Bill of Lading No.（预填 "HLCU"），hl18 = Find。
+ * 返回 true 表示已提交（不代表有结果）。
+ */
+async function submitForm(page, num) {
+  const n = normNum(num);
+  const isBl = guessKind(n) === 'bl';
+  const sel = isBl ? '[id*="hl16"]' : '[id*="hl12"]';
+  const box = await page.$(sel);
+  if (!box) return false;
+  await box.click({ timeout: 8000 }).catch(() => {});
+  await box.fill('').catch(() => {});
+  await page.evaluate(({ s, v }) => {
+    const el = document.querySelector(s);
+    if (!el) return;
+    el.focus();
+    el.value = v;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }, { s: sel, v: n });
+  const btn = await page.$('[id*="hl18"]');
+  if (!btn) return false;
+  await btn.click({ timeout: 10000 }).catch(() => {});
+  await sleep(1500);
+  return true;
+}
+
 async function runFlow(ctx, { num, mode, timeoutMs }) {
   const page = ctx.pages().find((p) => !p.isClosed()) || (await ctx.newPage());
   page.setDefaultTimeout(20000);
@@ -159,7 +188,15 @@ async function runFlow(ctx, { num, mode, timeoutMs }) {
     for (let round = 1; round <= 3; round++) {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: Math.min(timeoutMs, 60000) })
         .catch((e) => steps.push('goto:' + String(e).slice(0, 80)));
-      st = await waitState(page, ['result', 'notfound'], round === 1 ? 160000 : 120000);
+      // 2026-10-23 实测：legacy 的 ?blno= 深链已不再自动触发查询（页面停在「Please enter…」，
+      // 但 DOM 里仍残留一段 not-found 文案 → 会把「没查」误判成「查无」）。
+      // 所以改成真的填表单 + 点 Find；表单元素找不到时再退回深链行为。
+      const submitted = await submitForm(page, num).catch((e) => {
+        steps.push('form:' + String(e).slice(0, 80));
+        return false;
+      });
+      steps.push('formSubmit=' + submitted);
+      st = await waitState(page, ['result', 'notfound'], round === 1 ? 45000 : 30000);
       steps.push(`round${round}=${st.kind}${st.timedOut ? '(timeout)' : ''}`);
       if (st.kind === 'result' || st.kind === 'notfound') break;
       await sleep(3000);
