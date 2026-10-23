@@ -30,4 +30,6 @@ export interface QuoteRequest {
   sizes: Size[];
   weight: number | null;
   route: Route | null;
+  /** 下一水 ETD：船司（大写）→ ISO 日期，如 { MSK: "2026-11-03" }；由前端异步查船期回填 */
+  etds?: Record<string, string>;
 }

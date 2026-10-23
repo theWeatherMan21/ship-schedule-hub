@@ -438,6 +438,68 @@ fn generate_quote_text(
     quote::quote::generate_quote(&rows, &req)
 }
 
+/// 查「下一水 ETD」：spawn engine/quote-etd.mjs（复用 11 家船司编排：fastpath 秒查 + 浏览器兜底）。
+/// 返回 { ok, targetDate, results: [{carrier, etd, eta, vessel, voyage}], errors }。
+/// 爹地 2026-10-23 口径：下一水 = ETD ≥ 今天+6 的最早一班；前端异步调用，不卡报价生成。
+#[tauri::command]
+async fn query_etd(
+    app: AppHandle,
+    pol: String,
+    pod: String,
+    carriers: Vec<String>,
+) -> Result<serde_json::Value, String> {
+    let root = project_root(Some(&app));
+    let script = root.join("engine").join("quote-etd.mjs");
+    if !script.exists() {
+        return Err(format!("缺少报价 ETD 脚本: {}", script.display()));
+    }
+    let node = find_node(Some(&app));
+    let carriers_arg = carriers.join(",");
+    let script_path = script.clone();
+    let workdir = script.parent().map(|p| p.to_path_buf()).unwrap_or_default();
+    let out = tauri::async_runtime::spawn_blocking(move || {
+        let mut cmd = std::process::Command::new(&node);
+        cmd.arg(&script_path)
+            .args(["--pol", &pol, "--pod", &pod, "--carriers", &carriers_arg])
+            .args(["--timeout", "240"])
+            .current_dir(workdir)
+            .env_remove("NODE_PATH")
+            .env_remove("NODE_OPTIONS")
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped());
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            cmd.creation_flags(0x0800_0000);
+        }
+        cmd.output()
+    })
+    .await
+    .map_err(|e| format!("ETD 查询任务失败: {e}"))?;
+
+    match out {
+        Ok(o) if o.status.success() => {
+            let txt = String::from_utf8_lossy(&o.stdout).to_string();
+            let line = txt
+                .lines()
+                .rev()
+                .find(|l| l.trim().starts_with('{'))
+                .unwrap_or("")
+                .trim()
+                .to_string();
+            serde_json::from_str(&line).map_err(|e| format!("ETD 结果解析失败: {e}"))
+        }
+        Ok(o) => Err(format!(
+            "ETD 引擎失败: {}",
+            String::from_utf8_lossy(&o.stderr)
+                .chars()
+                .take(600)
+                .collect::<String>()
+        )),
+        Err(e) => Err(format!("启动 ETD 引擎失败: {e}")),
+    }
+}
+
 // ---------- 更新检查兜底（10-14）----------
 // 匿名 GitHub API 常因**共享出口 IP**被限流（403 rate limit）；本机 gh 已登录 → 走凭据通道（5000 次/小时）。
 const UPDATE_REPO: &str = "theWeatherMan21/ship-schedule-hub";
@@ -1288,7 +1350,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update, restart_app, parse_price_file, generate_quote_text])
+        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update, restart_app, parse_price_file, generate_quote_text, query_etd])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
