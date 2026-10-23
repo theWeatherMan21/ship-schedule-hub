@@ -260,12 +260,24 @@ export async function trackAkkon(number, { timeoutMs = 60000, ctx: sharedCtx, co
     if (!tryList.length) throw new Error(`Akkon 起运国列表为空（页面改版？）: ${available.slice(0, 5).join('/')}`);
 
     let lastModal = '';
+    let lastErr = '';
+    // 每一步的错误都记下来：页面改版导致元素消失时，不能只报「未找到」而掩盖真实原因
+    const step = async (label, fn) => {
+      try {
+        await fn();
+        return true;
+      } catch (e) {
+        lastErr = `${label}: ${String((e && e.message) || e).slice(0, 120)}`;
+        return false;
+      }
+    };
+
     for (const c of tryList) {
       if (Date.now() > deadline) throw new Error(`Akkon 查询超时（已试 ${tryList.indexOf(c)} 个国家）`);
       await closeModal(page);
-      await page.selectOption('#ddlCountry', { label: c }).catch(() => {});
-      await page.fill('#TextBox1', raw).catch(() => {});
-      await page.click('#Button1', { timeout: 15000 }).catch(() => {});
+      await step('selectCountry', () => page.selectOption('#ddlCountry', { label: c }));
+      await step('fillBL', () => page.fill('#TextBox1', raw));
+      await step('clickSearch', () => page.click('#Button1', { timeout: 15000 }));
       // 等结果表格或"未找到"弹窗
       const ok = await page
         .waitForFunction(
@@ -274,6 +286,7 @@ export async function trackAkkon(number, { timeoutMs = 60000, ctx: sharedCtx, co
         )
         .then(() => true)
         .catch(() => false);
+      if (!ok && !lastErr) lastErr = `waitResult: 20s 内既无表格也无弹窗（起运国 ${c}）`;
       await sleep(ok ? 400 : 800);
       const r = await readResult(page);
       if (r.hit) {
@@ -290,7 +303,10 @@ export async function trackAkkon(number, { timeoutMs = 60000, ctx: sharedCtx, co
     const out = parseAkkonRows([], raw);
     out.country = null;
     out.searchedCountries = tryList;
-    out.error = `Akkon 未找到（已试 ${tryList.length} 个起运国）${lastModal ? '：' + lastModal : ''}`;
+    out.error =
+      `Akkon 未找到（已试 ${tryList.length} 个起运国）` +
+      (lastModal ? `：${lastModal}` : '') +
+      (lastErr ? `（最后错误：${lastErr}）` : '');
     return out;
   } finally {
     if (ownCtx) await ctx.close().catch(() => {});
