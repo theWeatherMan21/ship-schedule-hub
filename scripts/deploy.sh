@@ -56,6 +56,7 @@ check_file() {
 check_file "二进制" "$APP/Contents/MacOS/$BIN_NAME"
 check_file "船期引擎 query.mjs" "$APP/Contents/Resources/engine/query.mjs"
 check_file "报价 ETD 脚本 quote-etd.mjs" "$APP/Contents/Resources/engine/quote-etd.mjs"
+check_file "追踪适配器目录" "$APP/Contents/Resources/engine/tracking/akkon.mjs"
 check_file "Playwright 依赖" "$APP/Contents/Resources/engine/node_modules/playwright-core"
 codesign --verify --deep --strict "$APP" && echo "    ✓ 签名校验通过" || { echo "    ✗ 签名校验失败"; FAIL=1; }
 echo "    二进制时间: $(stat -f '%Sm' "$APP/Contents/MacOS/$BIN_NAME")"

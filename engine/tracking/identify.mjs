@@ -132,6 +132,16 @@ export const CARRIERS = [
     booking: [{ re: /^[A-Z]\d{9}$/, label: '1 字母 + 9 位数字（阳明 MBL 形态）', score: 0.25 }],
     tracking: 'live',
   },
+  {
+    id: 'akkon', name: 'Akkon Lines',
+    // 实测（2026-10-23 真单 AKKNBO51085597）：AKK + 3 字母港口码 + 8 位数字 = 14 位。
+    // 不是标准 4 字母 SCAC（站点用 3 字母前缀）→ 走 booking 规则识别；
+    // 箱号 CAAU 属租箱，不作船司标识；箱号单独也查不了（站点强制先有 BL）。
+    scac: [],
+    container: [],
+    booking: [{ re: /^AKK[A-Z]{3}\d{8}$/, label: '14 位（AKK+港口码+8位，Akkon BL）', score: 0.95 }],
+    tracking: 'live',
+  },
 ];
 
 // ── 认识但**未接入追踪**的船司（Vizion《BL formatting》2026-06 表 + Terminal49）────────

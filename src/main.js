@@ -302,6 +302,7 @@ app.innerHTML = `
           <option value="one">ONE</option>
           <option value="zim">ZIM</option>
           <option value="evergreen">Evergreen</option>
+          <option value="akkon">Akkon Lines</option>
         </select>
         <div id="trackCarrierHint" class="porthint"></div>
       </div>
@@ -1021,7 +1022,7 @@ let trackDone = false;
 let trackRunning = false;
 let pendingTrackRestart = false;
 
-const TRACK_NAME = { msc: 'MSC', maersk: 'Maersk', cma: 'CMA CGM', cosco: 'COSCO', hapag: 'Hapag-Lloyd', one: 'ONE', evergreen: 'Evergreen', yangming: 'Yang Ming', hmm: 'HMM', zim: 'ZIM', oocl: 'OOCL' };
+const TRACK_NAME = { msc: 'MSC', maersk: 'Maersk', cma: 'CMA CGM', cosco: 'COSCO', hapag: 'Hapag-Lloyd', one: 'ONE', evergreen: 'Evergreen', yangming: 'Yang Ming', hmm: 'HMM', zim: 'ZIM', oocl: 'OOCL', akkon: 'Akkon Lines' };
 const esc = (x) => String(x == null ? '' : x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function detectClient(num) {
