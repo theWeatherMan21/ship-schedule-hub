@@ -453,7 +453,13 @@ export default function App() {
                 {etdState === "loading"
                   ? "ETD 查询中…（ONE 几秒；MSK/MSC/CMA 约 1 分钟）"
                   : preview
-                    ? `${preview.split("\n").filter(Boolean).length} 行${etdState === "done" ? " · 已含下一水 ETD" : ""}${etdState === "error" ? ` · ETD 查询失败：${etdError}` : ""}`
+                    ? `${preview.split("\n").filter(Boolean).length} 行${
+                        etdState === "done"
+                          ? Object.keys(etds).length > 0
+                            ? " · 已含下一水 ETD"
+                            : " · 未查到 ETD"
+                          : ""
+                      }${etdState === "error" ? ` · ETD 查询失败：${etdError}` : ""}`
                     : "未生成"}
               </span>
             </div>
