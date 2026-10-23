@@ -22,6 +22,14 @@
 
 **回滚**：旧二进制备份在 `/tmp/ssh-bin-backup-1.5.7`（1.5.7 原版）
 
+### 10-23 追加：Next ETD 行（Validity 上面）
+
+- 需求：每个报价的 `Valid from` 上面加一行 `Next ETD: 03.Nov`
+- 口径（爹地拍板）：下一水 = **ETD ≥ 今天+6 的最早一班**（实测宁波→格但斯克 10-29~10-31 无船，严格 ±1 天会大量空）
+- 实现：`engine/quote-etd.mjs` 薄封装 `query.mjs`（复用 11 家编排），Rust `query_etd` command，前端**异步**查 → 回填 `etds` → 自动重生成报价
+- 实测（宁波→格但斯克）：ONE 11-03 / Maersk 10-29 / MSC 10-29 / CMA 10-29，4 家 **54s**
+- **踩坑**：`tauri build --no-bundle` 只换二进制**不更新 Resources**，`quote-etd.mjs` 没进包 → 界面上「ETD 查询失败」。已手动补进 `Contents/Resources/engine/` 并重签。以后凡是新增随包资源，部署后必须 `ls` 核对。
+
 > 路径：`/Users/russospencer/Documents/trae_projects/ShipScheduleHub`
 > 部署位置：**`/Applications/ShipScheduleHub.app`**（已上线自用）
 > 仓库：**https://github.com/theWeatherMan21/ship-schedule-hub**（私有，2026-09-30 首推，402 文件）
