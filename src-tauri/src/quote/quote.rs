@@ -24,6 +24,7 @@
 
 use crate::quote::parser::{QuoteRow, Route};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// 箱型
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -44,6 +45,10 @@ pub struct QuoteRequest {
     pub weight: Option<f64>,
     /// 航线筛选；None = 全部
     pub route: Option<Route>,
+    /// 下一水 ETD（船司大写 → ISO 日期，如 "MSK" → "2026-11-03"）
+    /// 由前端异步查船期后回填；为空则报价里不出现 Next ETD 行（向后兼容）
+    #[serde(default)]
+    pub etds: HashMap<String, String>,
 }
 
 /// 生成报价文本（筛选 + 排序 + 模板）
@@ -119,9 +124,15 @@ fn render_block(r: &QuoteRow, req: &QuoteRequest) -> String {
         lines.push(format!("OWS: {ows}"));
     }
 
-    // 免用箱时间 / 有效期：每条船独立显示（有值才显示）
+    // 免用箱时间 / 下一水 ETD / 有效期：每条船独立显示（有值才显示）
     if let Some(ft) = r.ft.as_deref().and_then(format_ft) {
         lines.push(ft);
+    }
+    // 下一水 ETD 放在 Valid from 上面（爹地 2026-10-23 要求）
+    if let Some(etd) = req.etds.get(&r.carrier.to_uppercase()) {
+        if let Some(fmt) = format_etd(etd) {
+            lines.push(format!("Next ETD: {fmt}"));
+        }
     }
     if let Some(v) = r.validity.as_deref().and_then(format_validity) {
         lines.push(v);
@@ -238,6 +249,18 @@ const MONTHS: [&str; 12] = [
 ///
 /// 分隔符兼容：各种横线（`-` `–` `—` `－`）、波浪线（`~` `～`）、英文 `to`。
 /// （真实表格从 WPS/微信复制过来时常带中文输入法产物）
+/// ISO 日期（2026-11-03）→ 报价里一致的写法（03.Nov，日补零两位），与 Valid from 同格式
+pub fn format_etd(iso: &str) -> Option<String> {
+    let mut it = iso.trim().split('-');
+    let y = it.next()?;
+    let m: usize = it.next()?.parse().ok()?;
+    let d: u32 = it.next()?.parse().ok()?;
+    if y.len() != 4 || !(1..=12).contains(&m) || !(1..=31).contains(&d) {
+        return None;
+    }
+    Some(format!("{:02}.{}", d, MONTHS[m - 1]))
+}
+
 pub fn format_validity(raw: &str) -> Option<String> {
     let (left, right) = split_validity_range(raw)?;
     let start = parse_day_month(left)?;
@@ -407,6 +430,77 @@ mod tests {
     }
 
     #[test]
+    fn test_format_etd_iso_to_quote_format() {
+        // 爹地 10-23 定的格式：Next ETD: 03.Nov（日补零两位）
+        assert_eq!(format_etd("2026-11-03"), Some("03.Nov".into()));
+        assert_eq!(format_etd("2027-01-09"), Some("09.Jan".into()));
+        assert_eq!(format_etd("2026-12-25"), Some("25.Dec".into()));
+        assert_eq!(format_etd("2026-13-01"), None);   // 月份越界
+        assert_eq!(format_etd("2026-11-32"), None);   // 日越界
+        assert_eq!(format_etd("bad"), None);
+        assert_eq!(format_etd(""), None);
+    }
+
+    #[test]
+    fn test_etd_line_renders_above_validity() {
+        let rows = vec![QuoteRow {
+            carrier: "MSK".into(),
+            pol: vec!["NINGBO".into()],
+            pod: vec!["GDANSK".into()],
+            price20: Some(2000),
+            price40: None,
+            validity: Some("19/10 - 25/10".into()),
+            ft: Some("10 DAYS".into()),
+            ows: None,
+            remark: None,
+            route: Route::Cape,
+        }];
+        let mut etds = HashMap::new();
+        etds.insert("MSK".to_string(), "2026-11-03".to_string());
+        let req = QuoteRequest {
+            pol: "NINGBO".into(),
+            pod: "GDANSK".into(),
+            sizes: vec![Size::Gp20],
+            weight: None,
+            route: None,
+            etds,
+        };
+        let out = generate_quote(&rows, &req);
+        let lines: Vec<&str> = out.lines().collect();
+        let etd_i = lines.iter().position(|l| l.starts_with("Next ETD:")).expect("应有 Next ETD 行");
+        let valid_i = lines.iter().position(|l| l.starts_with("Valid from")).expect("应有 Valid from 行");
+        assert!(etd_i < valid_i, "Next ETD 必须在 Valid from 上面");
+        assert_eq!(lines[etd_i], "Next ETD: 03.Nov");
+    }
+
+    #[test]
+    fn test_no_etd_line_when_map_empty() {
+        // 没有 ETD 数据时不应出现 Next ETD 行（向后兼容）
+        let rows = vec![QuoteRow {
+            carrier: "MSK".into(),
+            pol: vec!["NINGBO".into()],
+            pod: vec!["GDANSK".into()],
+            price20: Some(2000),
+            price40: None,
+            validity: Some("19/10 - 25/10".into()),
+            ft: None,
+            ows: None,
+            remark: None,
+            route: Route::Cape,
+        }];
+        let req = QuoteRequest {
+            pol: "NINGBO".into(),
+            pod: "GDANSK".into(),
+            sizes: vec![Size::Gp20],
+            weight: None,
+            route: None,
+            etds: Default::default(),
+        };
+        let out = generate_quote(&rows, &req);
+        assert!(!out.contains("Next ETD"), "无 ETD 数据时不应出现该行：{out}");
+    }
+
+    #[test]
     fn test_format_validity_basic() {
         assert_eq!(
             format_validity("17/8 - 23/8"),
@@ -457,6 +551,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: Some(24.0),
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&mut rows, &req);
         // 24t: COGH=3300+300=3600, MSK=3650, YML=3400+150=3550 → YML(3550) < COGH(3600) < MSK(3650)
@@ -479,6 +574,7 @@ mod tests {
             sizes: vec![Size::Hq40],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&mut rows, &req);
         let pos_cogh = text.find("Carrier: COGH").unwrap();
@@ -506,6 +602,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert_eq!(
@@ -536,6 +633,7 @@ mod tests {
             sizes: vec![Size::Hq40],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert!(!text.contains("OWS"), "40HQ 不应显示 OWS:\n{text}");
@@ -551,6 +649,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert!(
@@ -577,6 +676,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert!(text.contains("OWS: NO OWS"), "NO OWS 应保留:\n{text}");
@@ -611,6 +711,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         // ONE 块内是自己的 18 DAYS 和 8.Aug-15.Aug
@@ -640,6 +741,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert!(
@@ -666,6 +768,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert!(
@@ -694,6 +797,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert!(
@@ -722,6 +826,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert!(
@@ -747,6 +852,7 @@ mod tests {
             sizes: vec![Size::Gp20, Size::Hq40],
             weight: None,
             route: Some(Route::RedSea),
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert!(text.contains("SHEKOU-ISTANBUL"));
@@ -772,6 +878,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: Some(Route::RedSea),
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert!(text.contains("DIRECT ROUTE"));
@@ -788,6 +895,7 @@ mod tests {
             sizes: vec![Size::Hq40],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         let text = generate_quote(&rows, &req);
         assert!(text.is_empty(), "应无输出:\n{text}");
@@ -802,6 +910,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: None,
+            etds: Default::default(),
         };
         assert_eq!(generate_quote(&rows, &req), "");
     }
@@ -872,6 +981,7 @@ mod tests {
             sizes: vec![Size::Gp20, Size::Hq40],
             weight: Some(24.0),
             route: Some(Route::Cape),
+            etds: Default::default(),
         };
         let text = generate_quote(&data.rows, &req);
 
@@ -915,6 +1025,7 @@ mod tests {
             sizes: vec![Size::Gp20],
             weight: None,
             route: Some(Route::RedSea),
+            etds: Default::default(),
         };
         let text = generate_quote(&data.rows, &req);
         assert!(text.contains("Carrier: DIRECT ROUTE") || text.contains("Carrier: Carrier A"), "红海块缺失:\n{text}");

@@ -38,6 +38,9 @@ export default function App() {
   const [sizes, setSizes] = useState<Size[]>(["20GP"]);
   const [weight, setWeight] = useState("");
   const [preview, setPreview] = useState("");
+  // 下一水 ETD（爹地 2026-10-23）：船司大写 → ISO 日期；异步查船期后回填，不阻塞报价生成
+  const [etds, setEtds] = useState<Record<string, string>>({});
+  const [etdState, setEtdState] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [toast, setToast] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -85,6 +88,50 @@ export default function App() {
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [filteredRows]);
 
+  // ---- 下一水 ETD：异步查船期（爹地 2026-10-23）----
+  // 口径：ETD ≥ 今天+6 的最早一班；一次性查完该航线所有船司，单家 0.7s~60s，
+  // 全部并行，实测宁波→格但斯克 4 家 54s。查完回填 etds，报价文本自动补 `Next ETD:` 行。
+  useEffect(() => {
+    if (!data || !pol || !pod) {
+      setEtds({});
+      setEtdState("idle");
+      return;
+    }
+    const carriers = [...new Set(filteredRows.map((r) => r.carrier))].filter(Boolean);
+    if (!carriers.length) {
+      setEtds({});
+      setEtdState("idle");
+      return;
+    }
+    let cancelled = false;
+    setEtdState("loading");
+    setEtds({});
+    invoke<{ results?: { carrier: string; etd: string }[] }>("query_etd", {
+      pol,
+      pod,
+      carriers,
+    })
+      .then((res) => {
+        if (cancelled) return;
+        const map: Record<string, string> = {};
+        (res.results || []).forEach((x) => {
+          if (x && x.carrier && x.etd) map[x.carrier.toUpperCase()] = x.etd;
+        });
+        setEtds(map);
+        setEtdState("done");
+      })
+      .catch((e) => {
+        if (cancelled) return;
+        console.warn("[etd] 查询失败:", e);
+        setEtds({});
+        setEtdState("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+    // filteredRows 由 data + route 派生，故依赖 route 即可
+  }, [data, pol, pod, route]);
+
   // ---- 生成报价文本 ----
   useEffect(() => {
     if (!data || !pol || !pod || sizes.length === 0) {
@@ -97,6 +144,7 @@ export default function App() {
       sizes,
       weight: weight.trim() === "" ? null : Number(weight),
       route: route === ALL ? null : route,
+      etds,
     };
     let cancelled = false;
     invoke<string>("generate_quote_text", { rows: data.rows, req })
@@ -112,7 +160,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [data, pol, pod, sizes, weight, route]);
+  }, [data, pol, pod, sizes, weight, route, etds]);
 
   // ---- 复制 ----
   const copy = useCallback(async () => {
@@ -399,7 +447,11 @@ export default function App() {
             <div className="result-head">
               <span className="result-title">报价预览</span>
               <span className="result-meta">
-                {preview ? `${preview.split("\n").filter(Boolean).length} 行` : "未生成"}
+                {etdState === "loading"
+                  ? "ETD 查询中…（ONE 几秒；MSK/MSC/CMA 约 1 分钟）"
+                  : preview
+                    ? `${preview.split("\n").filter(Boolean).length} 行${etdState === "done" ? " · 已含下一水 ETD" : ""}${etdState === "error" ? " · ETD 查询失败" : ""}`
+                    : "未生成"}
               </span>
             </div>
             <textarea
