@@ -108,11 +108,25 @@ args.push('--batch', String(batch));
 // （10-23 实案：并发撞车失败 → 缓存下来 → 重试 0.3s 返回的还是那条错误）
 args.push('--no-cache');
 
+// 独立 profile（10-23 根因）：主 App 的船期引擎和报价 ETD 查询**共用同一个
+// browser-profile**，两边同时开浏览器就撞锁 → 对方报 "Target page/context/browser
+// has been closed"、整批查询没有任何结果（爹地实测「未查到 ETD」）。
+// ETD 查询用独立档案目录：既不会踩主引擎，也不会被打断；实测新档案查 MSC/MSK/CMA 全过。
+const DATA_DIR = process.platform === 'win32'
+  ? path.join(process.env.LOCALAPPDATA || process.env.TEMP || '.', 'ShipScheduleHub')
+  : path.join(process.env.HOME || '.', 'Library/Application Support/ShipScheduleHub');
+const ETD_PROFILE_DIR = path.join(DATA_DIR, 'etd-profile');
+
 const t0 = Date.now();
 const child = spawn(process.execPath, args, {
   cwd: HERE,
   stdio: ['ignore', 'pipe', 'pipe'],
-  env: { ...process.env, NODE_PATH: '', NODE_OPTIONS: '' },
+  env: {
+    ...process.env,
+    NODE_PATH: '',
+    NODE_OPTIONS: '',
+    SSH_PROFILE_DIR: ETD_PROFILE_DIR,   // 与主 App 的 browser-profile 隔离
+  },
 });
 
 let buf = '';
