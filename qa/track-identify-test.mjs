@@ -46,6 +46,13 @@ expect('181AS0266823514M1（MSC 181 系列）→ MSC', '181AS0266823514M1', { ok
 expect('181AY12345（181 系列同族）→ MSC', '181AY12345', { ok: true, carrierId: 'msc', matchedBy: 'booking-format' });
 expect('177FCACAS347328（MSC 177 系列，10-23 live 复核）→ MSC', '177FCACAS347328', { ok: true, carrierId: 'msc', matchedBy: 'booking-format', docType: 'booking' });
 expect('177FCACAS347312（MSC 177 系列同族）→ MSC', '177FCACAS347312', { ok: true, carrierId: 'msc', matchedBy: 'booking-format' });
+// 2026-10-23 按 Vizion《Bill of lading number formatting》(更新至 2026-06) 补齐的形态
+expect('ABC1234567（3 字母 + 7 位数字）→ CMA CGM 候选（APL/ANL 同形，不自动）', 'ABC1234567', { ok: false, docType: 'booking', candidatesFirst: 'cma' });
+expect('ABCD1AB20000（HMM 4+4字母数字+4）→ HMM 候选', 'ABCD1AB20000', { ok: false, docType: 'booking', candidatesFirst: 'hmm' });
+expect('A123456789（阳明 1 字母 + 9 位数字）→ 阳明候选', 'A123456789', { ok: false, docType: 'booking', candidatesFirst: 'yangming' });
+expect('A1B2C3123456（ONE 6 位字母数字 + 6 位数字）→ ONE 候选', 'A1B2C3123456', { ok: false, docType: 'booking', candidatesFirst: 'one' });
+expect('OOCL1234567890（OOCL 亦是其 SCAC）→ OOCL', 'OOCL1234567890', { ok: true, carrierId: 'oocl', matchedBy: 'scac' });
+expect('WHLC0942211（万海）→ 已知船司但未接入，别当货代分单', 'WHLC0942211', { ok: false, matchedBy: 'none' });
 expect('CANF… → 疑货代分单(HBL)标记', 'CANF123456789', { ok: false, flags: { houseBlPossible: true, foreignPrefix: true, containerValid: null } });
 expect('NGP… → 认不出', 'NGP12345678', { ok: false, matchedBy: 'none' });
 
