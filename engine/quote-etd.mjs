@@ -34,6 +34,8 @@ const pod = arg('pod');
 const carriersArg = arg('carriers', '');
 const daysAhead = Number(arg('days', '6'));
 const timeoutSec = Number(arg('timeout', '240'));
+// 并发批次：默认 2（4 家同时开会互相踩浏览器 —— 实测 "Target page, context or browser has been closed"）
+const batch = arg('batch', '2');
 
 if (!pol || !pod) {
   console.log(JSON.stringify({ ok: false, error: 'missing --pol / --pod' }));
@@ -41,6 +43,38 @@ if (!pol || !pod) {
 }
 
 const carriers = carriersArg.split(',').map((s) => s.trim()).filter(Boolean);
+
+// 船司名映射：报价表里写的是 MSK/MSC/CMA/HPL…，引擎认的是 maersk/msc/cma/hapag…
+// （10-23 实案：不做映射会查空——状态显示"已完成"但一条 ETD 都没有）
+const CARRIER_ID = {
+  msk: 'maersk', maersk: 'maersk', 'msk lines': 'maersk',
+  msc: 'msc',
+  cma: 'cma', 'cma cgm': 'cma', cmacgm: 'cma',
+  one: 'one',
+  cosco: 'cosco', 'cosco shipping': 'cosco',
+  hapag: 'hapag', 'hapag-lloyd': 'hapag', hpl: 'hapag', 'hpl soc': 'hapag', hl: 'hapag',
+  zim: 'zim',
+  evergreen: 'evergreen', emc: 'evergreen', 'ever green': 'evergreen',
+  yangming: 'yangming', 'yang ming': 'yangming', yml: 'yangming',
+  hmm: 'hmm',
+  oocl: 'oocl',
+  pa: 'maersk', 'cog h': 'cosco', cogh: 'cosco',
+};
+function toCarrierId(name) {
+  const k = String(name || '').trim().toLowerCase();
+  return CARRIER_ID[k] || k;
+}
+
+// engine id → 表格里的原始写法（输出时还原，前端用它当 key）
+const idToOriginal = new Map();
+const queryIds = [];
+for (const c of carriers) {
+  const id = toCarrierId(c);
+  if (id && !idToOriginal.has(id)) {
+    idToOriginal.set(id, c);
+    queryIds.push(id);
+  }
+}
 
 // 目标日期：今天 + N 天（本地时区，避免 UTC 跨日）
 const now = new Date();
@@ -68,7 +102,11 @@ const args = [
   '--origin', pol,
   '--destination', pod,
 ];
-if (carriers.length) args.push('--carriers', carriers.join(','));
+if (queryIds.length) args.push('--carriers', queryIds.join(','));
+args.push('--batch', String(batch));
+// ETD 必须是最新的：query.mjs 默认缓存 20 分钟，而且**失败结果也会被缓存**
+// （10-23 实案：并发撞车失败 → 缓存下来 → 重试 0.3s 返回的还是那条错误）
+args.push('--no-cache');
 
 const t0 = Date.now();
 const child = spawn(process.execPath, args, {
@@ -140,7 +178,7 @@ child.on('close', () => {
     }
     const pick = dated[0];
     results.push({
-      carrier,
+      carrier: idToOriginal.get(carrier) || carrier,   // 还原成表格里的写法（MSK/MSC/CMA/ONE）
       name: pick.name || '',
       etd: pick._etd,
       eta: normDate(pick.eta) || pick.eta || '',
