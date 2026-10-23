@@ -64,7 +64,9 @@ export const CARRIERS = [
     id: 'hmm', name: '现代商船 HMM',
     scac: ['HDMU', 'HMMU'],
     container: ['HDMU', 'HMMU'],
-    booking: [],
+    // Vizion《BL formatting》(2026-06)：4 字母 + 4 位字母数字 + 4 位数字（ABCD12345678 / ABCD1AB20000）。
+    // 与 ONE 的「4 字母 + 8 数字」形态重叠 → 靠「同形取高分」(ONE 0.6 > HMM 0.5) 保持 ONE 优先。
+    booking: [{ re: /^[A-Z]{4}[A-Z0-9]{4}\d{4}$/, label: '4 字母 + 4 位字母数字 + 4 位数字（HMM MBL 形态）', score: 0.5 }],
     tracking: 'live',
   },
   {
@@ -77,6 +79,9 @@ export const CARRIERS = [
     booking: [
       { re: /^[A-Z]{3}\d{9}$/, label: '3 字母 + 9 位数字（ONE BL 后 12 位形态）', score: 0.6 },
       { re: /^[A-Z]{4}\d{8}$/, label: '4 字母 + 8 位数字（ONE BL / 订舱号形态）', score: 0.6 },
+      // Vizion《BL formatting》(2026-06)：ONE = 12 位「6 位字母数字 + 6 位数字」（A1B2C3123456）。
+      // 前 6 位必须含字母，否则会和 Evergreen 的「12 位纯数字」抢。
+      { re: /^(?=[A-Z0-9]{0,5}[A-Z])[A-Z0-9]{6}\d{6}$/, label: '6 位字母数字 + 6 位数字（ONE 12 位形态）', score: 0.5 },
     ],
     tracking: 'live',
   },
@@ -85,14 +90,20 @@ export const CARRIERS = [
     scac: ['ZIMU'],
     container: ['ZIMU', 'ZCSU', 'ZMOU'],
     // Terminal49：ZIM 订舱/预订号形如 M0123456（M + 数字）。
-    booking: [{ re: /^M\d{7,}$/, label: 'M + 数字（ZIM 订舱/预订号形态）', score: 0.3 }],
+    // Vizion《BL formatting》(2026-06)：ZIM MBL = 3 字母 + 4~7 位数字（ZIMU 由 API 自动补）。
+    booking: [
+      { re: /^M\d{7,}$/, label: 'M + 数字（ZIM 订舱/预订号形态）', score: 0.3 },
+      { re: /^[A-Z]{3}\d{4,6}$/, label: '3 字母 + 4-6 位数字（ZIM MBL 形态；与 CMA 3+7 互斥）', score: 0.4 },
+    ],
     tracking: 'live',
   },
   {
     id: 'cma', name: '达飞 CMA CGM',
     scac: ['CMDU'],
     container: ['CMAU', 'CGMU', 'ECMU', 'APZU', 'APHU', 'CNCU'],
-    booking: [],
+    // Vizion《BL formatting》(2026-06)：CMA MBL = 3 字母 + 7 位数字（ABC1234567）。
+    // 同形还有 APL/ANL（CMA 子品牌）→ 只作候选，不自动路由。
+    booking: [{ re: /^[A-Z]{3}\d{7}$/, label: '3 字母 + 7 位数字（CMA CGM MBL 形态；APL/ANL 同形）', score: 0.5 }],
     tracking: 'live',
   },
   {
@@ -105,7 +116,8 @@ export const CARRIERS = [
   },
   {
     id: 'oocl', name: '东方海外 OOCL',
-    scac: ['OOLU'],
+    // Vizion《BL formatting》(2026-06)：OOCL 的已知 SCAC 前缀有 OOLU **和 OOCL** 两个（原表漏了 OOCL）。
+    scac: ['OOLU', 'OOCL'],
     container: ['OOLU', 'OOCU'],
     // 10 位纯数字 = OOCL BL 形态（多义：与 COSCO 同形）→ 只作候选，不自动。
     booking: [{ re: /^\d{10}$/, label: '10 位纯数字（OOCL BL 形态）', score: 0.5 }],
@@ -115,10 +127,26 @@ export const CARRIERS = [
     id: 'yangming', name: '阳明 Yang Ming',
     scac: ['YMLU', 'YMJA'],            // 2023 起主码由 YMLU 迁往 YMJA
     container: ['YMLU', 'YMMU'],
-    booking: [],
+    // Vizion《BL formatting》(2026-06)：阳明 MBL = 1 字母 + 9 位数字（A123456789）。
+    // 形态太泛（很多货代号都长这样，且与 ZIM 的「M+数字」撞车）→ 最低分，只作候选。
+    booking: [{ re: /^[A-Z]\d{9}$/, label: '1 字母 + 9 位数字（阳明 MBL 形态）', score: 0.25 }],
     tracking: 'live',
   },
 ];
+
+// ── 认识但**未接入追踪**的船司（Vizion《BL formatting》2026-06 表 + Terminal49）────────
+// 作用：用户粘一个这类号码时，不能说「疑为货代分单」——那是真船司，只是我们没接。
+// 只用于提升提示质量，不参与路由（不产生 candidate、不自动查）。
+export const KNOWN_UNTRACKED = {
+  ANNU: 'ANL', APLU: 'APL', SUDU: 'Hamburg Süd', SAFM: 'Safmarine', SEAU: 'Sealand',
+  MATS: 'Matson', WHLC: 'Wan Hai', SITC: 'SITC', SIT: 'SITC', STM: 'SITC', KMTC: 'KMTC',
+  SJHH: 'SeaLead', CULU: 'CULines', TSTU: 'TS Lines', ARKU: 'Arkas', RCLU: 'RCL',
+  SNKO: 'Sinokor', SMLM: 'SM Lines', STRS: 'Sinotrans', SOC: 'Sinotrans', CKCO: 'CK Line',
+  DJSC: 'Dongjin', HASL: 'Heung-A', CMCU: 'Crowley', MFTU: 'Marfret', WECC: 'WEC Lines',
+  WWSU: 'Westwood', CHVW: 'Swire', SMLU: 'Seaboard', NSRU: 'Namsung', SHPT: 'Shipco',
+  ECUW: 'ECU Worldwide', HDUJ: 'HEDE', PCIU: 'PIL', ACLU: 'ACL', CKLU: 'CK Line',
+  DJLU: 'Dongjin', IILU: 'ICL', SSLL: 'SACO', VGLT: 'Vanguard', ALPJ: 'Allcargo',
+};
 
 // 已知「待归户」素材（2026-10-10 爹地真单批次里暂时定不了归属的），
 // 记录在此供后续人工确认；不在此处硬猜，识别器一律走「候选」兜底。
@@ -266,21 +294,22 @@ export function identify(raw) {
       note: `提单前缀 ${four} → ${c.name}${dupCt}` };
   }
 
-  // ③ 订舱号形态（各家不一，仅作线索；够把握的才自动路由）
-  for (const c of CARRIERS) {
-    for (const b of c.booking) {
-      if (b.re.test(n)) {
-        const strong = b.score >= 0.6;
-        return { ...base, ok: strong, carrierId: strong ? c.id : null,
-          carrierName: strong ? c.name : null,
-          confidence: strong ? 'medium' : 'low', score: b.score,
-          matchedBy: 'booking-format', docType: 'booking',
-          candidates: orderCandidates(allCandidates(), c.id),
-          note: strong
-            ? `订舱号形态匹配 ${c.name}（${b.label}）`
-            : `形态像 ${c.name} 的订舱号（${b.label}），但不唯一——请确认后手选船司` };
-      }
-    }
+  // ③ 订舱号形态（各家形态会撞车，例如 ONE 的「4 字母+8 数字」与 HMM 的「4+4字母数字+4」）
+  //    → 取最高分者；同分按船司表顺序。低分（<0.6）只给候选、不自动路由。
+  const hits = [];
+  for (const c of CARRIERS) for (const b of c.booking) if (b.re.test(n)) hits.push({ c, b });
+  if (hits.length) {
+    hits.sort((x, y) => y.b.score - x.b.score || CARRIERS.indexOf(x.c) - CARRIERS.indexOf(y.c));
+    const { c, b } = hits[0];
+    const strong = b.score >= 0.6;
+    return { ...base, ok: strong, carrierId: strong ? c.id : null,
+      carrierName: strong ? c.name : null,
+      confidence: strong ? 'medium' : 'low', score: b.score,
+      matchedBy: 'booking-format', docType: 'booking',
+      candidates: orderCandidates(allCandidates(), c.id),
+      note: strong
+        ? `订舱号形态匹配 ${c.name}（${b.label}）`
+        : `形态像 ${c.name} 的订舱号（${b.label}），但不唯一——请确认后手选船司` };
   }
 
   // ②b（10-14 审阅 C2 后移：订舱形态优先）4 字母是已知箱主码、但既不是船司提单前缀、形态也不像完整箱号 → 低置信线索
@@ -293,9 +322,16 @@ export function identify(raw) {
       note: `前缀 ${four} 是 ${c.name} 的箱主码，但整体不像完整箱号——请确认后手选船司。` };
   }
 
-  // ④ 兜底：4 字母但不是海洋船司 SCAC → 可能是货代分单（HBL）
+  // ④ 兜底：4 字母但不是我们接入的船司 → 先看是不是「认识但未接入」的真船司，再谈货代分单
   const flags = { ...base.flags };
   if (/^[A-Z]{4}/.test(n)) {
+    const untracked = KNOWN_UNTRACKED[four] || KNOWN_UNTRACKED[n.slice(0, 3)];
+    if (untracked) {
+      return { ...base, docType: 'unknown', matchedBy: 'none',
+        candidates: [], flags,
+        note: `前缀 ${four} 是 ${untracked} 的承运人代码——该船司**尚未接入本项目追踪**（当前覆盖 11 家）。`
+          + '不是货代分单；要查得手工去官网。' };
+    }
     flags.houseBlPossible = true;
     flags.foreignPrefix = true;
     return { ...base, docType: 'unknown', matchedBy: 'none',

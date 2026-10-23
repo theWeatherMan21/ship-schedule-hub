@@ -113,7 +113,13 @@
     "HMMU"
    ],
    "tracking": "live",
-   "booking": []
+   "booking": [
+    {
+     "label": "4 字母 + 4 位字母数字 + 4 位数字（HMM MBL 形态）",
+     "score": 0.5,
+     "pattern": "/^[A-Z]{4}[A-Z0-9]{4}\\d{4}$/"
+    }
+   ]
   },
   {
    "id": "one",
@@ -140,6 +146,11 @@
      "label": "4 字母 + 8 位数字（ONE BL / 订舱号形态）",
      "score": 0.6,
      "pattern": "/^[A-Z]{4}\\d{8}$/"
+    },
+    {
+     "label": "6 位字母数字 + 6 位数字（ONE 12 位形态）",
+     "score": 0.5,
+     "pattern": "/^(?=[A-Z0-9]{0,5}[A-Z])[A-Z0-9]{6}\\d{6}$/"
     }
    ]
   },
@@ -160,6 +171,11 @@
      "label": "M + 数字（ZIM 订舱/预订号形态）",
      "score": 0.3,
      "pattern": "/^M\\d{7,}$/"
+    },
+    {
+     "label": "3 字母 + 4-6 位数字（ZIM MBL 形态；与 CMA 3+7 互斥）",
+     "score": 0.4,
+     "pattern": "/^[A-Z]{3}\\d{4,6}$/"
     }
    ]
   },
@@ -178,7 +194,13 @@
     "CNCU"
    ],
    "tracking": "live",
-   "booking": []
+   "booking": [
+    {
+     "label": "3 字母 + 7 位数字（CMA CGM MBL 形态；APL/ANL 同形）",
+     "score": 0.5,
+     "pattern": "/^[A-Z]{3}\\d{7}$/"
+    }
+   ]
   },
   {
    "id": "evergreen",
@@ -213,7 +235,8 @@
    "id": "oocl",
    "name": "东方海外 OOCL",
    "scac": [
-    "OOLU"
+    "OOLU",
+    "OOCL"
    ],
    "container": [
     "OOLU",
@@ -240,7 +263,13 @@
     "YMMU"
    ],
    "tracking": "live",
-   "booking": []
+   "booking": [
+    {
+     "label": "1 字母 + 9 位数字（阳明 MBL 形态）",
+     "score": 0.25,
+     "pattern": "/^[A-Z]\\d{9}$/"
+    }
+   ]
   }
  ]
 }
