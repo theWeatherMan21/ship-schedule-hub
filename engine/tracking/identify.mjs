@@ -37,9 +37,12 @@ export const CARRIERS = [
     id: 'msc', name: '地中海航运 MSC',
     scac: ['MSCU', 'MEDU'],           // MEDU = 2018 起新提单前缀；MSCU = 船司识别码/旧单
     container: ['MSCU', 'MEDU', 'MSDU', 'MSMU', 'MSNU', 'MSPU', 'MSYU', 'GTIU'],
-    // 181 系列 = MSC 订舱/参考号（无 SCAC 前缀）。实证（2026-10-10 批次 + 10-12 live 复核）：
-    // 181AS0266823514M1 经 MSC 查询成功（SHEKOU→ISTANBUL, MSC METTE）；181AY… 同族归入本规则。
-    booking: [{ re: /^181[A-Z]{2}[A-Z0-9]{5,}$/, label: '181 系列（MSC 订舱/参考号，真单实证）', score: 0.6 }],
+    // 1xx 系列 = MSC 订舱/参考号（无 SCAC 前缀）。实证：
+    //   · 181AS0266823514M1（2026-10-10 缓存+live 双实证，SHEKOU→ISTANBUL）
+    //   · 181AY26A0590138S1（10-12 live，YANTIAN→GDANSK）
+    //   · 177FCACAS347328（10-23 live 复核，SHANGHAI→GDANSK，箱 TGBU3403068）← 爹地提单里出现，原 181-only 规则漏识别
+    // 形态：3 位数字（177/181…）+ 2 位字母 + ≥5 位字母数字
+    booking: [{ re: /^1\d{2}[A-Z]{2}[A-Z0-9]{5,}$/, label: '1xx 系列（MSC 订舱/参考号：177/181…，真单实证）', score: 0.6 }],
     tracking: 'live',
   },
   {
