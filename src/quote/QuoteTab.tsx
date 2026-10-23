@@ -107,6 +107,13 @@ export default function App() {
     let cancelled = false;
     setEtdState("loading");
     setEtds({});
+    // 看门狗：300s 还没回来就告诉用户超时（后端 Node 有自己的 240s killTimer，但极端情况下
+    // 进程卡死时前端不能永远停在「查询中」）
+    const watchdog = window.setTimeout(() => {
+      if (cancelled) return;
+      setEtdError("查询超时（5 分钟无响应），可换个港口或重试");
+      setEtdState("error");
+    }, 300000);
     // ★ P0（10-23 审阅）：防抖 600ms —— 快速切换港口时只查最后一次。
     // 否则每换一次港口就拉起一整套浏览器（90s），多个查询并发 = 浏览器互相踩 = 全部失败。
     const timer = window.setTimeout(() => {
@@ -136,6 +143,7 @@ export default function App() {
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
+      window.clearTimeout(watchdog);
     };
     // filteredRows 由 data + route 派生，故依赖 route 即可
   }, [data, pol, pod, route]);

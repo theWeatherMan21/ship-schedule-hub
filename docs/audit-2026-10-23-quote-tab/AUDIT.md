@@ -70,3 +70,43 @@
 | 名字映射/并发/缓存 | `b16ef32` |
 | profile 隔离 | `ff8843c` |
 | 本轮审阅 11 项 | 见本文件所在 commit |
+
+
+---
+
+## 七、第二轮全面审阅（2026-10-23 傍晚 · 全项目）
+
+> 触发：爹地「你再检查一遍整体的代码」
+
+### 基线（全部实测）
+- Rust 测试 **56/56**；前端 `npm run build` 通过；engine 下 60 个 `.mjs` 语法检查 **0 错**
+- 单号识别回归 12 例：**11 通过**
+  - 唯一「失败」是我编的 `MSKU9813389`（ISO 6346 校验位应为 5，实际是 7 → 识别器拒绝自动路由、只给候选，**行为正确**）
+  - 拼成合法箱号 `MSKU5218900` → 正确识别为 maersk
+
+### 移植代码对照（与 QuoteAssist 原版 diff）
+- `parser.rs`：**完全一致**（无差异）
+- `quote.rs`：仅两处预期改动 —— `crate::parser` → `crate::quote::parser`、ETD 字段/渲染
+- 无隐藏改动 ✓
+
+### 新发现并修复
+| # | 级别 | 问题 | 修复 |
+|---|---|---|---|
+| R2-1 | P2 | akkon 每个操作都 `catch(() => {})` 静默；页面改版时遍历 21 国后只报「未找到」，掩盖真实原因 | 加 `step()` 包裹记录最后错误，全部失败时附在 error 里 |
+| R2-2 | P2 | ETD 查询前端无看门狗：极端情况下进程卡死会永远停在「查询中」 | 300s watchdog → 显示「查询超时」 |
+
+### 健康项
+- `parser.rs` 主流程错误处理完整（`?` + 明确中文错误，生产路径无 `unwrap`）
+- `QuoteTab` 的 useEffect 依赖完整（data/pol/pod/route/sizes/weight/etds 齐全）
+- `query_etd` 的 pid 生命周期正确（spawn → 存 → wait → 清），且 `stop_query` 杀不到它
+- akkon 未混入船期 `CARRIERS`（仍 11 家，符合爹地「只做追踪」要求）
+- `deploy.sh` 的 rsync 覆盖整个 engine（含 tracking/）
+
+### 观察区（评估过，暂不改）
+- Rust 侧 `query_etd` 无外层超时：Node 脚本自带 240s killTimer + 前端 300s 看门狗双兜底，加 Rust 超时需跨线程 kill，复杂度收益比不划算
+- ETD 的 carriers 取「该航线全部船司」，可能多查 1-2 家不跑此 POL-POD 的（如 MSK 不跑某港口），耗时影响可控
+- `read_row_fill_themes` 失败降级为空（无填充色时退化为名单匹配），已有 warnings 提示，可接受
+
+### 修复验证
+- akkon 单测 28/28；真实单 `AKKNBO51085597` 回归 **6.9s** 出结果（NINGBO → GEMLIK RODAPORT，2 事件）
+- 前端构建通过；部署脚本核对全 ✓
