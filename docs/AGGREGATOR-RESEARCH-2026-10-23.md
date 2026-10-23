@@ -10,7 +10,7 @@
 | **维运网** weiyun001.com | ❌ | `/track` 是 Next.js App Router；翻遍 59 个客户端 chunk **没有任何 `/api/` 路径**，数据走 RSC 内部协议；页面挂 `antidom.js` 检测自动化 |
 | **搜航网** sofreight.com | ❌ | 站内「货物追踪」直接外链 `17track.net`（包裹级），无海运提单追踪入口；`apiv6.sofreight.com/api` 有网关但要登录态 |
 | **CargoSmart** cargosmart.com | ❌ | `/tracking` 直接 404；公开页无匿名接口（它正是给 OOCL 提供滑块的那家） |
-| **Terminal49** | ✅ 需 API token | 正式 REST API（`api.terminal49.com/v2`，`Authorization: Token …`）+ MCP server + 官方测试单号；免费档「最多 10 个在途箱」 |
+| **Terminal49** | ⚠️ 免费档只能写不能读 | 正式 REST API（`api.terminal49.com/v2`）+ MCP + 测试单号；**实测：免费档 `POST /v2/tracking_requests` 201 可建，但 GET 一律 401「除创建追踪请求外都需要付费」**；API 读取+webhook 属 Essential 档（付费） |
 | **ShipsGo** | ✅ 需 API key | 覆盖 160+ 船司、标准 JSON；但 `shipsgo.com` 对我们的出口 IP 直接 Cloudflare 403（登录后台仍可用） |
 
 ## 维运网细节（为什么放弃）
@@ -44,3 +44,27 @@ grep -oE "/api/[A-Za-z0-9_/]{4,70}" <每个 chunk>  # → 0 条命中
 
 - 不要为了 OOCL 去解滑块：站点风控方 CargoSmart 同时在多家船司用，属长期猫鼠游戏。
 - 不要假设聚合站比船司好抓：维运网/搜航网的反爬（antidom + RSC）**强于**多数船司官网。
+
+
+## 2026-10-23 追加：Terminal49 实测结论（免费档不可用）
+
+拿到 API key 后实测：
+
+| 动作 | 结果 |
+|---|---|
+| `POST /v2/tracking_requests`（test number `TEST-TR-SUCCEEDED`, scac `TEST`） | **201**，返回 `status: pending` |
+| `GET /v2/tracking_requests/{id}` | **401** — `You do not have permissions for using the API, except for creating tracking requests. All other permissions require a paid plan.` |
+| `GET /v2/containers` | **401**（同上） |
+| `DELETE /v2/tracking_requests/{id}` | 404（免费档不允许删，需后台 UI 手删） |
+| 定价页 | 免费档不含 API 读取；**API access & webhooks 在 Essential 档**（年度合约 / 按量） |
+
+→ **免费档是只写不读，接不出可用数据。** 要用只能付费升级。
+
+## 拍板结果（2026-10-23，爹地）
+
+**选 B：维持 10/11 自动，OOCL 手工查。** 不为一家船司开年度合约。
+
+- 已在 T49 后台保留一个 API key（名称 `Hermes-WPS`），token 存本机 `~/.hermes/.env` 的 `T49_API_TOKEN`；
+  将来若升级付费，可直接复用，无需重新申请。
+- 账号里遗留 1 个测试 tracking request（`TEST-TR-SUCCEEDED`），API 删不掉，可在后台
+  Developers → Tracking Requests 手动删除。
