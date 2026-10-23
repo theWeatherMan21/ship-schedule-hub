@@ -1,7 +1,27 @@
 # ShipScheduleHub 驾驶舱（PROJECT.md）
 
 > 唯一真相源。中断后靠这份 + 芝麻仓重建上下文。更新频率：每轮收工 3 行。
-> 主管：婉宜 · 执行：婉宜主线 · 最近更新：**2026-10-12**
+> 主管：婉宜 · 执行：婉宜主线 · 最近更新：**2026-10-23**
+
+## 〇之前 · 2026-10-23：报价模块移植（QuoteAssist → 第三个 tab）
+
+**爹地原话**：「帮我把整个quote的模块移植到船期查询的软件里，先做成一个tab」
+
+**已完成（本机验证通过）**：
+- **后端**：`src/quote/{parser.rs,quote.rs,mod.rs}`（从 `Documents/Lobe/Pricing/quote-app` 原样搬，1847 行）
+  - commands：`parse_price_file` / `generate_quote_text`；插件 `tauri-plugin-dialog`
+  - 依赖新增 calamine 0.36 / zip 2 / roxmltree 0.20
+  - **测试 53/53 全过**（46 个报价测试 + 7 个原有 updater/path 测试）
+- **前端**：`src/quote/{QuoteTab.tsx,mount.jsx,quote.css,types.ts}`
+  - React 19 子应用，**Shadow DOM 隔离**（quote.css 的 `:root`→`:host`、`html/body`→`:host(:not([hidden]))`）
+  - 「报价」tab 懒加载（React 单独 chunk 258KB / gzip 78KB，主界面启动不受影响）
+  - clipboard 改用 `navigator.clipboard`（去掉 clipboard 插件依赖）
+- **踩坑记录**：JSX 走 classic runtime 时缺 `import React` → `Can't find variable: React`（两个文件都已加）
+- **已验证**：切到报价 tab 正常渲染（拖放区「拖入价格表 Excel」+ 选择文件按钮），由 cua 截图佐证
+- **未验证**：拖表/选文件的完整链路（需要爹地亲手试一次）；未 bump 版本号、未发布
+
+**回滚**：旧二进制备份在 `/tmp/ssh-bin-backup-1.5.7`（1.5.7 原版）
+
 > 路径：`/Users/russospencer/Documents/trae_projects/ShipScheduleHub`
 > 部署位置：**`/Applications/ShipScheduleHub.app`**（已上线自用）
 > 仓库：**https://github.com/theWeatherMan21/ship-schedule-hub**（私有，2026-09-30 首推，402 文件）
