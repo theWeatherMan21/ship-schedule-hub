@@ -41,6 +41,7 @@ export default function App() {
   // 下一水 ETD（爹地 2026-10-23）：船司大写 → ISO 日期；异步查船期后回填，不阻塞报价生成
   const [etds, setEtds] = useState<Record<string, string>>({});
   const [etdState, setEtdState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [etdError, setEtdError] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -122,7 +123,9 @@ export default function App() {
       })
       .catch((e) => {
         if (cancelled) return;
-        console.warn("[etd] 查询失败:", e);
+        const msg = typeof e === "string" ? e : (e && (e as Error).message) || String(e);
+        console.warn("[etd] 查询失败:", msg);
+        setEtdError(msg.slice(0, 240));
         setEtds({});
         setEtdState("error");
       });
@@ -450,7 +453,7 @@ export default function App() {
                 {etdState === "loading"
                   ? "ETD 查询中…（ONE 几秒；MSK/MSC/CMA 约 1 分钟）"
                   : preview
-                    ? `${preview.split("\n").filter(Boolean).length} 行${etdState === "done" ? " · 已含下一水 ETD" : ""}${etdState === "error" ? " · ETD 查询失败" : ""}`
+                    ? `${preview.split("\n").filter(Boolean).length} 行${etdState === "done" ? " · 已含下一水 ETD" : ""}${etdState === "error" ? ` · ETD 查询失败：${etdError}` : ""}`
                     : "未生成"}
               </span>
             </div>
