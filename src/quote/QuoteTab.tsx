@@ -107,30 +107,35 @@ export default function App() {
     let cancelled = false;
     setEtdState("loading");
     setEtds({});
-    invoke<{ results?: { carrier: string; etd: string }[] }>("query_etd", {
-      pol,
-      pod,
-      carriers,
-    })
-      .then((res) => {
-        if (cancelled) return;
-        const map: Record<string, string> = {};
-        (res.results || []).forEach((x) => {
-          if (x && x.carrier && x.etd) map[x.carrier.toUpperCase()] = x.etd;
-        });
-        setEtds(map);
-        setEtdState("done");
+    // ★ P0（10-23 审阅）：防抖 600ms —— 快速切换港口时只查最后一次。
+    // 否则每换一次港口就拉起一整套浏览器（90s），多个查询并发 = 浏览器互相踩 = 全部失败。
+    const timer = window.setTimeout(() => {
+      invoke<{ results?: { carrier: string; etd: string }[] }>("query_etd", {
+        pol,
+        pod,
+        carriers,
       })
-      .catch((e) => {
-        if (cancelled) return;
-        const msg = typeof e === "string" ? e : (e && (e as Error).message) || String(e);
-        console.warn("[etd] 查询失败:", msg);
-        setEtdError(msg.slice(0, 240));
-        setEtds({});
-        setEtdState("error");
-      });
+        .then((res) => {
+          if (cancelled) return;
+          const map: Record<string, string> = {};
+          (res.results || []).forEach((x) => {
+            if (x && x.carrier && x.etd) map[x.carrier.toUpperCase()] = x.etd;
+          });
+          setEtds(map);
+          setEtdState("done");
+        })
+        .catch((e) => {
+          if (cancelled) return;
+          const msg = typeof e === "string" ? e : (e && (e as Error).message) || String(e);
+          console.warn("[etd] 查询失败:", msg);
+          setEtdError(msg.slice(0, 240));
+          setEtds({});
+          setEtdState("error");
+        });
+    }, 600);
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
     // filteredRows 由 data + route 派生，故依赖 route 即可
   }, [data, pol, pod, route]);

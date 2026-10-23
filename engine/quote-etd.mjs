@@ -19,10 +19,28 @@
 //
 // 静默要求：query.mjs 默认不开可见窗口（只有 --window onscreen 才显示），符合爹地红线。
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+
+// ★ P0（10-23 审阅）：主 App 的 stop_query 兜底清理是 `pkill -f <engine>/query.mjs`。
+// 如果 ETD 查询也直接用 query.mjs，爹地点「停止」或在船期页操作时会把正在跑的
+// ETD 查询一起杀掉。复制成 query-quote.mjs（内容随 query.mjs 自动刷新）→ 路径不同，
+// pkill 不命中，两条链路彻底互不干扰。
+const QUERY_SRC = path.join(HERE, 'query.mjs');
+const QUERY_COPY = path.join(HERE, 'query-quote.mjs');
+let queryEntry = QUERY_SRC;
+try {
+  const needCopy =
+    !fs.existsSync(QUERY_COPY) ||
+    fs.statSync(QUERY_COPY).mtimeMs < fs.statSync(QUERY_SRC).mtimeMs;
+  if (needCopy) fs.copyFileSync(QUERY_SRC, QUERY_COPY);
+  queryEntry = QUERY_COPY;
+} catch {
+  /* 复制失败就退回原脚本：功能仍可用，只是可能被 stop_query 误杀 */
+}
 
 function arg(name, def = null) {
   const i = process.argv.indexOf(`--${name}`);
@@ -98,7 +116,7 @@ function normDate(v) {
 }
 
 const args = [
-  path.join(HERE, 'query.mjs'),
+  queryEntry,
   '--origin', pol,
   '--destination', pod,
 ];
@@ -126,6 +144,9 @@ const child = spawn(process.execPath, args, {
     NODE_PATH: '',
     NODE_OPTIONS: '',
     SSH_PROFILE_DIR: ETD_PROFILE_DIR,   // 与主 App 的 browser-profile 隔离
+    // ★ P1（10-23 审阅）：--no-cache 只阻止「读」，写缓存的分支照样执行 →
+    // ETD 查询会污染主 App 的 20 分钟结果缓存。TTL=0 才是真正既不读也不写。
+    SSH_CACHE_TTL_MS: '0',
   },
 });
 

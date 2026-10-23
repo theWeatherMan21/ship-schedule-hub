@@ -41,6 +41,31 @@ pub struct TrackState {
     pub child_pid: std::sync::Mutex<Option<u32>>,
 }
 
+/// 报价 ETD 查询的独立状态（10-23 审阅）：用户换港口时要把上一次还在跑的查询杀掉，
+/// 否则多个查询同时拉浏览器会互相踩（profile 已隔离，但资源/CPU 仍会互相拖累）。
+#[derive(Default)]
+pub struct EtdState {
+    pub pid: std::sync::Mutex<Option<u32>>,
+}
+
+fn kill_pid(pid: u32) {
+    #[cfg(unix)]
+    {
+        let _ = std::process::Command::new("/bin/kill")
+            .args(["-TERM", &pid.to_string()])
+            .output();
+    }
+    #[cfg(windows)]
+    {
+        let sys32 = std::env::var("SystemRoot")
+            .map(|w| format!("{w}\\System32"))
+            .unwrap_or_else(|_| "C:\\Windows\\System32".into());
+        let _ = std::process::Command::new(format!("{sys32}\\taskkill.exe"))
+            .args(["/T", "/F", "/PID", &pid.to_string()])
+            .output();
+    }
+}
+
 /// 用系统默认浏览器打开外部链接（维运网兜底查询等）婉宜 9-24
 #[tauri::command]
 fn open_external(_app: tauri::AppHandle, url: String) -> Result<(), String> {
@@ -444,10 +469,17 @@ fn generate_quote_text(
 #[tauri::command]
 async fn query_etd(
     app: AppHandle,
+    state: State<'_, EtdState>,
     pol: String,
     pod: String,
     carriers: Vec<String>,
 ) -> Result<serde_json::Value, String> {
+    // ★ P0（10-23 审阅）：用户换港口/船司时，把上一次还在跑的 ETD 查询杀掉。
+    // 否则两个查询同时拉浏览器：CPU 互相拖慢 + 偶发 Target page/context closed。
+    if let Some(prev) = state.pid.lock().ok().and_then(|mut g| g.take()) {
+        kill_pid(prev);
+        std::thread::sleep(std::time::Duration::from_millis(400));
+    }
     let root = project_root(Some(&app));
     let script = root.join("engine").join("quote-etd.mjs");
     if !script.exists() {
@@ -457,6 +489,7 @@ async fn query_etd(
     let carriers_arg = carriers.join(",");
     let script_path = script.clone();
     let workdir = script.parent().map(|p| p.to_path_buf()).unwrap_or_default();
+    let app2 = app.clone();
     let out = tauri::async_runtime::spawn_blocking(move || {
         let mut cmd = std::process::Command::new(&node);
         cmd.arg(&script_path)
@@ -472,7 +505,20 @@ async fn query_etd(
             use std::os::windows::process::CommandExt;
             cmd.creation_flags(0x0800_0000);
         }
-        cmd.output()
+        let mut child = cmd.spawn()?;
+        // 记录 pid，供下一次查询杀掉（也便于诊断）
+        if let Some(st) = app2.try_state::<EtdState>() {
+            if let Ok(mut g) = st.pid.lock() {
+                *g = Some(child.id());
+            }
+        }
+        let res = child.wait_with_output();
+        if let Some(st) = app2.try_state::<EtdState>() {
+            if let Ok(mut g) = st.pid.lock() {
+                *g = None;
+            }
+        }
+        res
     })
     .await
     .map_err(|e| format!("ETD 查询任务失败: {e}"))?;
@@ -1277,6 +1323,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(EngineState::default())
         .manage(TrackState::default())
+        .manage(EtdState::default())
         // 报价 tab 的「选择文件」对话框（10-23 移植）
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
