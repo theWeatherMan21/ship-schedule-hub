@@ -22,6 +22,18 @@
 
 **回滚**：旧二进制备份在 `/tmp/ssh-bin-backup-1.5.7`（1.5.7 原版）
 
+### 10-23：接入 Akkon Lines 提单追踪（只做追踪，不做船期）
+
+- 站点 `https://sap.akkonlines.com/index.aspx`（ASP.NET WebForms + UpdatePanel 局部回发）
+- **真实单号验证**（爹地给）：`AKKNBO25028132` → CAAU296407-3 / MV LIANG XIANG 85 LIN0125W /
+  NINGBO → GEMLIK RODAPORT / ETS 2025-11-21 / ETA 2025-12-17，**6.7 秒出结果**
+- 站点硬约束（实测）：
+  ① BL 查询**必须选起运港国家**（21 项）→ 适配器按 CHINA 优先遍历、命中即停
+  ② **箱号不能单独查**（只填箱号报 "Enter your BL Number"）→ 箱号输入直接提示要提单号
+  ③ 单号必须 14 位（AKK + 港口码 3 字母 + 8 位数字）
+- 新增 `engine/tracking/akkon.mjs` + `qa/akkon-unit.mjs`（28 断言全过）；identify.mjs 加 booking 规则（score 0.95 自动识别）
+- 只进「提单/箱号」tab，**不进船期船司列表**（`CARRIERS` 未动）
+
 ### 10-23 追加：Next ETD 行（Validity 上面）
 
 - 需求：每个报价的 `Valid from` 上面加一行 `Next ETD: 03.Nov`
