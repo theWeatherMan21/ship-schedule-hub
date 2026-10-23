@@ -44,6 +44,8 @@ expect('M237055674 → 不确定，候选含 zim/msc（ZIM 订舱形态 + MSC �
 // 181 系列 2026-10-12 已归户 MSC（181AS 缓存+live 双实证；见 msc.booking 规则）
 expect('181AS0266823514M1（MSC 181 系列）→ MSC', '181AS0266823514M1', { ok: true, carrierId: 'msc', matchedBy: 'booking-format', docType: 'booking' });
 expect('181AY12345（181 系列同族）→ MSC', '181AY12345', { ok: true, carrierId: 'msc', matchedBy: 'booking-format' });
+expect('177FCACAS347328（MSC 177 系列，10-23 live 复核）→ MSC', '177FCACAS347328', { ok: true, carrierId: 'msc', matchedBy: 'booking-format', docType: 'booking' });
+expect('177FCACAS347312（MSC 177 系列同族）→ MSC', '177FCACAS347312', { ok: true, carrierId: 'msc', matchedBy: 'booking-format' });
 expect('CANF… → 疑货代分单(HBL)标记', 'CANF123456789', { ok: false, flags: { houseBlPossible: true, foreignPrefix: true, containerValid: null } });
 expect('NGP… → 认不出', 'NGP12345678', { ok: false, matchedBy: 'none' });
 
