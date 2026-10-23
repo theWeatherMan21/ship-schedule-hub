@@ -242,7 +242,11 @@ app.innerHTML = `
   <nav class="tabs" id="tabs">
     <button class="tab active" data-v="sched">船期</button>
     <button class="tab" data-v="track">提单/箱号</button>
+    <button class="tab" data-v="quote">报价</button>
   </nav>
+
+  <!-- 报价 tab 容器：内容由 React 子应用挂载（Shadow DOM，样式与主界面隔离） -->
+  <div id="viewQuote" class="view" hidden></div>
 
   <div id="viewSched" class="view">
   <section class="formbar">
@@ -1028,9 +1032,36 @@ function detectClient(num) {
 function switchView(v) {
   const vs = document.getElementById('viewSched');
   const vt = document.getElementById('viewTrack');
+  const vq = document.getElementById('viewQuote');
   if (vs) vs.hidden = v !== 'sched';
   if (vt) vt.hidden = v !== 'track';
+  if (vq) vq.hidden = v !== 'quote';
   document.querySelectorAll('#tabs .tab').forEach((b) => b.classList.toggle('active', b.dataset.v === v));
+  // 报价 tab：首次点开才加载 React 子应用（单独 chunk，不拖慢主界面启动）
+  if (v === 'quote') mountQuoteTabLazy();
+}
+
+// 报价 tab 懒加载（React + QuoteAssist 移植代码打独立 chunk）
+async function mountQuoteTabLazy() {
+  const el = document.getElementById('viewQuote');
+  const mark = (msg, color) => {
+    if (el) {
+      el.innerHTML = '';
+      const box = document.createElement('div');
+      box.style.cssText = 'padding:20px;font:13px -apple-system,sans-serif;color:' + color;
+      box.textContent = msg;
+      el.appendChild(box);
+    }
+  };
+  try {
+    mark('报价模块加载中…', '#666');
+    const m = await import('./quote/mount.jsx');
+    m.mountQuoteTab();
+    console.log('[quote] chunk 加载完成，mount 已调用');
+  } catch (e) {
+    console.error('[quote] 加载失败', e);
+    mark('报价模块加载失败：' + (e && e.message ? e.message : String(e)), '#c00');
+  }
 }
 document.querySelectorAll('#tabs .tab').forEach((b) => { b.onclick = () => switchView(b.dataset.v); });
 

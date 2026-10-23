@@ -1,3 +1,5 @@
+pub mod quote;
+
 use serde::Deserialize;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
@@ -418,6 +420,22 @@ fn chrono_like_now() -> String {
 #[tauri::command]
 fn restart_app(app: tauri::AppHandle) {
     app.restart();
+}
+
+// ---------- 报价模块（10-23 从 QuoteAssist 移植，爹地要求合成一个 tab）----------
+/// 解析价格表 Excel → 结构化报价数据（船司/POL/POD/价格/有效期/免用箱/超重费）
+#[tauri::command]
+fn parse_price_file(path: String) -> Result<quote::parser::PricingData, String> {
+    quote::parser::parse_pricing_xlsx(&path)
+}
+
+/// 按条件生成报价文本（纯文本，直接可粘贴）
+#[tauri::command]
+fn generate_quote_text(
+    rows: Vec<quote::parser::QuoteRow>,
+    req: quote::quote::QuoteRequest,
+) -> String {
+    quote::quote::generate_quote(&rows, &req)
 }
 
 // ---------- 更新检查兜底（10-14）----------
@@ -1197,6 +1215,8 @@ pub fn run() {
     tauri::Builder::default()
         .manage(EngineState::default())
         .manage(TrackState::default())
+        // 报价 tab 的「选择文件」对话框（10-23 移植）
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             // 自动更新插件（App 内下载/安装）；任何失败都不影响主功能
             #[cfg(desktop)]
@@ -1268,7 +1288,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update, restart_app])
+        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update, restart_app, parse_price_file, generate_quote_text])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

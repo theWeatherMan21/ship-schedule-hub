@@ -12,6 +12,11 @@ tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-updater = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# 报价模块（10-23 从 QuoteAssist 移植）：Excel 解析 + 样式/填充色直读 + 选文件对话框
+calamine = "0.36.1"
+zip = "2"
+roxmltree = "0.20"
+tauri-plugin-dialog = "2"
 
 [lib]
 name = "shipschedulehub_lib"

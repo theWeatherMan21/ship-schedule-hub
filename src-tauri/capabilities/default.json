@@ -14,6 +14,7 @@
     "core:window:default",
     "core:window:allow-set-theme",
     "core:window:allow-start-dragging",
-    "updater:default"
+    "updater:default",
+    "dialog:default"
   ]
 }
