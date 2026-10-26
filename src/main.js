@@ -1554,7 +1554,10 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
   setTimeout(() => runUpdateCheck({ manual: false }), 5000);
   document.getElementById('btnCheckUpdate')?.addEventListener('click', () => runUpdateCheck({ manual: true }));
   document.getElementById('wpsInstall')?.addEventListener('click', () => wpsRun('install', '安装'));
-  document.getElementById('wpsUninstall')?.addEventListener('click', () => wpsRun('uninstall', '卸载'));
+  document.getElementById('wpsUninstall')?.addEventListener('click', () => {
+    if (!window.confirm('确定卸载 WPS 里的「船期追踪」加载项？卸载后要重新安装才能用。')) return;
+    wpsRun('uninstall', '卸载');
+  });
   document.getElementById('wpsDir')?.addEventListener('click', async () => {
     try {
       const s = await wpsAction('status');

@@ -470,6 +470,11 @@ fn generate_quote_text(
 /// 这里只负责调起 node 并原样回传它那一行 JSON。
 #[tauri::command]
 async fn wps_addon(app: AppHandle, action: String) -> Result<String, String> {
+    // 白名单：前端传什么都行，但只有这四个会被执行（其余一律按 status 处理）
+    let action = match action.to_ascii_lowercase().as_str() {
+        "install" | "update" | "uninstall" | "status" => action.to_ascii_lowercase(),
+        _ => "status".to_string(),
+    };
     let root = project_root(Some(&app));
     let script = root.join("engine").join("wps-addon.mjs");
     if !script.exists() {
