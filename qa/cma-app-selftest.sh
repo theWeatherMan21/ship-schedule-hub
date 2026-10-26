@@ -41,4 +41,4 @@ tail -n +$((before + 1)) "$TRACE" 2>/dev/null | tail -6
 
 # 4) 截图
 screencapture -x "$OUT" && echo "✓ 截图：$OUT" || { echo "✗ 截图失败"; exit 5; }
-echo "请人工看一眼：结果卡应有 柜号（CMAU2081135 / CMAU7247424）、状态、Completed 等字段。"
+echo "请人工看一眼：结果卡应有 柜号（CMAU2081132 / CMAU7247427）、状态、Completed 等字段。"

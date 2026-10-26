@@ -33,9 +33,9 @@
 
 | 号 | 结果 |
 |---|---|
-| **YMLU4794134**（柜） | 20 事件（2026-08-24 SURABAYA → 2026-09-30 KEELUNG），`Completed`（空箱归还），船 YM CENTENNIAL 070N / YM INTELLIGENT 298N |
-| **N237068499**（提单，Seaway Bill） | SHANGHAI (CNSHA) → ROTTERDAM (NLRTM)，HMM DUBLIN 018W，下钻柜 FCIU… YMLU4794134 8 事件（2026-02-06 → 04-10） |
-| 无效号 | `successCnt:0` → not-found（如 XXXX3432539） |
+| **YMLU4794131**（柜） | 20 事件（2026-08-24 SURABAYA → 2026-09-30 KEELUNG），`Completed`（空箱归还），船 YM CENTENNIAL 070N / YM INTELLIGENT 298N |
+| **N237068499**（提单，Seaway Bill） | SHANGHAI (CNSHA) → ROTTERDAM (NLRTM)，HMM DUBLIN 018W，下钻柜 FCIU… YMLU4794131 8 事件（2026-02-06 → 04-10） |
+| 无效号 | `successCnt:0` → not-found（如 XXXX3432533） |
 
 - 识别元数据：`yangming tracking:'live'`；UI 说明栏已列入。
 - App 实机 selftest（无头真跑）通过：`1 container(s) · 20 events`，路线 `SURABAYA → KEELUNG`。

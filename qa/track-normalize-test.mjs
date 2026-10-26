@@ -3,12 +3,12 @@ import { normalizeTracking } from '../engine/tracking/normalize.mjs';
 
 const rawMaersk = {
   ok: true, carrier: 'maersk', number: '276759780', origin: 'XINGANG (CN)', destination: 'GDANSK (PL)', status: 'IN_PROGRESS',
-  containers: [{ num: 'MRKU3574053', status: 'IN_PROGRESS', events: [] }],
+  containers: [{ num: 'MRKU3574056', status: 'IN_PROGRESS', events: [] }],
   events: [
-    { time: '2026-10-08T04:46:00.000', activity: 'Container Departure', city: 'XINGANG', timeType: 'ACTUAL', container: 'MRKU3574053' },
-    { time: '2026-11-17T04:00:00.000', activity: 'Container Arrival', city: 'PORT TANGIER MEDITERRANEE', timeType: 'EXPECTED', container: 'MRKU3574053' },
-    { time: '2026-11-19T17:00:00.000', activity: 'Container Departure', city: 'PORT TANGIER MEDITERRANEE', timeType: 'EXPECTED', container: 'MRKU3574053' },
-    { time: '2026-11-26T06:00:00.000', activity: 'Container Arrival', city: 'GDANSK', timeType: 'EXPECTED', container: 'MRKU3574053' },
+    { time: '2026-10-08T04:46:00.000', activity: 'Container Departure', city: 'XINGANG', timeType: 'ACTUAL', container: 'MRKU3574056' },
+    { time: '2026-11-17T04:00:00.000', activity: 'Container Arrival', city: 'PORT TANGIER MEDITERRANEE', timeType: 'EXPECTED', container: 'MRKU3574056' },
+    { time: '2026-11-19T17:00:00.000', activity: 'Container Departure', city: 'PORT TANGIER MEDITERRANEE', timeType: 'EXPECTED', container: 'MRKU3574056' },
+    { time: '2026-11-26T06:00:00.000', activity: 'Container Arrival', city: 'GDANSK', timeType: 'EXPECTED', container: 'MRKU3574056' },
   ],
   eta: { time: '2026-11-26T06:00:00.000', city: 'GDANSK' },
 };
@@ -20,11 +20,11 @@ assert.equal(normalized.phase, 'In Transit', 'arrival forecast does not mean del
 
 // YM：空箱归还（Gate in of Empty Equipment）→ phase=Completed（worker 复核缺口 d）
 const rawYm = {
-  ok: true, carrier: 'yangming', number: 'YMLU4794134',
-  containers: [{ num: 'YMLU4794134', status: '' }],
+  ok: true, carrier: 'yangming', number: 'YMLU4794131',
+  containers: [{ num: 'YMLU4794131', status: '' }],
   events: [
-    { time: '2026-09-30T16:33', activity: 'Gate in of Empty Equipment by Truck at Depot', city: 'KEELUNG', timeType: 'ACTUAL', container: 'YMLU4794134' },
-    { time: '2026-09-26T15:23', activity: 'Discharge of Laden Equipment from Vessel at Port terminal', city: 'KEELUNG', timeType: 'ACTUAL', container: 'YMLU4794134' },
+    { time: '2026-09-30T16:33', activity: 'Gate in of Empty Equipment by Truck at Depot', city: 'KEELUNG', timeType: 'ACTUAL', container: 'YMLU4794131' },
+    { time: '2026-09-26T15:23', activity: 'Discharge of Laden Equipment from Vessel at Port terminal', city: 'KEELUNG', timeType: 'ACTUAL', container: 'YMLU4794131' },
   ],
 };
 const nYm = normalizeTracking(rawYm);
@@ -36,10 +36,10 @@ assert.equal(nYm.current.activity, 'Gate In Of Empty Equipment By Truck At Depot
 // 场景：新订舱/仅计划事件的票 —— 之前会把未来的预计事件标成「当前位置」显示在 UI 主行
 const rawAllExpected = {
   ok: true, carrier: 'test', number: 'PLAN1',
-  containers: [{ num: 'TCLU3054360', status: 'PLANNED' }],
+  containers: [{ num: 'TCLU3054361', status: 'PLANNED' }],
   events: [
-    { time: '2026-11-26T06:00:00.000', activity: 'Container Arrival', city: 'GDANSK', timeType: 'EXPECTED', container: 'TCLU3054360' },
-    { time: '2026-11-30T06:00:00.000', activity: 'Container Delivery', city: 'GDANSK', timeType: 'EXPECTED', container: 'TCLU3054360' },
+    { time: '2026-11-26T06:00:00.000', activity: 'Container Arrival', city: 'GDANSK', timeType: 'EXPECTED', container: 'TCLU3054361' },
+    { time: '2026-11-30T06:00:00.000', activity: 'Container Delivery', city: 'GDANSK', timeType: 'EXPECTED', container: 'TCLU3054361' },
   ],
 };
 const nAllExp = normalizeTracking(rawAllExpected);
@@ -49,10 +49,10 @@ assert.equal(nAllExp.events.some((e) => e.isCurrent), false, 'P0-2: 任何 EXPEC
 // 对照：有 ACTUAL 时仍取最后一条 ACTUAL（回归保护，防修过头）
 const rawMixed = {
   ok: true, carrier: 'test', number: 'MIX1',
-  containers: [{ num: 'TCLU3054360', status: '' }],
+  containers: [{ num: 'TCLU3054361', status: '' }],
   events: [
-    { time: '2026-11-01T06:00:00.000', activity: 'Discharged', city: 'GDANSK', timeType: 'ACTUAL', container: 'TCLU3054360' },
-    { time: '2026-11-30T06:00:00.000', activity: 'Delivery', city: 'GDANSK', timeType: 'EXPECTED', container: 'TCLU3054360' },
+    { time: '2026-11-01T06:00:00.000', activity: 'Discharged', city: 'GDANSK', timeType: 'ACTUAL', container: 'TCLU3054361' },
+    { time: '2026-11-30T06:00:00.000', activity: 'Delivery', city: 'GDANSK', timeType: 'EXPECTED', container: 'TCLU3054361' },
   ],
 };
 const nMixed = normalizeTracking(rawMixed);

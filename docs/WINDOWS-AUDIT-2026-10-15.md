@@ -110,7 +110,7 @@ UA-stderr| 系统找不到指定的路径。        ← cmd 找不到那条 macO
 | 5 | 引擎 spawn 无黑框 + 静默 | ✅ `CREATE_NO_WINDOW` 生效（全程无控制台闪窗）；`windowMode=minimized`；全轮查询**新增可见窗口 0** | `lib.rs` spawn 段、`probe05/06/07.txt` 的窗口计数 |
 | 6 | 11 家船期并发（真网） | ✅ 10/11 家出航期，**86 条**（one 10 / yangming 6 / msc 7 / maersk 8 / cosco 11 / hapag 12 / evergreen 12 / hmm 5 / zim 4 / oocl 11）；CMA 403 被拦（与 macOS 同因：新 profile 无履历，**非 Windows 特有**） | `otherrun.ndjson`（并发会话 11:52 在同一台机器跑的整轮，我未重复全量跑以免撞限流） |
 | 7 | 单家 live 复核（`--no-cache`，排除缓存假象） | ✅ MSC 14 条 6.2s / Yangming 11 条 0.8s，`http=200` | `p7-msc-out.ndjson`、`p7-yangming-out.ndjson` |
-| 8 | 提单/箱号追踪（命令行 + UI 端到端） | ✅ CLI：`276759780` → XINGANG(CN)→GDANSK(PL)、`MRKU3574053 20' DRY`、`In Transit`；**UI**：追踪页自动识别 Maersk、结果卡正常渲染 | `p7-track-out.ndjson`、`probe09.txt`、`app-6-track.png` |
+| 8 | 提单/箱号追踪（命令行 + UI 端到端） | ✅ CLI：`276759780` → XINGANG(CN)→GDANSK(PL)、`MRKU3574056 20' DRY`、`In Transit`；**UI**：追踪页自动识别 Maersk、结果卡正常渲染 | `p7-track-out.ndjson`、`probe09.txt`、`app-6-track.png` |
 | 9 | 「诊断 / 复制诊断」面板 | ✅ 面板可开、复制到剪贴板 1868 字符 JSON（平台/引擎/路径/浏览器/端口库全项） | `probe06.txt`、`diag-clipboard.txt`、`app-3-diagnose.png` |
 | 10 | `\\?\` 长路径前缀防护 | ✅ Tauri `resourceDir` 原样是 `\\?\C:\Program Files\ShipScheduleHub`，**传给 node 前已 normalize** 成 `C:\Program Files\…\query.mjs`（否则 node 必崩） | `diag-clipboard.txt`（`resourceDir` vs `script` 两行对照） |
 | 11 | App 内更新检查（Windows） | ✅ 点「检查更新」→ 出 toast「**已是最新版本（v1.5.1）**」；`latest.json` 含 `windows-x86_64` 条目 + 签名 + NSIS 安装包 URL；3 个镜像清单都可达（ghfast 302/206、ghproxy 302/206、GitHub 302） | `probe09.txt`、`app-7-update.png`、`probe05.txt` 端点表 |

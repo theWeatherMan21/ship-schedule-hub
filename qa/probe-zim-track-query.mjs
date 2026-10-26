@@ -3,7 +3,7 @@
 import { launch, sleep } from '../engine/browser.mjs';
 import fs from 'node:fs';
 
-const NUM = process.argv[2] || 'TGBU4028001';
+const NUM = process.argv[2] || 'TGBU4028006';
 const ctx = await launch({ headless: true });
 const page = ctx.pages()[0] || (await ctx.newPage());
 const log = [];

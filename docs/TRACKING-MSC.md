@@ -59,12 +59,12 @@ Data.BillOfLadings[]     BillOfLadingNumber / NumberOfContainers / Delivered
 | 情况 | 接口表现 | 引擎返回 |
 | --- | --- | --- |
 | 单号在 MSC 系统里查无（格式也可能只是不被它认） | `200 {"IsSuccess":false,"Data":"No results found for this Container number. …"}` | `{ok:false, errorKind:'not-found', error:<MSC 原话>}` |
-| 箱号格式合法但不在 MSC 在役箱队（实测 `MSCU0520333`） | `200 {"IsSuccess":false,"Data":"Off Service"}` | 同上，error 就是 MSC 原话 `Off Service`（别自己改写成"查无此号"） |
+| 箱号格式合法但不在 MSC 在役箱队（实测 `MSCU0520332`） | `200 {"IsSuccess":false,"Data":"Off Service"}` | 同上，error 就是 MSC 原话 `Off Service`（别自己改写成"查无此号"） |
 | 通路被拦/改版（非 JSON） | 非 JSON 体 | `{ok:false, errorKind:'blocked', error:'…被拦/改版…'}` |
 | 单号其实是订舱号 | mode 0 报 not-found | 引擎自动再打 mode 1，成功则 `mode:'1'` |
 
 **边界实测（2026-10-10）**：垃圾输入 `hello` → MSC 回通用 not-found 文案（引擎不崩、如实转达）；
-`MSCU0520333`（ISO 6346 合法、非在役箱）→ `Off Service`。
+`MSCU0520332`（ISO 6346 合法、非在役箱）→ `Off Service`。
 
 **实测反例**：`M237055674`（爹地给的候选号）mode 0/1 都回 not-found —— 它**不是** MSC 的箱号/B/L/订舱号（10 位、M+9 数字，不符合 MSC 任何格式），归属待识别器卡判定。
 **订舱号模式（mode 1）代码已备但尚未验证**：拿公开文档里的两个订舱号（`241ISZ1655566`、`070ISA0949739`）实测均 not-found
@@ -88,9 +88,9 @@ const r = await trackMsc('MEDUW7272208');          // 自带 ctx：单号单开
 
 | 单号 | 类型 | 结果 | 耗时 |
 | --- | --- | --- | --- |
-| `MEDUW7272208` | Bill of Lading | SHANGHAI,CN → HO CHI MINH CITY,VN；1 箱 MSNU6852576(20' DRY VAN)；**6 条事件**（空箱提箱→进 CY→装船 MSC TARA III HS552A→卸船→交收货人→空箱回场）；Delivered=true | 3.8s |
-| `MSCU0756484` | Container | YANTIAN,CN → VANCOUVER,CA；40' HIGH CUBE REEFER；**4 条事件**（含未来 ETA 2026-10-17 @DELTAPORT，船 EXPRESS ROME UK636A，经 BUSAN/QINGDAO/SHANGHAI）；Delivered=false | 2.8s |
-| `MEDU3113030` | Container | TINCAN/LAGOS,NG → NHAVA SHEVA,IN（经 KRIBI,CM）；**10 条事件**（含 COLOMBO 转船：MSC TAURUS VII FN606R → GREENFIELD IP610R）；Delivered=true | 3.1s |
+| `MEDUW7272208` | Bill of Lading | SHANGHAI,CN → HO CHI MINH CITY,VN；1 箱 MSNU6852570(20' DRY VAN)；**6 条事件**（空箱提箱→进 CY→装船 MSC TARA III HS552A→卸船→交收货人→空箱回场）；Delivered=true | 3.8s |
+| `MSCU0756488` | Container | YANTIAN,CN → VANCOUVER,CA；40' HIGH CUBE REEFER；**4 条事件**（含未来 ETA 2026-10-17 @DELTAPORT，船 EXPRESS ROME UK636A，经 BUSAN/QINGDAO/SHANGHAI）；Delivered=false | 2.8s |
+| `MEDU3113039` | Container | TINCAN/LAGOS,NG → NHAVA SHEVA,IN（经 KRIBI,CM）；**10 条事件**（含 COLOMBO 转船：MSC TAURUS VII FN606R → GREENFIELD IP610R）；Delivered=true | 3.1s |
 | `M237055674` | 未知 | MSC 明确否定（not-found，非通路故障） | 3.6s |
 
 原始 JSON dump：`qa` 探针输出见 kanban 证据目录 `evidence/msc-*.json`；CLI 日志 `evidence/msc-cli-run.log`。

@@ -33,7 +33,7 @@ triggerType(ACTUAL|ESTIMATED) / location / yard / vessel`）。
 
 - **BL 号 = `ONEY` + 12 位**；网页输入框只收**后 12 位、不带 `ONEY` 前缀**（如 `HAMG12062700`）。
   本模块**两种都收**（自动剥 `ONEY`）。
-- 订舱号同字段、同写法；箱号形如 `ONEU4227196`（`ONEU/ONEY` + 7 位 → 自动判成箱号查询）。
+- 订舱号同字段、同写法；箱号形如 `ONEU4227199`（`ONEU/ONEY` + 7 位 → 自动判成箱号查询）。
 - ✅ **自动识别（2026-10-12 起）**：官方两种「后 12 位」形态均可自动识别为 ONE 并直接查询——
   3 字母+9 数字（`PUS123456789`）、4 字母+8 数字（`PUSA12345678`）；带 `ONEY` 前缀的完整号
   （`ONEY`+12 位）识别后由本模块自动剥离前缀、按官网格式查询。实测：`ONEYSZPG70884900`
@@ -78,7 +78,7 @@ triggerType(ACTUAL|ESTIMATED) / location / yard / vessel`）。
 | `SZPG70884900` | BL/订舱号 | 南沙 → 温哥华，**4 箱** × 10 事件（含中转盐田/支线） |
 | `GYEG18729700` | BL/订舱号 | 波索尔哈 → 高雄，1 箱 14 事件（釜山中转，换 MOL CELEBRATION→HMM DREAM） |
 | `SH5FVD622400` | BL/订舱号 | 上海 → 长滩，1 箱 8 事件 |
-| `ONEU4227196` | 箱号 | 鹿特丹 → 卡加延德奥罗，1 箱 **12 事件（含 4 条 EXPECTED + ETA 2026-10-14）** |
+| `ONEU4227199` | 箱号 | 鹿特丹 → 卡加延德奥罗，1 箱 **12 事件（含 4 条 EXPECTED + ETA 2026-10-14）** |
 
 复跑：`node engine/tracking/cli.mjs --number <号> --carrier one --no-cache`
 

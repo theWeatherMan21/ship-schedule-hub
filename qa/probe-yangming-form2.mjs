@@ -17,7 +17,7 @@ console.log('inputs:', JSON.stringify(info, null, 1));
 // 找第一个可见 text 输入（搜索框应为 "Container No. or B/L No. or Booking No."）
 const firstId = info.find((x) => x.vis)?.id;
 if (firstId) {
-  await page.fill('#' + firstId.replace(/([^\w-])/g, '\\$1'), 'YMLU4794134').catch((e) => console.log('fillErr', String(e).slice(0, 100)));
+  await page.fill('#' + firstId.replace(/([^\w-])/g, '\\$1'), 'YMLU4794131').catch((e) => console.log('fillErr', String(e).slice(0, 100)));
   await sleep(800);
   // 点 Search 按钮
   const clicked = await page.evaluate(() => {

@@ -107,7 +107,7 @@ SSH_SELFTEST=1 /Applications/ShipScheduleHub.app/Contents/MacOS/shipschedulehub
 
 | 输入形态 | 判为 | 判据 |
 |---|---|---|
-| `MSKU3057751`（4 字母 + 7 数字） | **箱号** | ISO 6346 形态 |
+| `MSKU3057756`（4 字母 + 7 数字） | **箱号** | ISO 6346 形态 |
 | `HLCUE300F5C71EA7` / `NGP3170431`（船司单号） | **提单号** | SCAC 前缀表 |
 | 其它成形的业务号 | **订舱号** | 形态匹配 |
 
@@ -118,7 +118,7 @@ SSH_SELFTEST=1 /Applications/ShipScheduleHub.app/Contents/MacOS/shipschedulehub
 - 命令行与 App 走同一个入口：
 
 ```bash
-node engine/tracking/cli.mjs --query MSKU3057751
+node engine/tracking/cli.mjs --query MSKU3057756
 node engine/tracking/cli.mjs --query HLCUE300F5C71EA7
 ```
 

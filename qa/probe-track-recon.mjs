@@ -9,8 +9,8 @@ page.on('request', (r) => {
 });
 const sites = [
   { id: 'maersk', url: 'https://www.maersk.com/tracking', num: null },
-  { id: 'hapag', url: 'https://www.hapag-lloyd.com/en/online-business/track/track.html', num: 'HLCU2743528' },
-  { id: 'one', url: 'https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking', num: 'ONEU8636192' },
+  { id: 'hapag', url: 'https://www.hapag-lloyd.com/en/online-business/track/track.html', num: 'HLCU2743520' },
+  { id: 'one', url: 'https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking', num: 'ONEU8636197' },
   { id: 'msc', url: 'https://www.msc.com/en/track-a-shipment', num: null },
 ];
 for (const s of sites) {

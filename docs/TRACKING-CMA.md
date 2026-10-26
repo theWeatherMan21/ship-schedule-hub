@@ -6,12 +6,12 @@
 - **表单**：`input#Reference`（提单/订舱/柜号）+ `button#btnTracking`（提交）
 - **提交**：`POST https://www.cma-cgm.com/ebusiness/tracking/search` → 200 → 同页渲染结果
 - **结果行**（实测形态）：
-  `CMAU2081135 22G1 (20ST) GATE IN EMPTY AT DEPOT ISTANBUL, AMBARLI PORT E. SIDE Thu. 05-MAR-2026 14:41 PM [Display Details]`
+  `CMAU2081132 22G1 (20ST) GATE IN EMPTY AT DEPOT ISTANBUL, AMBARLI PORT E. SIDE Thu. 05-MAR-2026 14:41 PM [Display Details]`
 - **否定态**：`Your shipment was not found, please modify your search`
 
 ## 二、真单验收记录（2026-10-12）
 
-- `NGP3170431`（Booking）→ **2 柜**：`CMAU2081135` / `CMAU7247424`，22G1 (20ST)，`GATE IN EMPTY AT DEPOT` @ ISTANBUL, AMBARLI PORT E. SIDE，2026-03-05 14:41 / 14:35 —— **首次访问一次性成功**。
+- `NGP3170431`（Booking）→ **2 柜**：`CMAU2081132` / `CMAU7247427`，22G1 (20ST)，`GATE IN EMPTY AT DEPOT` @ ISTANBUL, AMBARLI PORT E. SIDE，2026-03-05 14:41 / 14:35 —— **首次访问一次性成功**。
 - 之后**连续访问触发 DataDome 拦截**（换出口 IP、换干净浏览器档案均未绕过；系访问频度累积所致）→ **站方限流机制，非程序缺陷**。
 - 结论：**链路可用**（低频访问）；适配器按"低频 + 被拦冷却重试"设计。
 

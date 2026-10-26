@@ -18,7 +18,7 @@ const PROJ = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
 const DIST = path.join(PROJ, 'dist');
 const OUT = process.argv[2] || path.join(process.env.TMPDIR || PROJ, 'ssh-track-ui');
 const NUMBER = process.argv[3] || '276759780';
-const CONTAINER = 'MRKU3574053';
+const CONTAINER = 'MRKU3574056';
 fs.mkdirSync(OUT, { recursive: true });
 
 let failures = 0;
@@ -40,7 +40,7 @@ function cachedResult(carrier, number) {
 }
 const fixtures = {
   maersk: cachedResult('maersk', '276759780'),
-  msc: cachedResult('msc', 'MSCU0756484'),
+  msc: cachedResult('msc', 'MSCU0756488'),
   one: cachedResult('one', 'SZPG70884900'),
 };
 for (const [carrier, result] of Object.entries(fixtures)) {
@@ -166,13 +166,13 @@ await page.keyboard.press('Space');
 ok(await page.isVisible('.tbody'), 'Space expands timeline');
 ok((await page.getAttribute('#trackCard', 'aria-expanded')) === 'true', 'expanded state is accessible');
 ok(/cached .*min ago/.test(await page.textContent('#trackSummary')), 'cache age is visible');
-await page.fill('#trackNum', 'MSKU1312523');
+await page.fill('#trackNum', 'MSKU1312527');
 ok(/校验位/.test(await page.textContent('#trackHint')), 'invalid container gets checksum warning');
 await page.click('#btnTrackGo');
 ok((await page.evaluate(() => window.__calls.filter((x) => x.cmd === 'run_track').length)) === 1, 'invalid checksum does not auto-query');
-await page.fill('#trackNum', 'NYKU2254003');
+await page.fill('#trackNum', 'NYKU2254009');
 ok(/校验位|ONE/.test(await page.textContent('#trackHint')), 'shared detector handles NYKU owner code');
-await page.fill('#trackNum', 'MEDU9453000');
+await page.fill('#trackNum', 'MEDU9453004');
 const looseHint = (await page.textContent('#trackHint') || '');
 ok(/MSC/.test(looseHint) && /校验位/.test(looseHint), '11-digit BL form with SCAC prefix is recognized (scac-loose)', looseHint);
 

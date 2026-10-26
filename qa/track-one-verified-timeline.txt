@@ -8,7 +8,7 @@ ONE 提单/箱号追踪 · 真单实测时间线（卡片 t_4f35b4a3）
   路由: NANSHA, GUANGDONG (CHINA)  →  VANCOUVER, BC (CANADA)
   最近更新: 2026-06-29T12:40:00.000Z
   当前状态: Empty Container Returned from Customer @ VANCOUVER, BC | HYUNDAI PLUTO 0045
-  箱 DRYU2320259 (40' DRY HC.) 状态=Empty Container Returned from Customer 事件10条
+  箱 DRYU2320253 (40' DRY HC.) 状态=Empty Container Returned from Customer 事件10条
     2026-04-19T17:48:00.000Z |  Empty Container Release to Shipper | NANSHA, GUANGDONG / NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO
     2026-04-20T11:00:00.000Z |  Gate In to Outbound Terminal | NANSHA, GUANGDONG / NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO
     2026-04-25T20:27:00.000Z |  Feeder Departure from O/B Inland Port | NANSHA, GUANGDONG / NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO
@@ -19,7 +19,7 @@ ONE 提单/箱号追踪 · 真单实测时间线（卡片 t_4f35b4a3）
     2026-05-30T01:22:00.000Z |  Unloaded from Vessel at Port of Discharging | VANCOUVER, BC / 3891 DELTAPORT GCT | HYUNDAI PLUTO 0045
     2026-06-01T18:44:00.000Z |  Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle) | VANCOUVER, BC / 3891 DELTAPORT GCT
     2026-06-29T12:40:00.000Z |  Empty Container Returned from Customer | VANCOUVER, BC / 3891 DELTAPORT GCT  ◀ 最新
-  箱 FFAU4245302 (40' DRY HC.) 状态=Empty Container Returned from Customer 事件10条
+  箱 FFAU4245305 (40' DRY HC.) 状态=Empty Container Returned from Customer 事件10条
     2026-04-17T19:31:00.000Z |  Empty Container Release to Shipper | NANSHA, GUANGDONG / NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO
     2026-04-18T12:14:00.000Z |  Gate In to Outbound Terminal | NANSHA, GUANGDONG / NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO
     2026-04-25T22:34:00.000Z |  Feeder Departure from O/B Inland Port | NANSHA, GUANGDONG / NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO
@@ -30,7 +30,7 @@ ONE 提单/箱号追踪 · 真单实测时间线（卡片 t_4f35b4a3）
     2026-05-30T01:24:00.000Z |  Unloaded from Vessel at Port of Discharging | VANCOUVER, BC / 3891 DELTAPORT GCT | HYUNDAI PLUTO 0045
     2026-06-01T18:44:00.000Z |  Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle) | VANCOUVER, BC / 3891 DELTAPORT GCT
     2026-06-25T12:24:00.000Z |  Empty Container Returned from Customer | VANCOUVER, BC / 3891 DELTAPORT GCT  ◀ 最新
-  箱 NYKU8753231 (40' DRY HC.) 状态=Empty Container Returned from Customer 事件10条
+  箱 NYKU8753238 (40' DRY HC.) 状态=Empty Container Returned from Customer 事件10条
     2026-04-18T13:53:00.000Z |  Empty Container Release to Shipper | NANSHA, GUANGDONG / NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO
     2026-04-18T21:36:00.000Z |  Gate In to Outbound Terminal | NANSHA, GUANGDONG / NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO
     2026-04-25T20:27:00.000Z |  Feeder Departure from O/B Inland Port | NANSHA, GUANGDONG / NANSHA CONTAINER TERMINAL BRANCH COMPANY, GUANGZHO
@@ -58,7 +58,7 @@ ONE 提单/箱号追踪 · 真单实测时间线（卡片 t_4f35b4a3）
   路由: POSORJA (ECUADOR)  →  KAOHSIUNG CITY (TAIWAN, CHINA)
   最近更新: 2026-09-15T16:12:00.000Z
   当前状态: Empty Container Returned from Customer @ KAOHSIUNG CITY | MOL CELEBRATION 0105
-  箱 KKFU5234756 (40' H.REEFER) 状态=Empty Container Returned from Customer 事件14条
+  箱 KKFU5234750 (40' H.REEFER) 状态=Empty Container Returned from Customer 事件14条
     2026-07-23T13:23:00.000Z |  Empty Container Release to Shipper | GUAYAQUIL / YAGUACHI -  CENTRO LOGISTICO SAN JOSE CLSJ S.A
     2026-07-25T01:24:00.000Z |  Gate In to Outbound Terminal | POSORJA / DP WORLD POSORJA
     2026-07-28T20:29:00.000Z |  Loaded on Vessel at Port of Loading | POSORJA / DP WORLD POSORJA | MOL CELEBRATION 0105
@@ -74,13 +74,13 @@ ONE 提单/箱号追踪 · 真单实测时间线（卡片 t_4f35b4a3）
     2026-09-15T08:32:00.000Z |  Gate Out from Inbound Terminal for Delivery to Consignee (or Port Shuttle) | KAOHSIUNG CITY / KMCT (KAO MING CONTAINER TERMINAL)
     2026-09-15T16:12:00.000Z |  Empty Container Returned from Customer | KAOHSIUNG CITY / KMCT (KAO MING CONTAINER TERMINAL)  ◀ 最新
 
-### ONEU4227196
+### ONEU4227199
 ✓ ONE RTMG19674500  (查询类型 CNTR_NO)
   路由: ROTTERDAM (NETHERLANDS)  →  CAGAYAN DE ORO (PHILIPPINES)
   最近更新: 2026-10-08T13:20:00.000Z
   当前状态: Departure from Transshipment Port @ SINGAPORE | ONE FANTASTIC 0011
   ETA(预估): 2026-10-14T13:00:00.000Z
-  箱 ONEU4227196 (20' DRY ST.) 状态=Departure from Transshipment Port 事件12条
+  箱 ONEU4227199 (20' DRY ST.) 状态=Departure from Transshipment Port 事件12条
     2026-08-17T16:15:00.000Z |  Empty Container Release to Shipper | ROTTERDAM / KRAMER TERMINAL (ONE DEDICATED DEPOT), ROTTERDAM
     2026-08-20T06:11:00.000Z |  Gate In to Outbound Terminal | ROTTERDAM / ECT DELTA TERMINAL, ROTTERDAM
     2026-08-24T02:56:00.000Z |  Loaded on Vessel at Port of Loading | ROTTERDAM / ECT DELTA TERMINAL, ROTTERDAM | ONE FANTASTIC 0011

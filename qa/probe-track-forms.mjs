@@ -30,7 +30,7 @@ await dumpForms('cma', 'https://www.cma-cgm.com/eBusiness/Tracking');
 
 // YM 深链实测（Exa 拿到的 detail 页样例形态）
 console.log('\n════ yangming 深链 ════');
-const deep = await page.goto('https://www.yangming.com/en/esolution/tracking/cargo_tracking_detail?position=BL_CT&refNo=N237068499&trackNo=YMLU4794134', { waitUntil: 'domcontentloaded', timeout: 45000 }).catch((e) => { console.log('gotoErr', String(e).slice(0, 90)); return null; });
+const deep = await page.goto('https://www.yangming.com/en/esolution/tracking/cargo_tracking_detail?position=BL_CT&refNo=N237068499&trackNo=YMLU4794131', { waitUntil: 'domcontentloaded', timeout: 45000 }).catch((e) => { console.log('gotoErr', String(e).slice(0, 90)); return null; });
 console.log('status:', deep ? deep.status() : 'err');
 await sleep(7000);
 const ds = await page.evaluate(() => ({

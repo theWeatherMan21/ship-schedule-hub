@@ -177,7 +177,7 @@ async function doInstall() {
 
   const dir = addonDir();
   const bak = dir + '.bak-' + new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
-  const steps = [`via=${via}/${pkgVia}`, `sha256 ok`, `pkg ${man.file}`];
+  const steps = [`via=${pkgVia || via}`, `sha256 ok`, `pkg ${man.file}`];
   try {
     if (fs.existsSync(dir)) { fs.cpSync(dir, bak, { recursive: true }); steps.push('backup ok'); }
     fs.rmSync(dir, { recursive: true, force: true });

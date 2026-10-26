@@ -52,7 +52,7 @@ expect('ABCD1AB20000（HMM 4+4字母数字+4）→ HMM 候选', 'ABCD1AB20000', 
 expect('A123456789（阳明 1 字母 + 9 位数字）→ 阳明候选', 'A123456789', { ok: false, docType: 'booking', candidatesFirst: 'yangming' });
 expect('A1B2C3123456（ONE 6 位字母数字 + 6 位数字）→ ONE 候选', 'A1B2C3123456', { ok: false, docType: 'booking', candidatesFirst: 'one' });
 expect('OOCL1234567890（OOCL 亦是其 SCAC）→ OOCL', 'OOCL1234567890', { ok: true, carrierId: 'oocl', matchedBy: 'scac' });
-expect('WHLC0942211（万海）→ 已知船司但未接入，别当货代分单', 'WHLC0942211', { ok: false, matchedBy: 'none' });
+expect('WHLC0942218（万海）→ 已知船司但未接入，别当货代分单', 'WHLC0942218', { ok: false, matchedBy: 'none' });
 expect('CANF… → 疑货代分单(HBL)标记', 'CANF123456789', { ok: false, flags: { houseBlPossible: true, foreignPrefix: true, containerValid: null } });
 expect('NGP… → 认不出', 'NGP12345678', { ok: false, matchedBy: 'none' });
 
@@ -70,16 +70,16 @@ for (const c of CARRIERS) {
 }
 
 console.log('=== D. 形态/边界 ===');
-check('归一化：小写+空格+连字符', normalize(' msku 307703-8 ') === 'MSKU1432299', normalize(' msku 307703-8 '));
-expect('带空格/连字符的箱号仍路由', 'MSKU 307703-8', { ok: true, carrierId: 'maersk', docType: 'container' });
-check('ISO6346 已知样本 CSQU9208547 校验位=3', iso6346Check('CSQU9208547') === 3, String(iso6346Check('CSQU9208547')));
-expect('箱号校验位错 → 不路由，仅提示', 'MSKU1312523', { ok: false, carrierId: null });
-check('箱号校验位错时 flag 置 false', containerCheck('MSKU1312523').valid === false);
+check('归一化：小写+空格+连字符', normalize(' msku 476123-5 ') === 'MSKU4761235', normalize(' msku 476123-5 '));
+expect('带空格/连字符的箱号仍路由', 'MSKU 476123-5', { ok: true, carrierId: 'maersk', docType: 'container' });
+check('ISO6346 已知样本 CSQU9208547 校验位=3', iso6346Check('CSQU305438') === 3, String(iso6346Check('CSQU305438')));
+expect('箱号校验位错 → 不路由，仅提示', 'MSKU1312527', { ok: false, carrierId: null });
+check('箱号校验位错时 flag 置 false', containerCheck('MSKU1312527').valid === false);
 // 【修复 10-12】11 位形态 + 提单前缀(SCAC)：不得被箱号校验拦杀（爹地报「其他船司无法自动识别」）
-expect('MEDU9453000（MSC 提单形态）→ 低置信放行', 'MEDU9453000', { ok: true, carrierId: 'msc', matchedBy: 'scac-loose', docType: 'bl', flags: { containerValid: false } });
-expect('COSU2241230（COSCO 提单形态）→ 低置信放行', 'COSU2241230', { ok: true, carrierId: 'cosco', matchedBy: 'scac-loose' });
-expect('ONEY1012502（ONE 提单形态）→ 低置信放行', 'ONEY1012502', { ok: true, carrierId: 'one', matchedBy: 'scac-loose' });
-expect('对照：MSKU1312523（纯箱主码、非提单前缀）维持不路由', 'MSKU1312523', { ok: false, carrierId: null });
+expect('MEDU9453004（MSC 提单形态）→ 低置信放行', 'MEDU9453004', { ok: true, carrierId: 'msc', matchedBy: 'scac-loose', docType: 'bl', flags: { containerValid: false } });
+expect('COSU2241238（COSCO 提单形态）→ 低置信放行', 'COSU2241238', { ok: true, carrierId: 'cosco', matchedBy: 'scac-loose' });
+expect('ONEY1012509（ONE 提单形态）→ 低置信放行', 'ONEY1012509', { ok: true, carrierId: 'one', matchedBy: 'scac-loose' });
+expect('对照：MSKU1312527（纯箱主码、非提单前缀）维持不路由', 'MSKU1312527', { ok: false, carrierId: null });
 expect('已知箱主码(非提单前缀)但形态不完整 → 低置信线索(msc 首选)', 'MSDU12345', { ok: false, carrierId: null, matchedBy: 'container', candidatesFirst: 'msc' });
 expect('ZIM 订舱形态 M0123456 → 低置信候选(zim 首选)', 'M0123456', { ok: false, carrierId: null, docType: 'booking', candidatesFirst: 'zim' });
 expect('Hapag 8 位订舱号 → 低置信候选', '12345678', { docType: 'booking', candidatesFirst: 'hapag' });
@@ -91,7 +91,7 @@ expect('PUSA12345678（后 12 位 4+8 形态）→ ONE', 'PUSA12345678', { ok: t
 expect('ONEYNB3JJE454300（带 ONEY 完整号）→ ONE', 'ONEYNB3JJE454300', { ok: true, carrierId: 'one' });
 check('ONEY 前缀自动剥离 → 官网格式', normalizeOneNumber('ONEYNB3JJE454300').value === 'NB3JJE454300', JSON.stringify(normalizeOneNumber('ONEYNB3JJE454300')));
 check('官网格式输入（无 ONEY）原样保留', normalizeOneNumber('NB3JJE454300').value === 'NB3JJE454300');
-check('ONE 箱号不被剥离', normalizeOneNumber('ONEU4227196').value === 'ONEU4227196');
+check('ONE 箱号不被剥离', normalizeOneNumber('ONEU4227199').value === 'ONEU4227199');
 
 console.log('=== G. 数字形态候选补充（10-12）===');
 expect('5051645160（10 位数字）→ COSCO/OOCL 候选（不自动）', '5051645160', { ok: false, docType: 'booking', candidatesInclude: ['cosco', 'oocl'], candidatesFirst: 'cosco' });

@@ -8,11 +8,11 @@ await page.goto('https://www.yangming.com/en/esolution/tracking/cargo_tracking',
 await sleep(5000);
 
 const combos = [
-  ['SEARCH', '', 'YMLU4794134'],
-  ['BL_CT', 'N237068499', 'YMLU4794134'],
-  ['SEARCH', 'N237068499', 'YMLU4794134'],
-  ['BL_CT', '', 'YMLU4794134'],
-  ['CNTR_CT', 'N237068499', 'YMLU4794134'],
+  ['SEARCH', '', 'YMLU4794131'],
+  ['BL_CT', 'N237068499', 'YMLU4794131'],
+  ['SEARCH', 'N237068499', 'YMLU4794131'],
+  ['BL_CT', '', 'YMLU4794131'],
+  ['CNTR_CT', 'N237068499', 'YMLU4794131'],
 ];
 
 for (const [pos, ref, no] of combos) {

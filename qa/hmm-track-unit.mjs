@@ -24,7 +24,7 @@ ck('时间线末条（最新）', [p.events[0].date, p.events[0].time, p.events[
   ['2025-07-15', '14:51', 'Import Empty Container Returned']);
 ck('有 10 条隐藏的历史行被标 previous（共 11 条 = 1 最新 + 10 历史）', p.events.filter((e) => e.previous).length, 10);
 ck('箱量标签', p.containersLabel, 'DC4H:1');
-ck('箱号', p.containers[0].num, 'CAIU3102121');
+ck('箱号', p.containers[0].num, 'CAIU3102124');
 ck('箱 status 去掉了 tooltip 杂讯', p.containers[0].blStatus, 'Surrendered');
 ck('箱型/尺寸', p.containers[0].typeSize, 'DC/4H');
 ck('船期表 5 行', p.schedule.map((r) => r.label), ['Location', 'Terminal', 'Vessel', 'Arrival(ETB)', 'Departure']);

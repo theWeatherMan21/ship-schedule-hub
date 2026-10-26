@@ -34,7 +34,7 @@ assert.equal(containerLabel(null), '', 'null 不许炸');
 // 归一层必须把 label 挂到每个箱子上（UI 用它显示），并保留原始字段
 const r = normalizeTracking({
   ok: true, carrier: 'maersk', number: '276759780',
-  containers: [{ num: 'MRKU3574053', size: '20', type: 'DRY', iso: '22G1', status: 'IN_PROGRESS' }],
+  containers: [{ num: 'MRKU3574056', size: '20', type: 'DRY', iso: '22G1', status: 'IN_PROGRESS' }],
   events: [{ time: '2026-10-01T00:00:00Z', activity: 'Gate in', timeType: 'ACTUAL' }],
 });
 const c0 = r.containers[0];

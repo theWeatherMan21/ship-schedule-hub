@@ -15,8 +15,8 @@
 
 | 号 | 结果 |
 |---|---|
-| **EGLV142552582916**（提单） | SHANGHAI (CN) → PORT AU PRINCE (HT)，箱 FCIU7002134，**10 事件**（2025-10-17 → 2026-01-05），`Completed`（Empty Container Returned），船 EVER LOYAL 0754-073E / EVER CAREER 0574-120N |
-| **FCIU7002134**（柜） | 经容器视图官方 BL 链接 → 6 事件（箱子已复用，当前行程与历史提单不同，语义正确） |
+| **EGLV142552582916**（提单） | SHANGHAI (CN) → PORT AU PRINCE (HT)，箱 FCIU7002130，**10 事件**（2025-10-17 → 2026-01-05），`Completed`（Empty Container Returned），船 EVER LOYAL 0754-073E / EVER CAREER 0574-120N |
+| **FCIU7002130**（柜） | 经容器视图官方 BL 链接 → 6 事件（箱子已复用，当前行程与历史提单不同，语义正确） |
 
 - 识别元数据：`evergreen tracking:'live'`；UI 说明栏已列入。
 - 验证链（工人实施 + 主线复核）：官方 fixture 断言、identify 108/0、normalize 回归、UI 回放、App 实机 selftest（`1 container(s) · 10 events`，SHANGHAI → PORT AU PRINCE，Completed）。

@@ -6,7 +6,7 @@
 //   3) 提交：POST https://www.cma-cgm.com/ebusiness/tracking/search → 200 → 同页渲染结果
 //   4) 结果块（实测文本）：
 //        "Tracking details" [Booking <号>] [New search]
-//        "CMAU2081135 22G1 (20ST) GATE IN EMPTY AT DEPOT ISTANBUL, AMBARLI PORT E. SIDE Thu. 05-MAR-2026 14:41 PM [Display Details]"
+//        "CMAU2081132 22G1 (20ST) GATE IN EMPTY AT DEPOT ISTANBUL, AMBARLI PORT E. SIDE Thu. 05-MAR-2026 14:41 PM [Display Details]"
 //      （每柜一行：柜号 箱型码 (尺寸码) 状态+地点 日期 时间 + Display Details 展开明细）
 //   5) 否定态："Your shipment was not found, please modify your search"
 //

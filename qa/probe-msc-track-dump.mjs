@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const outdir = process.argv[2] || '/tmp';
-const nums = ['MEDUW7272208', 'MSCU0756484'];
+const nums = ['MEDUW7272208', 'MSCU0756488'];
 const ctx = await launch({ headless: true });
 const page = ctx.pages()[0] || (await ctx.newPage());
 await page.goto('https://www.msc.com/en/track-a-shipment', { waitUntil: 'domcontentloaded', timeout: 50000 });

@@ -22,11 +22,11 @@ async function callApi(num) {
 }
 
 // 1) 柜号（有效）
-const r1 = await callApi('YMLU4794134');
-console.log('YMLU4794134 →', JSON.stringify({ status: r1.status, len: r1.len, topKeys: r1.json ? Object.keys(r1.json) : null }));
+const r1 = await callApi('YMLU4794131');
+console.log('YMLU4794131 →', JSON.stringify({ status: r1.status, len: r1.len, topKeys: r1.json ? Object.keys(r1.json) : null }));
 if (r1.json) {
   fs.mkdirSync('qa/fixtures', { recursive: true });
-  fs.writeFileSync('qa/fixtures/yangming-track-YMLU4794134.json', JSON.stringify(r1.json, null, 1));
+  fs.writeFileSync('qa/fixtures/yangming-track-YMLU4794131.json', JSON.stringify(r1.json, null, 1));
   console.log('fixture saved');
   const c0 = (r1.json.containerList || [])[0] || {};
   console.log('container[0] keys:', JSON.stringify(Object.keys(c0)));
@@ -41,7 +41,7 @@ const r2 = await callApi('N237068499');
 console.log('\nN237068499 →', JSON.stringify({ status: r2.status, len: r2.len, successCnt: r2.json?.successCnt, head: (r2.json ? JSON.stringify(r2.json).slice(0, 300) : r2.head) }));
 
 // 3) 换一个箱主前缀的柜测试无效号
-const r3 = await callApi('XXXX3432539');
-console.log('\nXXXX3432539 →', JSON.stringify({ status: r3.status, successCnt: r3.json?.successCnt, msg: r3.json?.returnMsg || r3.json?.message || null, head: (r3.json ? JSON.stringify(r3.json).slice(0, 200) : r3.head) }));
+const r3 = await callApi('XXXX3432533');
+console.log('\nXXXX3432533 →', JSON.stringify({ status: r3.status, successCnt: r3.json?.successCnt, msg: r3.json?.returnMsg || r3.json?.message || null, head: (r3.json ? JSON.stringify(r3.json).slice(0, 200) : r3.head) }));
 
 await ctx.close().catch(() => {});

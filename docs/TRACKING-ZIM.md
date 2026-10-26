@@ -28,5 +28,5 @@
 ## 验证
 
 - 离线单元 `qa/zim-track-unit.mjs` **23/0**（fixtures：7 个真实响应样本 `qa/fixtures/zim-track-samples.json`）。
-- 真网 CLI：`ZIMUBCN10212938`（10 事件）、`TGBU4028001`（9 事件）全链通过。
+- 真网 CLI：`ZIMUBCN10212938`（10 事件）、`TGBU4028006`（9 事件）全链通过。
 - 实机：selftest 自动识别 ZIM + 结果卡（BARCELONA → NEW YORK · Completed · 10 events）。

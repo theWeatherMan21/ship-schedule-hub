@@ -20,7 +20,7 @@ const r1 = parseZimResponse(get('ZIMUBCN10212938'), 'ZIMUBCN10212938');
 check('ok=true', r1.ok === true);
 check('docNum 回显', r1.docNum === 'ZIMUBCN10212938');
 check('路由 BARCELONA → NEW YORK (NY)', r1.origin === 'BARCELONA' && r1.destination === 'NEW YORK (NY)', `${r1.origin} -> ${r1.destination}`);
-check('箱数=1（BSIU1781420）', r1.containers.length === 1 && r1.containers[0].num === 'BSIU1781420', JSON.stringify(r1.containers.map((c) => c.num)));
+check('箱数=1（BSIU1781426）', r1.containers.length === 1 && r1.containers[0].num === 'BSIU1781426', JSON.stringify(r1.containers.map((c) => c.num)));
 check('事件=10', r1.containers[0].events.length === 10, r1.containers[0].events.length);
 const evs = r1.containers[0].events;
 check('事件按时间升序', evs.every((e, i) => i === 0 || String(evs[i - 1].time || '') <= String(e.time || '')));
@@ -30,9 +30,9 @@ check('eta=2026-08-26T00:01', !!r1.eta && r1.eta.time === '2026-08-26T00:01', JS
 check('status=Closed', r1.status === 'Closed', r1.status);
 
 console.log('=== B. 箱号形态 ===');
-const r2 = parseZimResponse(get('TGBU4028001'), 'TGBU4028001');
+const r2 = parseZimResponse(get('TGBU4028006'), 'TGBU4028006');
 check('ok=true', r2.ok === true);
-check('箱号=1（TGBU4028001）', r2.containers.length === 1 && r2.containers[0].num === 'TGBU4028001');
+check('箱号=1（TGBU4028006）', r2.containers.length === 1 && r2.containers[0].num === 'TGBU4028006');
 check('事件=9', r2.containers[0].events.length === 9, r2.containers[0].events.length);
 check('路由 NINGBO (ZJ) → NEW YORK (NY)', r2.origin === 'NINGBO (ZJ)' && r2.destination === 'NEW YORK (NY)');
 check('searchType=CONTAINER', r2.searchType === 'CONTAINER', r2.searchType);

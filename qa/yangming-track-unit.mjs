@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import { parseYangmingResponse, parseTsMode } from '../engine/tracking/yangming.mjs';
 
-const j1 = JSON.parse(fs.readFileSync('qa/fixtures/yangming-track-YMLU4794134.json', 'utf8'));
+const j1 = JSON.parse(fs.readFileSync('qa/fixtures/yangming-track-YMLU4794131.json', 'utf8'));
 const j2 = JSON.parse(fs.readFileSync('qa/fixtures/yangming-track-N237068499.json', 'utf8'));
 
 let pass = 0, fail = 0;
@@ -12,13 +12,13 @@ const eq = (name, got, exp) => {
   console.log(ok ? ' ✓' : ' ✗', name, ok ? '' : `\n     got=${JSON.stringify(got)}\n     exp=${JSON.stringify(exp)}`);
 };
 
-// —— 柜 fixture（YMLU4794134）——
-const p1 = parseYangmingResponse(j1, 'YMLU4794134');
+// —— 柜 fixture（YMLU4794131）——
+const p1 = parseYangmingResponse(j1, 'YMLU4794131');
 eq('柜: ok', p1.ok, true);
 eq('柜: carrier', p1.carrier, 'yangming');
 eq('柜: searchType', p1.searchType, 'CTNRNO');
 eq('柜: containers.length', p1.containers.length, 1);
-eq('柜: 柜号', p1.containers[0].num, 'YMLU4794134');
+eq('柜: 柜号', p1.containers[0].num, 'YMLU4794131');
 eq('柜: size', p1.containers[0].size, '20');
 eq('柜: type', p1.containers[0].type, 'DC');
 eq('柜: 事件数', p1.containers[0].events.length, 20);
@@ -41,12 +41,12 @@ eq('BL: origin', p2.origin, 'SHANGHAI, SH (CNSHA)');
 eq('BL: destination', p2.destination, 'ROTTERDAM (NLRTM)');
 eq('BL: vessel', p2.vessel, 'HMM DUBLIN');
 eq('BL: containers.length', p2.containers.length, 1);
-eq('BL: 柜号', p2.containers[0].num, 'YMLU4794134');
+eq('BL: 柜号', p2.containers[0].num, 'YMLU4794131');
 eq('BL: routing 段数', p2.routing.length, 2);
 eq('BL: routing[0]', `${p2.routing[0].place}|${p2.routing[0].time}`, 'SHANGHAI|2026-02-15T11:30');
 
 // —— 无效号 ——
-const p3 = parseYangmingResponse({ successCnt: 0, containerList: [], blList: [], bookingList: [], emptyList: [{}] }, 'XXXX3432539');
+const p3 = parseYangmingResponse({ successCnt: 0, containerList: [], blList: [], bookingList: [], emptyList: [{}] }, 'XXXX3432533');
 eq('无效: not-found', p3.errorKind, 'not-found');
 
 // —— tsMode 清洗 ——
@@ -59,11 +59,11 @@ eq('tsMode: 空', parseTsMode(null), { mode: '', vessel: '', voyage: '' });
 const pMulti = parseYangmingResponse({
   successCnt: 2, containerList: [
     { returnTrackNo: 'AAAA1957586', cnSize: '20', cnType: 'DC', ctStatusInfo: [{ seq: 1, moveDate: '2026/09/01 10:00', eventDesc: 'Full to Consignee', atFacility: 'X' }] },
-    { returnTrackNo: 'BBBB4064835', cnSize: '40', cnType: 'HC', ctStatusInfo: [{ seq: 1, moveDate: '2026/09/02 10:00', eventDesc: 'Empty Returned', atFacility: 'Y', eventClassifie: 'Actual' }] },
+    { returnTrackNo: 'BBBB4064832', cnSize: '40', cnType: 'HC', ctStatusInfo: [{ seq: 1, moveDate: '2026/09/02 10:00', eventDesc: 'Empty Returned', atFacility: 'Y', eventClassifie: 'Actual' }] },
   ], blList: [], bookingList: [], emptyList: [],
 }, 'X');
 eq('多柜: containers.length', pMulti.containers.length, 2);
-eq('多柜: 第二柜解析', pMulti.containers[1].num, 'BBBB4064835');
+eq('多柜: 第二柜解析', pMulti.containers[1].num, 'BBBB4064832');
 eq('多柜: 第二柜事件数', pMulti.containers[1].events.length, 1);
 
 // c. booking-only：不得误报 not-found

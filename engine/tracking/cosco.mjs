@@ -140,7 +140,7 @@ function legEvents(leg) {
 
 /**
  * 追踪一票 COSCO 提单 / 箱号。
- * @param {string} number B/L（COSU6469105960 或 6469105960）或箱号（FFAU7237234）
+ * @param {string} number B/L（COSU6469105960 或 6469105960）或箱号（FFAU7237236）
  */
 export async function trackCosco(number, { timeoutMs = 20000, etaLookup = true } = {}) {
   const norm = normalizeCoscoNumber(number);

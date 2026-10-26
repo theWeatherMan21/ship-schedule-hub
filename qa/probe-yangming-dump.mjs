@@ -23,18 +23,18 @@ async function probe(url, tag) {
 }
 
 // a) 原样（已证出数据）——保存 fixture
-const d1 = await probe('https://www.yangming.com/en/esolution/tracking/cargo_tracking_detail?position=BL_CT&refNo=N237068499&trackNo=YMLU4794134', 'a: BL_CT+refNo+trackNo');
+const d1 = await probe('https://www.yangming.com/en/esolution/tracking/cargo_tracking_detail?position=BL_CT&refNo=N237068499&trackNo=YMLU4794131', 'a: BL_CT+refNo+trackNo');
 if (d1 && d1.tables && d1.tables.length) {
   const html = await page.content().catch(() => '');
   fs.mkdirSync('qa/fixtures', { recursive: true });
-  fs.writeFileSync('qa/fixtures/yangming-container-YMLU4794134.html', html);
+  fs.writeFileSync('qa/fixtures/yangming-container-YMLU4794131.html', html);
   console.log('fixture saved:', html.length, 'bytes');
 }
 
 // b) 柜 position 变体（不带 refNo）
-await probe('https://www.yangming.com/en/esolution/tracking/cargo_tracking_detail?position=CNTR_CT&trackNo=YMLU4794134', 'b: CNTR_CT+trackNo');
+await probe('https://www.yangming.com/en/esolution/tracking/cargo_tracking_detail?position=CNTR_CT&trackNo=YMLU4794131', 'b: CNTR_CT+trackNo');
 
 // c) 只 refNo（BL 猜测）
-await probe('https://www.yangming.com/en/esolution/tracking/cargo_tracking_detail?position=BL_CT&refNo=YMLU4794134', 'c: BL_CT+refNo=柜号');
+await probe('https://www.yangming.com/en/esolution/tracking/cargo_tracking_detail?position=BL_CT&refNo=YMLU4794131', 'c: BL_CT+refNo=柜号');
 
 await ctx.close().catch(() => {});

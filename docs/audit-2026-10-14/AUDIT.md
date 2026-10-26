@@ -31,7 +31,7 @@
 | 3 | maersk 卡片无小时整卡丢弃 | P1(B1) | 小时段改整体可选（顺手修） |
 | 4 | 配方超时声明与 60s 上限矛盾 | P1(A1) | 6 配方声明统一 60000（声明=生效，历史留注释） |
 | 5 | CLI 数值参数零校验 | P1(A2) | `--batch 0/-1/abc`、`--timeout 0/abc` 全部 fail fast + 测试 5 组 |
-| 6 | ONE 箱主码查不到（NYKU 类） | P1(C1) | 判型放宽任何 4+7 → **真网验证 NYKU8753231 修复后 ok:true** |
+| 6 | ONE 箱主码查不到（NYKU 类） | P1(C1) | 判型放宽任何 4+7 → **真网验证 NYKU8753238 修复后 ok:true** |
 | 7 | HAMG12062700 被 Hapag 抢 | P1(C2) | ②b 后移，订舱形态优先 → 正确路由 ONE |
 | 8 | 大结果 64KB 管道截断 | P1(C3) | flushExit（800KB 实测完整） |
 | 9 | 追踪无总时长上限 | P1(C4) | 外层硬截止（默认 timeoutMs×4，env 可覆盖） |
@@ -141,7 +141,7 @@
 
 | # | 位置 | 问题 | 影响 |
 |---|---|---|---|
-| C1 | `one.mjs:57-63` + `identify.mjs:70` | 识别器把 NYKU/MOAU/KKFU 等 5 个箱主码归 ONE，但适配器只认 `ONE[UY]\d{7}` → 其余以 BKG_NO 提交（实测 `NYKU8753231` 查不到） | 合法 ONE 箱号必然失败且文案误导 |
+| C1 | `one.mjs:57-63` + `identify.mjs:70` | 识别器把 NYKU/MOAU/KKFU 等 5 个箱主码归 ONE，但适配器只认 `ONE[UY]\d{7}` → 其余以 BKG_NO 提交（实测 `NYKU8753238` 查不到） | 合法 ONE 箱号必然失败且文案误导 |
 | C2 | `identify.mjs:266-274` | ②b 箱主码分支在 ③ 订舱形态之前评估 → ONE 官方样例 `HAMG12062700` 被 Hapag 抢走 | 官方真单无法自动路由 |
 | C3 | `cli.mjs:125-133` | `emit` 后立即 `process.exit(0)`，管道异步写被截断（实测 807KB 只到 64KB） | 多箱大票拿不到结果 |
 | C4 | `cli.mjs:118-119` + 各家 | `timeoutMs` 只是单次超时非总预算（Hapag 最坏≈10-17 分钟、COSCO≈14 分钟） | 查询挂十几分钟只能手动停（evergreen 共享 deadline 是正确范式未推广） |

@@ -6,7 +6,7 @@ const page = ctx.pages()[0] || (await ctx.newPage());
 
 // a) 无 refNo 深链
 console.log('════ a: BL_CT + trackNo（无 refNo）════');
-await page.goto('https://www.yangming.com/en/esolution/tracking/cargo_tracking_detail?position=BL_CT&trackNo=YMLU4794134', { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
+await page.goto('https://www.yangming.com/en/esolution/tracking/cargo_tracking_detail?position=BL_CT&trackNo=YMLU4794131', { waitUntil: 'domcontentloaded', timeout: 45000 }).catch(() => {});
 await sleep(7000);
 console.log(JSON.stringify(await page.evaluate(() => ({
   rows: [...document.querySelectorAll('table tr')].length,
@@ -24,7 +24,7 @@ await page.goto('https://www.yangming.com/en/esolution/tracking/cargo_tracking',
 await sleep(5000);
 const filled = await page.evaluate(() => {
   const ins = [...document.querySelectorAll('input[type="text"]')].filter((x) => x.offsetParent !== null);
-  if (ins[0]) { ins[0].focus(); ins[0].value = 'YMLU4794134'; ins[0].dispatchEvent(new Event('input', { bubbles: true })); return ins.length; }
+  if (ins[0]) { ins[0].focus(); ins[0].value = 'YMLU4794131'; ins[0].dispatchEvent(new Event('input', { bubbles: true })); return ins.length; }
   return 0;
 });
 console.log('filled inputs:', filled);

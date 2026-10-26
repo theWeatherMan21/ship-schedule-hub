@@ -2110,7 +2110,7 @@ function saveLangSetting(lang,controller,check) {
 
 			<tr>
 				<td align="left" class="ec-fs-16" nowrap>
-					<a href="javascript:frmCntrMoveDetail('FCIU7002134');" onMouseOver="window.status='Container:FCIU7002134 onboard:20251027 pol:CNSHG';return true;" onMouseOut="window.status=''">FCIU7002134</a>
+					<a href="javascript:frmCntrMoveDetail('FCIU7002130');" onMouseOver="window.status='Container:FCIU7002130 onboard:20251027 pol:CNSHG';return true;" onMouseOut="window.status=''">FCIU7002130</a>
 				    
 				</td>
 				<td align="center" class="#f12rown1 ec-fs-16" nowrap>
@@ -2579,7 +2579,7 @@ function controlCookieAlertButton(){
 		tdb1_dispInfo.setMsgBoxOffset(-50,0);
 		
 		if (dataDivName == 'AMInfo') {
-			contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=AMSACK&BL=142552582916&firstCtnNo=FCIU7002134&pod=HTPAP";
+			contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=AMSACK&BL=142552582916&firstCtnNo=FCIU7002130&pod=HTPAP";
 		} else if (dataDivName == 'atbNoInfo') {
 			contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=atbNo&BL=142552582916";
 		}		
@@ -2600,17 +2600,17 @@ function controlCookieAlertButton(){
 			
 			if (dataDivName == 'pickupRtnInfo') {
 				var podctry = document.frmCntrMove.podctry.value;
-				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetPickupRtnInfo&BL=142552582916&ctrycode="+podctry+"&firstCtnNo=FCIU7002134&firstCtnType=S&pickupVslVoy=null";
+				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetPickupRtnInfo&BL=142552582916&ctrycode="+podctry+"&firstCtnNo=FCIU7002130&firstCtnType=S&pickupVslVoy=null";
 			} else if (dataDivName == 'AMInfo') {
-				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=AMSACK&BL=142552582916&firstCtnNo=FCIU7002134&pod=HTPAP";
+				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=AMSACK&BL=142552582916&firstCtnNo=FCIU7002130&pod=HTPAP";
 			} else if (dataDivName == 'RlsStatusInfo') {
 				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=RlsStatus&BL=142552582916";
 			} else if (dataDivName == 'ContactOfficeInfo') {
 				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=ContactOffice&BL=142552582916";
 			} else if (dataDivName == 'PickupRefInfo') {
-				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=PickupRef&BL=142552582916&firstCtnNo=FCIU7002134";
+				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=PickupRef&BL=142552582916&firstCtnNo=FCIU7002130";
 			} else if (dataDivName == 'CtnMovesInfo') {
-				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=CtnMoves&BL=142552582916&firstCtnNo=FCIU7002134&ctnFromDate=202510170056&ctnToDate=202601051100";
+				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=CtnMoves&BL=142552582916&firstCtnNo=FCIU7002130&ctnFromDate=202510170056&ctnToDate=202601051100";
 			} else if (dataDivName == 'atbNoInfo') {
 				contentUrl = "/servlet/TDB1_CargoTracking.do?TYPE=GetDispInfo&Item=atbNo&BL=142552582916";
 			}			

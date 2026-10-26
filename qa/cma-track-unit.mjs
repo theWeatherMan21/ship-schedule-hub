@@ -9,20 +9,20 @@ const eq = (name, got, exp) => {
 };
 
 // —— 真单实况样本（NGP3170431，2026-10-12 实测输出）——
-const SAMPLE = `About us Find your local offices My Customer Service Guides Corporate website English Industries Shipping End-To-End Solutions Air Freight News My CMA CGM Track my Shipment *Required information Search by Container Number, Shipment Ref or My Ref* Search Sign up to enjoy a range of benefits stay informed in real time view the location of your container on a map track your inland shipments Log In Tracking details Booking NGP3170431 New search CMAU2081135 22G1 (20ST) GATE IN EMPTY AT DEPOT ISTANBUL, AMBARLI PORT E. SIDE Thu. 05-MAR-2026 14:41 PM Display Details CMAU7247424 22G1 (20ST) GATE IN EMPTY AT DEPOT ISTANBUL, AMBARLI PORT E. SIDE Thu. 05-MAR-2026 14:35 PM Display Details Discover CMA CGM`;
+const SAMPLE = `About us Find your local offices My Customer Service Guides Corporate website English Industries Shipping End-To-End Solutions Air Freight News My CMA CGM Track my Shipment *Required information Search by Container Number, Shipment Ref or My Ref* Search Sign up to enjoy a range of benefits stay informed in real time view the location of your container on a map track your inland shipments Log In Tracking details Booking NGP3170431 New search CMAU2081132 22G1 (20ST) GATE IN EMPTY AT DEPOT ISTANBUL, AMBARLI PORT E. SIDE Thu. 05-MAR-2026 14:41 PM Display Details CMAU7247427 22G1 (20ST) GATE IN EMPTY AT DEPOT ISTANBUL, AMBARLI PORT E. SIDE Thu. 05-MAR-2026 14:35 PM Display Details Discover CMA CGM`;
 
 const p = parseCmaText(SAMPLE, 'NGP3170431');
 eq('ok', p.ok, true);
 eq('carrier', p.carrier, 'cma');
 eq('docNum', p.docNum, 'NGP3170431');
 eq('containers 数', p.containers.length, 2);
-eq('柜1 号', p.containers[0].num, 'CMAU2081135');
+eq('柜1 号', p.containers[0].num, 'CMAU2081132');
 eq('柜1 箱型', p.containers[0].size, '22G1');
 eq('柜1 尺寸', p.containers[0].type, '(20ST)');
 eq('柜1 状态', p.containers[0].status, 'GATE IN EMPTY AT DEPOT');
 eq('柜1 地点', p.containers[0].place, 'ISTANBUL, AMBARLI PORT E. SIDE');
 eq('柜1 事件时间', p.containers[0].events[0].time, '2026-03-05T14:41');
-eq('柜2 号', p.containers[1].num, 'CMAU7247424');
+eq('柜2 号', p.containers[1].num, 'CMAU7247427');
 eq('current', p.current.activity, 'GATE IN EMPTY AT DEPOT');
 eq('searchType', p.searchType, 'BOOKING');
 

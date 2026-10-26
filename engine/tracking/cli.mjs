@@ -2,7 +2,7 @@
 //
 // 用法：
 //   node engine/tracking/cli.mjs --number 276759780
-//   node engine/tracking/cli.mjs --number MRKU3574053 --carrier maersk
+//   node engine/tracking/cli.mjs --number MRKU3574056 --carrier maersk
 //   node engine/tracking/cli.mjs --list                      # 列出已接入的船司
 //   --no-cache / SSH_TRACK_CACHE_TTL_MS=0                    # 关缓存（默认 20 分钟）
 //

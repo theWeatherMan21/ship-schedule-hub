@@ -2,7 +2,7 @@
 import { launch, sleep } from '../engine/browser.mjs';
 import fs from 'node:fs';
 
-const NUMS = (process.argv[2] || 'ZIMUSHH31595183,ZIMUBCN10212938,ZIMUMEX964578,ZIMUVAN962802,ZIMUHFX925436,ZIMUBCN10198564,TGBU4028001').split(',').map((s) => s.trim()).filter(Boolean);
+const NUMS = (process.argv[2] || 'ZIMUSHH31595183,ZIMUBCN10212938,ZIMUMEX964578,ZIMUVAN962802,ZIMUHFX925436,ZIMUBCN10198564,TGBU4028006').split(',').map((s) => s.trim()).filter(Boolean);
 const KEY = '9d63cf020a4c4708a7b0ebfe39578300';
 
 const ctx = await launch({ headless: true });

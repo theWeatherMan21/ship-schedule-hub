@@ -40,7 +40,7 @@ export const CARRIERS = [
     // 1xx 系列 = MSC 订舱/参考号（无 SCAC 前缀）。实证：
     //   · 181AS0266823514M1（2026-10-10 缓存+live 双实证，SHEKOU→ISTANBUL）
     //   · 181AY26A0590138S1（10-12 live，YANTIAN→GDANSK）
-    //   · 177FCACAS347328（10-23 live 复核，SHANGHAI→GDANSK，箱 TGBU3403068）← 爹地提单里出现，原 181-only 规则漏识别
+    //   · 177FCACAS347328（10-23 live 复核，SHANGHAI→GDANSK，箱 TGBU3403064）← 爹地提单里出现，原 181-only 规则漏识别
     // 形态：3 位数字（177/181…）+ 2 位字母 + ≥5 位字母数字
     booking: [{ re: /^1\d{2}[A-Z]{2}[A-Z0-9]{5,}$/, label: '1xx 系列（MSC 订舱/参考号：177/181…，真单实证）', score: 0.6 }],
     tracking: 'live',
