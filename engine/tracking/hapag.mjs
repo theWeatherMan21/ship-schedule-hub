@@ -188,6 +188,26 @@ async function runFlow(ctx, { num, mode, timeoutMs }) {
     for (let round = 1; round <= 3; round++) {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: Math.min(timeoutMs, 60000) })
         .catch((e) => steps.push('goto:' + String(e).slice(0, 80)));
+      // 2026-10-26 实测：从中国出口 IP 访问 hapag-lloyd.com 会被 302 到 hapag-lloyd.cn，
+      // 该站常显示「Due to maintenance work our Online Business Services are currently unavailable」
+      // 且页面没有任何表单 → 后面 121s 全是空转。这里先快速识别，直接给结论。
+      const siteState = await page.evaluate(() => {
+        const t = (document.body && document.body.innerText) || ''
+        return {
+          host: location.host,
+          maintenance: /maintenance work|Online Business Services are currently unavailable|currently unavailable/i.test(t),
+          hasForm: document.querySelectorAll('form').length > 0
+        }
+      }).catch(() => ({}))
+      if (siteState && siteState.maintenance) {
+        steps.push('site-unavailable:' + siteState.host)
+        return {
+          ok: false, number: num, carrier: 'hapag', kind: guessKind(num),
+          errorKind: 'site-unavailable',
+          error: `Hapag 官网当前不可用（${siteState.host} 显示维护中/服务关闭），本机网络出口访问不到国际站`,
+          steps, mode
+        }
+      }
       // 2026-10-23 实测：legacy 的 ?blno= 深链已不再自动触发查询（页面停在「Please enter…」，
       // 但 DOM 里仍残留一段 not-found 文案 → 会把「没查」误判成「查无」）。
       // 所以改成真的填表单 + 点 Find；表单元素找不到时再退回深链行为。
