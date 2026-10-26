@@ -61,7 +61,9 @@ async function probeState(page) {
     const t = document.body ? document.body.innerText || '' : '';
     const title = document.title || '';
     if (/Security Check|Interactive Challenge|Just a moment/i.test(title + t.slice(0, 400))) return { kind: 'challenge' };
-    if (/Container No\./.test(t) && /Status/.test(t)) return { kind: 'result' };
+    if ((/Container No\./.test(t) && /Status/.test(t)) || (/箱号/.test(t) && /操作状态/.test(t))) return { kind: 'result' };
+    if (/找不到货物记录/.test(t)) return { kind: 'notfound', msg: 'Hapag 找不到货物记录（中文页）' };
+    if (/该值不是合法的数值/.test(t)) return { kind: 'notfound', msg: 'Hapag: 订舱号必须是纯数字' };
     if (/DOCUMENT does not exist|Tracking information could not be found|Shipment not found/i.test(t)) {
       return { kind: 'notfound', msg: (t.match(/DOCUMENT does not exist[^\n]*|Shipment not found[^\n]*/) || ['Tracking information could not be found'])[0] };
     }
@@ -83,13 +85,13 @@ async function waitState(page, stopKinds, budgetMs) {
 
 /** 结果列表解析（容器行 + Details 按钮 id） */
 const parseList = (page) => page.evaluate(() => {
-  const tbl = [...document.querySelectorAll('table')].find((t) => /container no\./i.test((t.innerText || '').slice(0, 500)));
+  const tbl = [...document.querySelectorAll('table')].find((t) => /container no\.|箱号/i.test((t.innerText || '').slice(0, 500)));
   if (!tbl) return [];
   const out = [];
   for (const tr of [...tbl.querySelectorAll('tr')]) {
     const cells = [...tr.querySelectorAll('td,th')];
     const texts = cells.map((c) => (c.innerText || '').replace(/\s+/g, ' ').trim());
-    const btn = [...tr.querySelectorAll('button')].find((b) => /detail/i.test(b.innerText || ''));
+    const btn = [...tr.querySelectorAll('button,a')].find((b) => /detail|详细资料|详情/i.test(b.innerText || ''));
     const box = texts.find((x) => /^[A-Z]{4}\s?\d{7}$/.test(x));
     if (!box) continue;                                   // 只收含箱号的行（表头/按钮行不要）
     const prev = out.find((r) => r.cells.includes(box));
@@ -125,7 +127,7 @@ const parseDetail = (page) => page.evaluate(() => {
   const events = [];
   const evTbl = [...document.querySelectorAll('table')].find((tbl) => {
     const h = (tbl.innerText || '').slice(0, 700);
-    return /place of activity/i.test(h) && /voyage/i.test(h);
+    return (/place of activity|操作地点/i.test(h)) && (/voyage|航次/i.test(h));
   });
   if (evTbl) {
     for (const tr of [...evTbl.querySelectorAll('tr')]) {
@@ -133,7 +135,7 @@ const parseDetail = (page) => page.evaluate(() => {
       const texts = cells.map((c) => norm(c.innerText));
       if (!texts.filter(Boolean).length) continue;
       if (cells.length < 4) continue;                                  // 布局行只有 1-2 列
-      if (/place of activity|voyage no/i.test(texts.join(' ').slice(0, 80))) continue;  // 表头
+      if (/place of activity|voyage no|操作地点|航次/i.test(texts.join(' ').slice(0, 80))) continue;  // 表头
       const dcol = (texts[2] || '').trim();
       if (dcol && !/^\d{4}-\d{2}-\d{2}$/.test(dcol)) continue;         // 日期列不合法 → 非事件行
       if (!texts[0] || texts[0].length > 40 || /^(type|description|dimension|tare|max|container information|last movement)/i.test(texts[0])) continue;
@@ -154,7 +156,7 @@ const parseDetail = (page) => page.evaluate(() => {
 
 const detailReady = (page) => page.evaluate(() => {
   const t = document.body.innerText || '';
-  return { ready: /Container Information/i.test(t) || (/Place of Activity/i.test(t) && /Voyage/i.test(t)) };
+  return { ready: /Container Information|集装箱信息/i.test(t) || ((/Place of Activity|操作地点/i.test(t)) && (/Voyage|航次/i.test(t))) };
 }).catch(() => ({ ready: false }));
 
 /** 完整流程（在给定 ctx 上跑；ctx 生命周期由调用方管理）。 */
