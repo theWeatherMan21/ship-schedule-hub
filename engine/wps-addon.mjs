@@ -85,7 +85,9 @@ const cmpVer = (a, b) => {
 async function tryMirrors(file, timeoutMs = 30000) {
   const errors = [];
   for (const m of MIRRORS) {
-    const url = m ? `${m}${RELEASE_BASE}/${file}` : `${RELEASE_BASE}/${file}`;
+    // 带时间戳破 CDN 缓存：镜像站会把 wps-latest 的清单缓存十几分钟，导致「明明发了新版却查不到」
+    const bust = `?t=${Date.now()}`;
+    const url = (m ? `${m}${RELEASE_BASE}/${file}` : `${RELEASE_BASE}/${file}`) + bust;
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), timeoutMs);
     try {
