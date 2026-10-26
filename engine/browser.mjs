@@ -116,6 +116,8 @@ function hideChromeFromDock(userDataDir) {
 
 export async function launch({ headless = 'auto' } = {}) {
   fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
+  // 每次启动顺手清掉历史临时 profile（降级兜底产物；10-26 前从不删，堆了 272MB）
+  try { cleanupStaleTmpProfiles(); } catch { /* 清理失败不影响查询 */ }
   // headless 语义（2026-09-21 起）：
   //   'auto'  = 默认。无头新档（--headless=new + 真 UA），零窗口零打扰；Akamai 挡时由调用方手动传 false 重试
   //   true    = 同 'auto'
@@ -223,6 +225,29 @@ function killStaleProfileChrome() {
 
 // profile 锁兜底（10-09 爹地实测：另一个引擎实例在跑 → ProcessSingleton 失败 → 整批查询"没有任何结果"）。
 // 三级处理：① 直接用；② 清理残留 Chrome + 等 2s 重试；③ 仍锁就换**临时 profile** 继续跑，绝不让查询整体挂掉。
+//
+// 临时 profile 清理（10-26）：降级产生的 `<PROFILE_DIR>-tmp-<ts>` 以前从不删除，
+// 实测堆了 30 个 / 272MB。现在 ① 用完即删（close 时）；② 每次 launch 顺带清掉 1 小时前的历史残留。
+export function cleanupStaleTmpProfiles(maxAgeMs = 60 * 60 * 1000) {
+  let removed = 0;
+  try {
+    const base = path.dirname(PROFILE_DIR);
+    const prefix = path.basename(PROFILE_DIR) + '-tmp-';
+    for (const name of fs.readdirSync(base)) {
+      if (!name.startsWith(prefix)) continue;
+      const p = path.join(base, name);
+      try {
+        const st = fs.statSync(p);
+        if (!st.isDirectory()) continue;
+        if (Date.now() - st.mtimeMs < maxAgeMs) continue;   // 可能是正在用的
+        fs.rmSync(p, { recursive: true, force: true });
+        removed++;
+      } catch { /* 被占用就跳过，下次再清 */ }
+    }
+  } catch { /* 目录读不到不算错 */ }
+  if (removed) console.error(`[engine] 清理历史临时 profile ${removed} 个`);
+  return removed;
+}
 // ---- 弹窗盾（2026-10-09 爹地破案：zim cookie 弹窗 / 阳明通知弹窗挡住表单）----
 // 拦掉同意管理 / 推送通知类 SDK 的请求：脚本加载不了，弹窗就根本不会出现。
 // 只列具体厂商域名关键词，不用泛化的 "cookie"（避免误伤站点自己的脚本）。
@@ -247,13 +272,39 @@ async function launchCtxWithLockFallback(opts) {
     if (!/ProcessSingleton|already in use|profile directory|Target page, context or browser has been closed/i.test(msg)) throw e;
     console.error('[chrome] profile 被占用（另一个引擎实例或残留 Chrome）：' + msg.split('\n')[0]);
     try { killStaleProfileChrome(); } catch { /* no-op */ }
-    await sleep(2000);
-    try { return { ctx: await tryDir(PROFILE_DIR), dir: PROFILE_DIR }; }
-    catch (e2) {
+    // 异常退出会残留 Singleton* 锁（macOS 上是符号链接），光杀进程不够——锁还在就仍然起不来
+    try {
+      for (const lock of ['SingletonLock', 'SingletonCookie', 'SingletonSocket']) {
+        try { fs.rmSync(path.join(PROFILE_DIR, lock), { force: true }); } catch { /* 不存在或非链接 */ }
+      }
+    } catch { /* no-op */ }
+    await sleep(2500);
+    // 重试两次（Chrome 退出有延迟，一次常常不够 —— 这也是隔几天首次查询慢的根源：
+    // 降级到空档案后没有 cookie/缓存，船司反爬+冷加载，Maersk 30s / CMA 50s）
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try { return { ctx: await tryDir(PROFILE_DIR), dir: PROFILE_DIR }; }
+      catch { await sleep(1500); }
+    }
+    {
       const tmp = `${PROFILE_DIR}-tmp-${Date.now()}`;
-      console.error('[chrome] 仍被占用 → 改用临时 profile 继续本次查询：' + tmp);
+      console.error('[chrome] 仍被占用 → 改用临时 profile 继续本次查询（本次会慢些：无 cookie/缓存）：' + tmp);
       const ctx = await chromium.launchPersistentContext(tmp, opts2);
       await applyPopupShields(ctx);
+      // ★ 用完即删：临时档案没有复用价值（空 cookie），留着只会堆磁盘
+      //   （10-26 实测：30 个残留共 272MB）。这里包一层 close，调用方无需改动。
+      try {
+        const rawClose = ctx.close.bind(ctx);
+        ctx.close = async () => {
+          try { await rawClose(); } catch { /* 已关 */ }
+          try {
+            // 关完再删：Chrome 需要一点时间释放文件句柄
+            for (let i = 0; i < 3; i++) {
+              try { fs.rmSync(tmp, { recursive: true, force: true }); break; }
+              catch { await sleep(400); }
+            }
+          } catch { /* 删不掉就留着，下次启动会清 */ }
+        };
+      } catch { /* 覆盖失败不影响查询 */ }
       return { ctx, dir: tmp, tmp: true };
     }
   }

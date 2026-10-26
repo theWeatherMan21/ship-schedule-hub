@@ -3318,7 +3318,7 @@ dependencies = [
 
 [[package]]
 name = "shipschedulehub"
-version = "1.6.1"
+version = "1.6.2"
 dependencies = [
  "calamine",
  "roxmltree",
