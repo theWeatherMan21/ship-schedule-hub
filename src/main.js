@@ -243,10 +243,30 @@ app.innerHTML = `
     <button class="tab active" data-v="sched">船期</button>
     <button class="tab" data-v="track">提单/箱号</button>
     <button class="tab" data-v="quote">报价</button>
+    <button class="tab" data-v="wps">WPS 插件</button>
   </nav>
 
   <!-- 报价 tab 容器：内容由 React 子应用挂载（Shadow DOM，样式与主界面隔离） -->
   <div id="viewQuote" class="view" hidden></div>
+
+  <!-- WPS 插件 tab：给 WPS 表格装/更新「船期追踪」加载项（包从 GitHub Release 拉，国内镜像兜底） -->
+  <div id="viewWps" class="view" hidden>
+    <section class="formbar" style="align-items:center; gap:12px;">
+      <div class="field" style="min-width:260px;">
+        <label>WPS 加载项 · 船期追踪</label>
+        <div id="wpsState" class="porthint">检查中…</div>
+      </div>
+      <button id="wpsInstall" class="btn">安装 / 更新</button>
+      <button id="wpsUninstall" class="btn-ghost">卸载</button>
+      <button id="wpsDir" class="btn-ghost">打开目录</button>
+    </section>
+    <div id="wpsLog" class="diagbox" hidden></div>
+    <p class="porthint" style="margin-top:10px;">
+      装好后<b>重启 WPS 表格</b>，功能区出现「ShipTrack」选项卡。<br>
+      包从 GitHub Release 取，国内镜像（ghfast.top → ghproxy.net → gh-proxy.com）自动兜底。<br>
+      macOS 首次安装若提示权限不足：系统设置 → 隐私与安全性 → 完全磁盘访问权限 → 勾选 ShipScheduleHub。
+    </p>
+  </div>
 
   <div id="viewSched" class="view">
   <section class="formbar">
@@ -1030,13 +1050,78 @@ function detectClient(num) {
   return detected.ok ? detected.carrier : null;
 }
 
+
+/* ---------------- WPS 插件（船期追踪加载项）---------------- */
+let wpsBusy = false;
+
+async function wpsAction(action) {
+  const { invoke } = await import('@tauri-apps/api/core');
+  return JSON.parse(await invoke('wps_addon', { action }));
+}
+
+async function wpsRefresh() {
+  const el = document.getElementById('wpsState');
+  if (!el) return;
+  try {
+    const s = await wpsAction('status');
+    if (!s.ok) { el.textContent = '检查失败：' + (s.error || '未知'); return; }
+    if (!s.installed) {
+      el.textContent = s.latest ? `未安装（最新 v${s.latest}）` : '未安装（拉不到版本清单）';
+    } else if (s.updateAvailable) {
+      el.textContent = `已安装 v${s.installed} · 有新版本 v${s.latest}`;
+    } else {
+      el.textContent = `已安装 v${s.installed} · 已是最新`;
+    }
+  } catch (e) {
+    el.textContent = '检查失败：' + String(e).slice(0, 120);
+  }
+}
+
+async function wpsRun(action, label) {
+  if (wpsBusy) return;
+  wpsBusy = true;
+  const btnI = document.getElementById('wpsInstall');
+  const btnU = document.getElementById('wpsUninstall');
+  const log = document.getElementById('wpsLog');
+  const el = document.getElementById('wpsState');
+  if (btnI) btnI.disabled = true;
+  if (btnU) btnU.disabled = true;
+  if (el) el.textContent = label + '中…';
+  try {
+    const r = await wpsAction(action);
+    if (log) {
+      log.hidden = false;
+      log.textContent = JSON.stringify(r, null, 1);
+    }
+    if (!r.ok) {
+      if (el) el.textContent = label + '失败：' + String(r.error || '').slice(0, 160);
+    } else if (r.action === 'noop') {
+      if (el) el.textContent = r.message || '已是最新';
+    } else if (action === 'install') {
+      if (el) el.textContent = `已装好 v${r.to} —— 请重启 WPS 表格生效`;
+    } else {
+      if (el) el.textContent = '已卸载 —— 重启 WPS 生效';
+    }
+  } catch (e) {
+    if (el) el.textContent = label + '失败：' + String(e).slice(0, 160);
+  } finally {
+    wpsBusy = false;
+    if (btnI) btnI.disabled = false;
+    if (btnU) btnU.disabled = false;
+    if (action === 'install') wpsRefresh();
+  }
+}
+
 function switchView(v) {
   const vs = document.getElementById('viewSched');
   const vt = document.getElementById('viewTrack');
   const vq = document.getElementById('viewQuote');
+  const vw = document.getElementById('viewWps');
   if (vs) vs.hidden = v !== 'sched';
   if (vt) vt.hidden = v !== 'track';
   if (vq) vq.hidden = v !== 'quote';
+  if (vw) vw.hidden = v !== 'wps';
+  if (v === 'wps') wpsRefresh();
   document.querySelectorAll('#tabs .tab').forEach((b) => b.classList.toggle('active', b.dataset.v === v));
   // 报价 tab：首次点开才加载 React 子应用（单独 chunk，不拖慢主界面启动）
   if (v === 'quote') mountQuoteTabLazy();
@@ -1468,4 +1553,15 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
 
   setTimeout(() => runUpdateCheck({ manual: false }), 5000);
   document.getElementById('btnCheckUpdate')?.addEventListener('click', () => runUpdateCheck({ manual: true }));
+  document.getElementById('wpsInstall')?.addEventListener('click', () => wpsRun('install', '安装'));
+  document.getElementById('wpsUninstall')?.addEventListener('click', () => wpsRun('uninstall', '卸载'));
+  document.getElementById('wpsDir')?.addEventListener('click', async () => {
+    try {
+      const s = await wpsAction('status');
+      if (s.dir) {
+        const { invoke } = await import('@tauri-apps/api/core');
+        await invoke('open_external', { url: 'file://' + s.dir }).catch(() => {});
+      }
+    } catch (e) { /* 打不开就算了 */ }
+  });
 })();

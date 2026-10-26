@@ -463,6 +463,50 @@ fn generate_quote_text(
     quote::quote::generate_quote(&rows, &req)
 }
 
+
+/// WPS 加载项（船期追踪）的安装 / 更新 / 卸载 / 状态。
+/// 全部逻辑在 engine/wps-addon.mjs：从 ShipScheduleHub 的 Release（公共仓）拉包，
+/// 镜像链 ghfast.top → ghproxy.net → gh-proxy.com → 直连 兜底，校验 sha256 后落地。
+/// 这里只负责调起 node 并原样回传它那一行 JSON。
+#[tauri::command]
+async fn wps_addon(app: AppHandle, action: String) -> Result<String, String> {
+    let root = project_root(Some(&app));
+    let script = root.join("engine").join("wps-addon.mjs");
+    if !script.exists() {
+        return Err(format!("缺少 WPS 插件脚本: {}", script.display()));
+    }
+    let node = find_node(Some(&app));
+    let workdir = script.parent().map(|p| p.to_path_buf()).unwrap_or_default();
+    let act = action.clone();
+    let out = tauri::async_runtime::spawn_blocking(move || {
+        let mut c = std::process::Command::new(&node);
+        c.arg(&script)
+            .arg(&act)
+            .current_dir(workdir)
+            .env_remove("NODE_PATH")
+            .env_remove("NODE_OPTIONS")
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped());
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            c.creation_flags(0x0800_0000);
+        }
+        c.output()
+    })
+    .await
+    .map_err(|e| format!("WPS 插件任务失败: {e}"))
+    .and_then(|r| r.map_err(|e| format!("执行 node 失败: {e}")))?;
+
+    let stdout = String::from_utf8_lossy(&out.stdout).to_string();
+    let line = stdout.lines().rev().find(|l| l.trim().starts_with('{')).unwrap_or("").trim().to_string();
+    if line.is_empty() {
+        let err = String::from_utf8_lossy(&out.stderr).to_string();
+        return Err(format!("脚本没有输出 JSON: {}", err.lines().rev().take(3).collect::<Vec<_>>().join(" ")));
+    }
+    Ok(line)
+}
+
 /// 查「下一水 ETD」：spawn engine/quote-etd.mjs（复用 11 家船司编排：fastpath 秒查 + 浏览器兜底）。
 /// 返回 { ok, targetDate, results: [{carrier, etd, eta, vessel, voyage}], errors }。
 /// 爹地 2026-10-23 口径：下一水 = ETD ≥ 今天+6 的最早一班；前端异步调用，不卡报价生成。
@@ -1397,7 +1441,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update, restart_app, parse_price_file, generate_quote_text, query_etd])
+        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update, restart_app, parse_price_file, generate_quote_text, query_etd, wps_addon])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
