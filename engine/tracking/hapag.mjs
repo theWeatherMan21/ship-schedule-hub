@@ -39,6 +39,9 @@ export const deadlineMs = 400000;
 // 所以主路径改成新版页面，legacy 只作兜底。
 export const BOOKING_URL = 'https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution.html';
 export const LEGACY_URL = 'https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution-legacy.html';
+// 国内出口 IP 会被 302 到 .cn：英文路径（/en/）在 .cn 上原样显示「维护中」，但中文路径（/zh/）是有表单可用的。
+// 所以两条都试，能出表单的那条就用。
+export const CN_URL = 'https://www.hapag-lloyd.cn/zh/online-business/track/track-by-booking-solution.html';
 export const FIELD = { booking: 'tracing_by_booking_f:hl12', bl: 'tracing_by_booking_f:hl16', find: 'tracing_by_booking_f:hl18' };
 
 const cssEscapeId = (id) => '#' + String(id).replace(/:/g, '\\:');
@@ -187,7 +190,10 @@ async function submitForm(page, num) {
 async function runFlow(ctx, { num, mode, timeoutMs }) {
   const page = ctx.pages().find((p) => !p.isClosed()) || (await ctx.newPage());
   page.setDefaultTimeout(20000);
-  const url = `${BOOKING_URL}?blno=${encodeURIComponent(num)}`;
+  // 国内优先：我们全部机器都在国内，.cn 中文页没有 CF 抖动，通常比 .com 快一个数量级
+  const URLS = [CN_URL, BOOKING_URL];
+  let urlIdx = 0;
+  let url = URLS[urlIdx];
   const steps = [];
   const t0 = Date.now();
 
@@ -208,20 +214,29 @@ async function runFlow(ctx, { num, mode, timeoutMs }) {
       // 2026-10-26 实测：从中国出口 IP 访问 hapag-lloyd.com 会被 302 到 hapag-lloyd.cn，
       // 该站常显示「Due to maintenance work our Online Business Services are currently unavailable」
       // 且页面没有任何表单 → 后面 121s 全是空转。这里先快速识别，直接给结论。
-      const siteState = await page.evaluate(() => {
+      // 表单是 JS 渲染的，domcontentloaded 时还不存在 → 必须等它出现再判
+      const hasForm = await page.waitForSelector('[id*="hl16"], [id*="hl12"]', { timeout: 15000 })
+        .then(() => true).catch(() => false)
+      const siteState = hasForm ? { hasForm: true, host: '' } : await page.evaluate(() => {
         const t = (document.body && document.body.innerText) || ''
         return {
           host: location.host,
-          maintenance: /maintenance work|Online Business Services are currently unavailable|currently unavailable/i.test(t),
-          hasForm: document.querySelectorAll('form').length > 0
+          maintenance: /maintenance work|在线业务服务|Online Business Services are currently unavailable|currently unavailable/i.test(t),
+          hasForm: false
         }
-      }).catch(() => ({}))
-      if (siteState && siteState.maintenance) {
-        steps.push('site-unavailable:' + siteState.host)
+      }).catch(() => ({ hasForm: false, host: '' }))
+      // 维护页 / 没有表单 → 先换下一条 URL（国际站 ↔ 国内站中文路径），全试完才算不可用
+      if (siteState && (siteState.maintenance || !siteState.hasForm)) {
+        steps.push('dead-end:' + siteState.host + (siteState.maintenance ? '(maintenance)' : '(no-form)'));
+        if (urlIdx < URLS.length - 1) {
+          urlIdx += 1; url = URLS[urlIdx];
+          steps.push('switch-url:' + url);
+          continue;
+        }
         return {
           ok: false, number: num, carrier: 'hapag', kind: guessKind(num),
           errorKind: 'site-unavailable',
-          error: `Hapag 官网当前不可用（${siteState.host} 显示维护中/服务关闭），本机网络出口访问不到国际站`,
+          error: `Hapag 官网两个入口都不可用（${siteState.host} ${siteState.maintenance ? '维护中' : '无查询表单'}）`,
           steps, mode
         }
       }
@@ -242,7 +257,9 @@ async function runFlow(ctx, { num, mode, timeoutMs }) {
     if (!st || st.kind === 'notfound') {
       return {
         ok: false, number: num, carrier: 'hapag', kind: guessKind(num), errorKind: 'not-found',
-        error: (st && st.msg) || 'Hapag: DOCUMENT does not exist（该号在 Hapag 系统无记录）', steps, mode,
+        // 2026-10-26 实测：官网只保留近 12 个月——2026 的单查得到，2025 的单一律
+        // 「DOCUMENT does not exist (Format : HLCU10CFF08B7518)」，不是号码错、也不是打不开。
+        error: 'Hapag 官网无此单记录（官网仅保留近 12 个月；2025 及更早的单查不到）', steps, mode,
       };
     }
     if (st.kind !== 'result') {
