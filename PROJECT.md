@@ -22,6 +22,19 @@
 
 **回滚**：旧二进制备份在 `/tmp/ssh-bin-backup-1.5.7`（1.5.7 原版）
 
+### 10-26：修复「隔几天首次查询极慢」（v1.6.2）
+
+- **爹地反馈**：每隔几天后第一次用，部分船司查询极慢
+- **证据**（`evidence/run-*.ndjson` 的 ms 字段）：Maersk 常态 **29–34s**、CMA **54s**，与"隔几天"强相关
+- **根因**：主浏览器档案被上次残留 Chrome 占用 → `launchCtxWithLockFallback` 只清理+重试一次 →
+  降级到**空临时档案**（无 cookie/无缓存）→ 船司反爬 + 冷加载 → 慢；且临时档案**从不删除**（30 个 / 272MB）
+- **修复**：
+  ① 降级前多清一步 Chrome `Singleton*` 锁（异常退出留符号链接）+ 等 2.5s + **重试主档案 2 次**
+  ② 临时档案**用完即删**（包装 `ctx.close`，删除失败重试）
+  ③ `launch()` 每次顺带清理 1 小时前的历史临时档案（`cleanupStaleTmpProfiles`）
+- **验证**：清理历史 30 个（释放 272MB）；模拟占用主档案 → 查询后临时档案 0 残留
+- **已知残留风险**：若残留 Chrome 连 SIGKILL 都杀不掉（权限异常），仍会降级慢一次（极端情况）
+
 ### 10-23：接入 Akkon Lines 提单追踪（只做追踪，不做船期）
 
 - 站点 `https://sap.akkonlines.com/index.aspx`（ASP.NET WebForms + UpdatePanel 局部回发）
