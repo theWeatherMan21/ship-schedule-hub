@@ -1,6 +1,6 @@
 [package]
 name = "shipschedulehub"
-version = "1.6.2"
+version = "1.6.3"
 description = "ShipScheduleHub — 船期聚合驾驶舱"
 edition = "2021"
 

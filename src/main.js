@@ -1191,6 +1191,30 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
   if (sm) sm.textContent += '　Stop requested';
 });
 
+// ---- 回车即查询（爹地 2026-10-26 要求）----
+// 船期页：起运港 / 目的港 / 日期 任一输入框回车 = 点 Query
+// 提单页：提单号输入框 / 船司下拉回车 = 点「查询」
+// 细节：
+//  · e.isComposing 时忽略 —— 中文输入法选词按回车不能误触发查询（「宁波」选词会撞）
+//  · 按钮自身已有并发守卫（查询中再触发 = 换条件重查），这里不用重复判断
+(function bindEnterToQuery() {
+  const bind = (inputIds, btnId) => {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    for (const id of inputIds) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      el.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' || e.isComposing) return;
+        e.preventDefault();
+        btn.click();
+      });
+    }
+  };
+  bind(['origin', 'destination', 'date'], 'btnGo');
+  bind(['trackNum', 'trackCarrier'], 'btnTrackGo');
+})();
+
 // 追踪自检（SSH_TRACK_SELFTEST=<单号> 启动时自动跑一单，婉宜取证用）
 (async function trackSelfTest() {
   if (!hasTauri) return;

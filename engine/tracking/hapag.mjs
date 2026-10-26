@@ -33,7 +33,12 @@ import { launch, launchHeadedQuiet, sleep, EVIDENCE_DIR } from '../browser.mjs';
 // Windows 连续多次 >240s），这是站侧反爬流程的固有耗时，不是卡死。
 export const deadlineMs = 400000;
 
-export const BOOKING_URL = 'https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution-legacy.html';
+// 2026-10-26 实测（国内出口 IP）：
+//   legacy 页（两个域都试过）一律显示「由于维护工作，我们的在线业务服务…」，页面 0 个表单；
+//   非 legacy 的 track-by-booking-solution.html 从国内直连可用（.com 会 302 到 .cn，同路径照样有表单）。
+// 所以主路径改成新版页面，legacy 只作兜底。
+export const BOOKING_URL = 'https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution.html';
+export const LEGACY_URL = 'https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution-legacy.html';
 export const FIELD = { booking: 'tracing_by_booking_f:hl12', bl: 'tracing_by_booking_f:hl16', find: 'tracing_by_booking_f:hl18' };
 
 const cssEscapeId = (id) => '#' + String(id).replace(/:/g, '\\:');
@@ -87,6 +92,18 @@ const parseList = (page) => page.evaluate(() => {
     const prev = out.find((r) => r.cells.includes(box));
     if (prev) { if (!prev.detailsBtnId && btn) prev.detailsBtnId = btn.id; continue; }  // 同箱多行去重，优先带有按钮的
     out.push({ cells: texts, detailsBtnId: btn ? btn.id : null });
+  }
+  return out;
+}).catch(() => []);
+
+/** 新版页面的容器行解析：div 网格，没有 <table>，箱号常被拆成 "TCLU 6337701" */
+const parseListText = (page) => page.evaluate(() => {
+  const t = (document.body.innerText || '').replace(/\s+/g, ' ');
+  const out = [];
+  const re = /(\d{2}[A-Z]{2,3})\s+([A-Z]{4})\s?(\d{7})\s+([A-Za-z][A-Za-z .'\/\-]{2,40}?)\s+(\d{4}-\d{2}-\d{2})\s+([A-Z][A-Za-z0-9 .'\/\-]{2,40}?)(?=\s*(?:Details|$|\d{2}[A-Z]{2,3}\s+[A-Z]{4}))/g;
+  let m;
+  while ((m = re.exec(t)) !== null) {
+    out.push({ num: m[2] + m[3], type: m[1], status: m[4].trim(), date: m[5], place: m[6].trim() });
   }
   return out;
 }).catch(() => []);
@@ -237,8 +254,19 @@ async function runFlow(ctx, { num, mode, timeoutMs }) {
       };
     }
 
-    // 阶段2：容器列表
-    const rows = await parseList(page);
+    // 阶段2：容器列表（老页面是 table，新页面是 div 网格 → 两种都试）
+    // 注意：probeState 一看到表头（Container No. / Status）就判 result，此时行还没渲染出来，
+    // 所以这里要等到真的解析到行（或 10s 到点），否则会拿到「有结果但 0 事件」的假数据。
+    let rows = await parseList(page);
+    if (!rows.length) {
+      for (let w = 0; w < 7; w++) {
+        await sleep(1500);
+        rows = await parseList(page);
+        if (rows.length) break;
+        const tr = await parseListText(page);
+        if (tr.length) break;
+      }
+    }
     const listText = await page.evaluate(() => (document.body.innerText || '').slice(0, 6000)).catch(() => '');
     save('list.txt', listText);
     const containers = [];
@@ -308,6 +336,37 @@ async function runFlow(ctx, { num, mode, timeoutMs }) {
         }
       }
       containers.push(rec);
+    }
+
+    // 新页面：容器所在区是 div 网格，parseList 可能命中页面其它 table 而拿到「没有事件的壳」。
+    // 判据用「有没有任何事件」而不是「有没有容器」—— 否则会输出 ok=true + 0 事件。
+    if (!containers.some((c) => c.events.length)) {
+      containers.length = 0;
+      await sleep(1500);
+      const textRows = await parseListText(page);
+      if (textRows.length) steps.push('list-rows=' + textRows.length);
+      for (const tr of textRows) {
+        containers.push({
+          num: tr.num, size: tr.type, type: tr.type, status: tr.status, place: tr.place,
+          desc: '', dim: '', tare: '', payload: '', lastMovement: '',
+          events: [{
+            time: tr.date, activity: tr.status, city: tr.place,
+            vessel: '', voyage: '', timeType: 'ACTUAL', kind: 'ACTUAL', isCurrent: false,
+          }],
+          undatedEvents: [],
+        });
+      }
+    }
+
+    // 没有任何容器行 → 不能报 ok（否则插件会把空结果当「查到了」写进表格）
+    if (!containers.length) {
+      const bodyTxt = await page.evaluate(() => (document.body.innerText || '').slice(0, 500)).catch(() => '');
+      save('empty.txt', bodyTxt);
+      steps.push('empty-result');
+      return {
+        ok: false, number: num, carrier: 'hapag', kind: guessKind(num), errorKind: 'empty-result',
+        error: 'Hapag 结果页没有解析到集装箱行（页面结构可能又变了）', steps, mode,
+      };
     }
 
     // 阶段3：组装统一结构
