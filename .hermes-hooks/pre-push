@@ -1,0 +1,6 @@
+#!/bin/bash
+# 推送前：引擎改过但插件没跟版 → 拦下（爹地要求两边不许漂移）
+# 跳过：SKIP_ADDON_SYNC=1 git push ...
+[ "${SKIP_ADDON_SYNC:-0}" = "1" ] && exit 0
+root="$(git rev-parse --show-toplevel)"
+exec "$root/scripts/addon-sync-check.sh"
