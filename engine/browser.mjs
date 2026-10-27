@@ -311,6 +311,12 @@ async function launchCtxWithLockFallback(opts) {
 }
 
 export async function launchHeadedQuiet() {
+  // 静默红线（2026-10-27 爹地反馈「测试不是静默的」）：
+  // 该函数会开真浏览器窗口（最小化也会在 Dock 里露头），自动化/测试里绝不允许。
+  // 只有显式 SSH_ALLOW_HEADED=1 才放行；否则退回无头。
+  if (process.env.SSH_ALLOW_HEADED !== '1') {
+    return launch({ headless: true })
+  }
   // 先清残留，再等一下让 profile 锁释放（否则立刻重试仍会失败）
   if (killStaleProfileChrome() > 0) await sleep(1500);
   let ctx = null;
