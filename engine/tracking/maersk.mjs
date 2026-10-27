@@ -18,7 +18,18 @@ export async function trackMaersk(number, { timeoutMs = 45000, ctx = null } = {}
   };
   page.on('response', onResp);
   try {
-    await page.goto(`https://www.maersk.com/tracking/${encodeURIComponent(number)}`, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+    // 国内直连 www.maersk.com 打不开（实测 000/连接失败），但 www.maersk.com.cn 是 200。
+    // 两个都试：先国内站，失败再国际站 —— 全程在本项目内兜底，不动用户网络设置。
+    const TRACK_HOSTS = ['https://www.maersk.com.cn', 'https://www.maersk.com'];
+    let loaded = false, lastErr = null;
+    for (const host of TRACK_HOSTS) {
+      try {
+        await page.goto(`${host}/tracking/${encodeURIComponent(number)}`, { waitUntil: 'domcontentloaded', timeout: Math.max(8000, Math.floor(timeoutMs / TRACK_HOSTS.length)) });
+        loaded = true;
+        break;
+      } catch (e) { lastErr = e; }
+    }
+    if (!loaded) throw lastErr || new Error('Maersk 站点都打不开');
     const deadline = Date.now() + timeoutMs;
     while (!cap && !capErr && Date.now() < deadline) await sleep(1000);
   } catch (e) { capErr = String(e).slice(0, 140); }
