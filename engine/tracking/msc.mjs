@@ -67,6 +67,9 @@ function parseEvents(ci, serverToday) {
   return evs;
 }
 
+// 集装箱号形态：4 字母 + 7 位；其余（订舱号/提单号）按订舱号查
+const isContainerNo = (n) => /^[A-Z]{4}\d{7}$/.test(String(n || '').trim().toUpperCase())
+
 // 站内接口调用（必须在该域页面上下文里执行：Akamai 护着，裸 curl 403）
 async function apiCall(page, number, mode) {
   return page.evaluate(async ({ n, m }) => {
@@ -114,7 +117,8 @@ export async function trackMsc(number, { timeoutMs = 60000, ctx = null } = {}) {
           await sleep(800);
         }
       }
-      const rr = await apiCall(page, number, '0');
+      const firstMode = isContainerNo(number) ? '0' : '1';
+      const rr = await apiCall(page, number, firstMode);
       if (rr && rr.json) { r = rr; navUsed = t.label; break; }   // JSON = 通路成立（IsSuccess:false 也是业务答案）
     }
     const apiUsed = navUsed;
@@ -125,17 +129,23 @@ export async function trackMsc(number, { timeoutMs = 60000, ctx = null } = {}) {
       out.errorKind = 'blocked';
       return out;
     }
-    let mode = '0';
-    if (r.json.IsSuccess === false) {
-      // 单号可能是订舱号：两种模式各查一次（各自有明确否定文案，不会互相污染）
-      const r2 = await apiCall(page, number, '1');
-      if (r2 && r2.json && r2.json.IsSuccess === true) { r = r2; mode = '1'; }
+    // MSC 只有两种模式：0=集装箱号、1=订舱号。命中的为准，都试过再报查无。
+    let mode = isContainerNo(number) ? '0' : '1';
+    const other = mode === '0' ? '1' : '0';
+    const tried = [{ m: mode, json: r.json }];
+    if (r.json.IsSuccess !== true) {
+      const r2 = await apiCall(page, number, other).catch(() => null);
+      if (r2 && r2.json) {
+        tried.push({ m: other, json: r2.json });
+        if (r2.json.IsSuccess === true) { r = r2; mode = other; }
+      }
     }
     out.nav = apiUsed;
     out.mode = mode;
     if (!r.json.IsSuccess || typeof r.json.Data !== 'object' || !r.json.Data) {
       // 站点自己的明确否定 —— 原话转达，别和"我们没抓到"混成一句
-      out.error = typeof r.json.Data === 'string' ? r.json.Data : 'MSC 未返回追踪数据';
+      const msgs = tried.map((x) => (typeof x.json.Data === 'string' ? x.json.Data : '')).filter(Boolean);
+      out.error = msgs.length ? `MSC 查无此号（箱号、订舱号都试过）：${msgs.join(' / ')}` : 'MSC 未返回追踪数据';
       out.errorKind = 'not-found';
       return out;
     }

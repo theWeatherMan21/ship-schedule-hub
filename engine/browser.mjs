@@ -315,7 +315,10 @@ export async function launchHeadedQuiet() {
   // 该函数会开真浏览器窗口（最小化也会在 Dock 里露头），自动化/测试里绝不允许。
   // 只有显式 SSH_ALLOW_HEADED=1 才放行；否则退回无头。
   if (process.env.SSH_ALLOW_HEADED !== '1') {
-    return launch({ headless: true })
+    // 注意返回形状：调用方用的是 h.ctx / h.mode（以前直接返回 context 会报
+    // "Cannot read properties of undefined (reading 'close')"）
+    const ctx = await launch({ headless: true })
+    return { ctx, mode: 'headless-fallback', browser: ctx.browser ? ctx.browser() : null }
   }
   // 先清残留，再等一下让 profile 锁释放（否则立刻重试仍会失败）
   if (killStaleProfileChrome() > 0) await sleep(1500);
@@ -326,7 +329,15 @@ export async function launchHeadedQuiet() {
       headless: false,
       // ★ 10-09 爹地点透（"软件自己开个有头自己解决"）：最小化窗口默认被节流 → 验证码组件永远挂不上。
       //   这三个开关禁用后台/遮挡/渲染节流 → 最小化也能正常渲染与跑定时器，程序自己就能解验证码。
-      args: [...launchArgs(), '--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding'],
+      args: [
+        ...launchArgs(),
+        // 屏幕外有头：CF 需要真窗口指纹，但窗口不能出现在用户眼前
+        '--window-position=-32000,-32000',
+        '--window-size=1280,800',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+      ],
       ignoreDefaultArgs: ['--enable-automation'],
     });
     ctx = r.ctx;
