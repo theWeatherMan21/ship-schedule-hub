@@ -24,7 +24,7 @@ const HOME = os.homedir();
 const IS_WIN = process.platform === 'win32';
 const REPO = 'theWeatherMan21/ship-schedule-hub';
 // 固定 tag「wps-latest」：App 发新版也不会把 /releases/latest 顶掉
-const RELEASE_BASE = `https://github.com/${REPO}/releases/download/wps-latest`;
+const RELEASE_BASE = process.env.WPS_RELEASE_BASE || `https://github.com/${REPO}/releases/download/wps-latest`;
 const MIRRORS = ['https://ghfast.top/', 'https://ghproxy.net/', 'https://gh-proxy.com/', ''];
 const ADDON = { name: 'ShipTrack', type: 'et' };
 
@@ -92,15 +92,6 @@ const LOCAL_DIRS = [
 
 async function tryMirrors(file, timeoutMs = 30000) {
   const errors = [];
-  for (const d of LOCAL_DIRS) {
-    const p = path.join(d, file);
-    try {
-      if (fs.existsSync(p)) {
-        const buf = fs.readFileSync(p);
-        if (buf.length > 0) return { buf, via: `local:${path.basename(d)}` };
-      }
-    } catch { /* 忽略，继续走网络 */ }
-  }
   for (const m of MIRRORS) {
     // 带时间戳破 CDN 缓存：镜像站会把 wps-latest 的清单缓存十几分钟，导致「明明发了新版却查不到」
     const bust = `?t=${Date.now()}`;
@@ -116,6 +107,16 @@ async function tryMirrors(file, timeoutMs = 30000) {
       const cause = e && e.cause ? `/${e.cause.code || e.cause.message || ''}` : '';
       errors.push(`${m || 'direct'}: ${String(e.message || e).slice(0, 40)}${cause}`);
     } finally { clearTimeout(t); }
+  }
+  // 网络全挂 → 用本机已有的安装包（项目内兜底，不动用户网络设置）
+  for (const d of LOCAL_DIRS) {
+    const p = path.join(d, file);
+    try {
+      if (fs.existsSync(p)) {
+        const buf = fs.readFileSync(p);
+        if (buf.length > 0) return { buf, via: `local:${path.basename(d)}` };
+      }
+    } catch { /* ignore */ }
   }
   throw new Error('镜像全部失败（' + errors.join(' | ') + '）');
 }
