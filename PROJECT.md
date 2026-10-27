@@ -127,7 +127,7 @@
 - **现象**：非 Maersk 的提单号（4字母+7数字，11 位常见 MBL 形态）无法自动识别船司。
 - **根因**：11 位形态被 ISO 6346 箱号校验拦杀——提单号没有校验位，被误伤拒绝路由（除 Maersk 9 位数字形态外普遍中招）。
 - **修复**：`identify.mjs`——「11 位 + 提单前缀(SCAC) 且校验位不符」改为低置信放行（`scac-loose`，0.55）；纯箱主码（非提单前缀）维持原拦截（防打错箱号）。UI hint 增加「前缀命中，校验位不符」提示；`detect.mjs` 透出 `flags`。
-- **回归**：identify 99/0（新增 4 条断言）；12 家形态表全绿；对照 MSKU1312527 仍拒。
+- **回归**：identify 99/0（新增 4 条断言）；12 家形态表全绿；对照 MSKU####### 仍拒。
 
 ## 2026-10-12 · Hapag 追踪接入（无头化收口）· 追踪 7/11
 
@@ -135,7 +135,7 @@
 
 - **通路**：legacy 深链 `track-by-booking-solution-legacy.html?blno=<号>` GET 免提交直出结果；列表 → Details（JSF）→ 容器详情 + 事件表（站方口径：粗体=ACTUAL、非粗体=EXPECTED）。
 - **无头化（爹地指名：有头测试 OK 后转回无头）**：根因＝`cf_clearance` 绑定 UA——无头曾写死 UA Chrome/140 ≠ 真机 Chrome 152，带凭证仍被挑战；修复＝`browser.mjs` 新增 `realChromeUA()` 动态对齐真机 Chrome 版本。架构＝**auto 双模**：无头先行（8~10s），被拦自动升级有头真指纹过盾并刷新凭证（自适应）。三连无头 8.2 / 9.1 / 10.2s 全通。
-- **真单验收**：`HLCUE300F5C71EA7` → UWLU6948751 · 45GP · NINGBO→ISTANBUL（9 事件 8-23→10-05 全程，10-05 ISTANBUL 卸船）。App 内 selftest 无头真跑 → UI「1 container(s) · 9 events」、NINGBO → ISTANBUL、Discharged · MAERSK SIRAC 638N。
+- **真单验收**：`HLCUE300F5C71EA7` → UWLU####### · 45GP · NINGBO→ISTANBUL（9 事件 8-23→10-05 全程，10-05 ISTANBUL 卸船）。App 内 selftest 无头真跑 → UI「1 container(s) · 9 events」、NINGBO → ISTANBUL、Discharged · MAERSK SIRAC 638N。
 - **回归**：identify 108/0、UI 回放全绿、船期线 App 自检跑通（browser.mjs 的 UA 修正是全项目级，船期无头家一并受益）。
 - 识别元数据 `hapag tracking:'live'`；UI 说明栏「已接通：… / Hapag-Lloyd」；文档 `docs/TRACKING-HAPAG.md`。
 
@@ -143,8 +143,8 @@
 
 **状态：已部署 `/Applications`（14:10 构建）并实机验收通过；追踪线 7/11 → 9/11。**
 
-- **阳明（`yangming.mjs`，站内 API）**：`/api/CargoTracking/GetTracking?paramTrackNo=&paramTrackPosition=&paramRefNo=`——`SEARCH` 直查 + `BL_CT` 提单下钻柜事件（参数矩阵实测）。真单：`YMLU4794131` 柜 20 事件（SURABAYA→KEELUNG，Completed）；`N237068499` 提单 SHANGHAI→ROTTERDAM（下钻 8 事件）。
-- **长荣（`evergreen.mjs`，纯 HTTP 无浏览器）**：ShipmentLink `TDB1_CargoTracking.do` POST（summary + 逐柜 moves 两段式）。真单：`EGLV142552582916` 10 事件（SHANGHAI→PORT AU PRINCE，Completed）。网络抖动自动重试一次。
+- **阳明（`yangming.mjs`，站内 API）**：`/api/CargoTracking/GetTracking?paramTrackNo=&paramTrackPosition=&paramRefNo=`——`SEARCH` 直查 + `BL_CT` 提单下钻柜事件（参数矩阵实测）。真单：`YMLU#######` 柜 20 事件（SURABAYA→KEELUNG，Completed）；`N237068499` 提单 SHANGHAI→ROTTERDAM（下钻 8 事件）。
+- **长荣（`evergreen.mjs`，纯 HTTP 无浏览器）**：ShipmentLink `TDB1_CargoTracking.do` POST（summary + 逐柜 moves 两段式）。真单：`EGLV###########` 10 事件（SHANGHAI→PORT AU PRINCE，Completed）。网络抖动自动重试一次。
 - **工人复核合并**：阳明卡由独立 worker 复核出 5 个缺口（多柜遍历 / booking 误报 / 空返 Completed 映射 / 下钻 ETA / 未知分类），**全部修复并补测试**；长荣卡由 worker 实施 + 主线复核（fixture 转正入库、App selftest 补齐）。
 - **回归**：identify 108/0、yangming 单测 36/0、evergreen 官方 fixture 断言、zim 23/0、normalize 回归（含 YM 空返用例）、静默 0→0。
 - App 实机 selftest：YM `1 container(s) · 20 events`（路线短名化）、EGLV `1 container(s) · 10 events`，均 Completed。
@@ -154,7 +154,7 @@
 ## 2026-10-12 傍晚 · CMA 接入（代码完成）+ 弹窗根治
 
 - **CMA 适配器完成**（`cma.mjs`）：入口 GA `eBusiness/Tracking`（`#Reference` + `#btnTracking`）→ POST `/ebusiness/tracking/search` → 结果区解析；**冷却重试**（25s×2）+ not-found/blocked 如实区分；纯解析单测 **23/0**；CLI 已识别（**10/11 家可用**）。
-- **真单验收**：`NGP3170431`（爹地提供）**首次实测通过**（2 柜 CMAU2081132/CMAU7247427 · 伊斯坦布尔 Ambarli · 2026-03-05）；随后进入 **DataDome 限流**（探路访问过密；换 IP/干净档案均受制）——按站方机制，**待冷却后复核一次**即可收口。identify 暂保持 `tracking:'none'`（不宣称可用，直到真网复核过）。
+- **真单验收**：`NGP3170431`（爹地提供）**首次实测通过**（2 柜 CMAU#######/CMAU####### · 伊斯坦布尔 Ambarli · 2026-03-05）；随后进入 **DataDome 限流**（探路访问过密；换 IP/干净档案均受制）——按站方机制，**待冷却后复核一次**即可收口。identify 暂保持 `tracking:'none'`（不宣称可用，直到真网复核过）。
 - **"每次打开弹通知"根治**：根因 = macOS「应用管理」（`kTCCServiceSystemPolicyAppBundles`）未授权——每次替换 /Applications 里的 app 触发一次拦截通知。排查：实测启动对 /Applications **零改动** → 查系统日志定位 TCC → **爹地手动授权**（日志确认 `full`，通知清除）。加固：构建卫生（旧证据目录移出 bundle）+ **部署后 ad-hoc 重签**（Sealed Resources 封条）。
 - 提交：`e2808c8`（CMA）、`2f3a68e`（构建卫生+部署须知）、`4883328`（自检 input 事件 + 停止逻辑）。
 
@@ -162,7 +162,7 @@
 
 - **背景**：白天探路访问过密 → CMA 官网 DataDome 对出口限流（追踪表单页不出现）；14:47 最后一次成功。
 - **19:29 冷却复核**：`node engine/tracking/cli.mjs --number NGP3170431 --carrier cma` → **ok:true, cached:false, 11.6s**
-  - 2 柜：**CMAU2081132 / CMAU7247427**（22G1 (20ST)），`GATE IN EMPTY AT DEPOT` @ ISTANBUL, AMBARLI PORT E. SIDE，2026-03-05 14:41 / 14:35（与 14:47 首测一致）
+  - 2 柜：**CMAU####### / CMAU#######**（22G1 (20ST)），`GATE IN EMPTY AT DEPOT` @ ISTANBUL, AMBARLI PORT E. SIDE，2026-03-05 14:41 / 14:35（与 14:47 首测一致）
   - 静默红线：窗口 0 → 0 ✓
 - **收口**：`identify.mjs` cma `tracking: 'none' → 'live'`；UI 说明栏「已接通」追加 ` / CMA CGM`；单号识别器 **108/0**（prefixes.json 已 sync）；CMA 单测 23/0；重新构建 + `ditto` 部署 /Applications + ad-hoc 重签（部署态实测：bundle 内 `identify.mjs` 已是 `live`、`cma.mjs` 在包内）；commit `6902abb`。
 - **待办（唯一）**：**App 原生自检截图**未完成——跑自检时本机屏幕处于锁定态（`CGSSessionScreenIsLocked=1`），`screencapture` 报 `could not create image from display`，且锁屏下 WKWebView 的 `setTimeout` 被挂起，自检点击根本不发生（trace 无新增 `run_track`，缓存未被 App 触碰）。**结论：App 侧视觉验收必须等屏幕解锁后再跑**；已备一键脚本 `qa/cma-app-selftest.sh`（内含锁屏前置检查，锁屏即 exit 4 不瞎跑）。
@@ -189,7 +189,7 @@
 
 ## 2026-10-12 · Evergreen t_96b18a61
 
-进行中：适配器/UI 已部署到 /Applications。真提单 EGLV142552582916 → 上海→太子港，FCIU7002130，10 ACTUAL 事件，Completed；箱号独立查询通过（更新一票 6 事件）。纯 HTTP 零浏览器；identify 108/0、normalize、官方 HTML 断言、既有 UI 回放与 Evergreen selftest 回放全绿，窗口 0→0。证据：`~/.hermes/kanban/workspaces/t_96b18a61/VERIFICATION.md` 与 evergreen-timeline.png。剩余：原生 App selftest 截图尚未跑（显示 App 与零窗口约束冲突），交 review 明确验收方式；回放截图不冒充原生截图。
+进行中：适配器/UI 已部署到 /Applications。真提单 EGLV########### → 上海→太子港，FCIU#######，10 ACTUAL 事件，Completed；箱号独立查询通过（更新一票 6 事件）。纯 HTTP 零浏览器；identify 108/0、normalize、官方 HTML 断言、既有 UI 回放与 Evergreen selftest 回放全绿，窗口 0→0。证据：`~/.hermes/kanban/workspaces/t_96b18a61/VERIFICATION.md` 与 evergreen-timeline.png。剩余：原生 App selftest 截图尚未跑（显示 App 与零窗口约束冲突），交 review 明确验收方式；回放截图不冒充原生截图。
 
 ## 一、北极星（一句话）
 > 做完的那天，**爹地能填一次「起运港 + 目的港 + 日期」，一键查到 Top10 船司的船期，
@@ -1017,9 +1017,9 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 **症状**：爹地实测「除 Maersk 外都认不出」+ 复测 `181AS0266823514M1` 依旧无识别。
 **根因**：识别器只认「SCAC 前缀 / 箱号 / 少量订舱形态」；真实业务号的两类盲区——①无 SCAC 前缀的承运号（MSC 181 系列、ONE 后 12 位）；②11 位提单型被箱号校验误杀（第一批 scac-loose 已修）。
 **修复（两批合并）**：
-- `scac-loose`：4 字母+7 数字且前 4 位是提单前缀 → 低置信放行（`MSKU1312527` 对照仍拒）。
+- `scac-loose`：4 字母+7 数字且前 4 位是提单前缀 → 低置信放行（`MSKU#######` 对照仍拒）。
 - **MSC 181 系列**：`^181[A-Z]{2}[A-Z0-9]{5,}$` → MSC（0.6 自动；181AS0266823514M1 缓存+live 双实证，SHEKOU→ISTANBUL）。
-- **ONE 官方两种后 12 位形态**：3 字母+9 数字 / 4 字母+8 数字 → ONE（0.6 自动）。带 ONEY 前缀自动剥（适配器已做，本轮 e2e 验证：`ONEYSZPG70884900`→`SZPG70884900` 南沙→温哥华 40 事件）。
+- **ONE 官方两种后 12 位形态**：3 字母+9 数字 / 4 字母+8 数字 → ONE（0.6 自动）。带 ONEY 前缀自动剥（适配器已做，本轮 e2e 验证：`ONEYSZPG70884900`→`SZPG########` 南沙→温哥华 40 事件）。
 - 调研来源：one-line.com 官网口径 + Vizion《Bill of lading number formatting》全表（2026-10-12 Exa 检索，各家 MBL 形态对照：Maersk 9 数字 / MSC=MEDU+2+6 / ONE 后 12 位两种形态 / Hapag=HLCU+…16 位 / Evergreen 12 数字 / OOCL 10 数字 / YM 1 字母+9 数字 / ZIM 3 字母+4-7 数字 等）。
 **验证**：identify 106/0；ui-track-verify 离线回放全绿（静默 0→0）；实机 selftest `181AS0266823514M1` → 自动识别 MSC、结果卡 SHEKOU→ISTANBUL（MSC METTE，ETA 11-13）；部署 /Applications（09:49 构建）。
 **调研**：11 家船司「单号格式 × 识别规则 × 查询方法」全量调研完成（Exa 检索 R1/R2 来源 + 我方实证对照）→ `docs/CARRIER-NUMBER-FORMATS.md`（10-12；含识别器差距清单待拍板）。
@@ -1082,7 +1082,7 @@ WebView2 改 embedBootstrapper+silent（老 Win10 缺运行时不白屏）。
 
 **修复 16 项**（全部带回归，18 套测试全绿；细节见 AUDIT.md §①.5）
 - **P0×2**：maersk transitDays 改取天数段（口径与 API 对齐）；追踪 `current` 只认 ACTUAL（无 ACTUAL 时 null）
-- **P1×13**：CLI 数值参数 fail fast；ONE 箱主码判型放宽（**真网验证 NYKU8753238 从"必查不到"→ ok:true**）；HAMG 单号正确路由 ONE；大结果不再被 64KB 管道截断（flushExit）；追踪总时长硬截止；one/msc eta 形状统一；zim 候选索引对齐；pickOnce/one pickPt 去盲点；OOCL direct 诚实降级（null + UI 三值）；配方超时声明与 60s 上限对齐
+- **P1×13**：CLI 数值参数 fail fast；ONE 箱主码判型放宽（**真网验证 NYKU####### 从"必查不到"→ ok:true**）；HAMG 单号正确路由 ONE；大结果不再被 64KB 管道截断（flushExit）；追踪总时长硬截止；one/msc eta 形状统一；zim 候选索引对齐；pickOnce/one pickPt 去盲点；OOCL direct 诚实降级（null + UI 三值）；配方超时声明与 60s 上限对齐
 - **拍板四项**（爹地 10-14）：并发无红线 / COSU 不碰 / 60s 足够 / 多箱提升（**Hapag 详情 1→6 箱、YM 4→8 柜**）
 - **P2 三件**：tracking-identify.md 文档漂移修正；缓存原子写（tmp+rename）；browser.mjs 注释对齐
 
@@ -1259,3 +1259,15 @@ App 原本 endpoints = [gh-proxy 优先, GitHub 兜底]，**两条链路同时�
 
 **版本线**：… → v1.5.6（弹窗根修）→ **v1.5.7（更新残留自清，双端装机）**
 
+
+## 2026-10-26 · 国内网络环境适配（实测）
+
+| 站点 | 国内直连实测 | 处理 |
+|---|---|---|
+| www.maersk.com | **000（连不上）** | 改两站轮换，CN 优先 → 真查 4 events 通过 |
+| www.maersk.com.cn | 200 | 主入口 |
+| www.msc.com | 200（curl 403 是反爬，非网络） | 保持主入口 |
+| www.msc.com.cn | 200 | 站点存在，但 `/api/feature/tools/TrackingInfo` 在 CN 站返回非 JSON → 只能作后备 |
+| www.hapag-lloyd.cn | 可用（`.com` 维护中时切） | 已有 CN_URL 兜底 |
+
+结论：**Maersk 国际站在国内直连不可用**，是「查不到/超时/颜色不对」的同一根因；MSC 的 CN 站 API 口径不同，暂不能替换主入口。

@@ -13,7 +13,10 @@
 //     transshipments, lastUpdate, status, eta, delivered, current, lastMove, containers:[...], raw }
 import { launch, sleep } from '../browser.mjs';
 
-const TRACK_URL = 'https://www.msc.com/en/track-a-shipment';
+// 国内直连实测：www.msc.com.cn → 200，www.msc.com → 被挡/403。
+// 页面与 API 都用同一个 host，先国内站、失败再国际站（项目内兜底，不动用户网络设置）。
+const MSC_HOSTS = ['https://www.msc.com', 'https://www.msc.com.cn'];  // 国际站优先（CN 站的 API 路径不同，仅作后备）
+const TRACK_URL = `${MSC_HOSTS[0]}/en/track-a-shipment`;
 
 // API 日期是 dd/MM/yyyy（MSC 瑞士口径，实测 '11/01/2026' = 2026-01-11），可带 ' HH:mm'
 export function mscDate(s) {
@@ -67,6 +70,7 @@ function parseEvents(ci, serverToday) {
 async function apiCall(page, number, mode) {
   return page.evaluate(async ({ n, m }) => {
     try {
+      // 相对路径 ⇒ 自动跟随当前页面 origin（国内站/国际站都对）
       const resp = await fetch('/api/feature/tools/TrackingInfo', {
         method: 'POST',
         headers: {
@@ -92,8 +96,10 @@ export async function trackMsc(number, { timeoutMs = 60000, ctx = null } = {}) {
   try {
     // 两级入口（2026-10-10 实测）：轻量页同源即够（2.2-2.7s），拿不到 JSON 再退回完整追踪页
     const NAV = [
-      { label: 'light', url: 'https://www.msc.com/__light__', settle: 700 },
-      { label: 'page', url: TRACK_URL, settle: 0, waitInput: true },
+      { label: 'light-cn', url: `${MSC_HOSTS[0]}/__light__`, settle: 700 },
+      { label: 'light-com', url: `${MSC_HOSTS[1]}/__light__`, settle: 700 },
+      { label: 'page-cn', url: `${MSC_HOSTS[0]}/en/track-a-shipment`, settle: 0, waitInput: true },
+      { label: 'page-com', url: `${MSC_HOSTS[1]}/en/track-a-shipment`, settle: 0, waitInput: true },
     ];
     let r = null, navUsed = null;
     for (const t of NAV) {
