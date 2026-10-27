@@ -6,7 +6,7 @@
 //   3) 提交：POST https://www.cma-cgm.com/ebusiness/tracking/search → 200 → 同页渲染结果
 //   4) 结果块（实测文本）：
 //        "Tracking details" [Booking <号>] [New search]
-//        "CMAU2081132 22G1 (20ST) GATE IN EMPTY AT DEPOT ISTANBUL, AMBARLI PORT E. SIDE Thu. 05-MAR-2026 14:41 PM [Display Details]"
+//        "CMAU####### 22G1 (20ST) GATE IN EMPTY AT DEPOT ISTANBUL, AMBARLI PORT E. SIDE Thu. 05-MAR-2026 14:41 PM [Display Details]"
 //      （每柜一行：柜号 箱型码 (尺寸码) 状态+地点 日期 时间 + Display Details 展开明细）
 //   5) 否定态："Your shipment was not found, please modify your search"
 //
@@ -140,13 +140,20 @@ export async function trackCma(number, opt = {}) {
   const page = c.pages()[0] || (await c.newPage());
   page.setDefaultTimeout(20000);
   const steps = [];
+  // 硬截止：单次尝试最长约 140s（等表单 30s + 等结果 48s + 打开 60s），
+  // 再重试 2 次就是 7 分钟 —— 调用方（桥）90s 就判超时了，等于白跑。
+  // 所以每一轮先看剩余预算，不够一轮就不开新轮。
+  const t0 = Date.now();
+  const remain = () => timeoutMs - (Date.now() - t0);
   try {
     let lastReason = '';
     for (let attempt = 1; attempt <= retries + 1; attempt++) {
-      await page.goto(TRACK_URL, { waitUntil: 'domcontentloaded', timeout: Math.min(timeoutMs, 60000) }).catch(() => {});
+      if (remain() < 45000) { if (!lastReason) lastReason = '未能在预算内拿到结果'; break; }
+      await page.goto(TRACK_URL, { waitUntil: 'domcontentloaded', timeout: Math.min(Math.max(5000, remain() - 10000), 60000) }).catch(() => {});
       // 等表单（被拦时不会出现）
       let form = { hasRef: false, hasBtn: false };
       for (let w = 0; w < 12; w++) {
+        if (remain() < 20000) break;
         await sleep(2500);
         form = await probeForm(page);
         if (form.hasRef) break;
@@ -159,6 +166,7 @@ export async function trackCma(number, opt = {}) {
         await page.click('#btnTracking', { timeout: 15000 }).catch(() => {});
         let done = null;
         for (let w = 0; w < 16; w++) {
+          if (remain() < 8000) break;
           await sleep(3000);
           const r = await probeResult(page);
           if (r.details || r.notfound) { done = r; break; }
