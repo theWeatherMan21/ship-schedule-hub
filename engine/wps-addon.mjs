@@ -82,8 +82,25 @@ const cmpVer = (a, b) => {
   return 0;
 };
 
+// 本地兜底：GitHub / 镜像全挂时（实测过整段时间 TLS 被重置），用本机已有的安装包
+// 这是「项目内兜底」——不依赖用户网络设置，也不需要他手动下载。
+const LOCAL_DIRS = [
+  process.env.WPS_LOCAL_UPDATE_DIR,
+  path.join(os.homedir(), 'Documents', 'trae_projects', 'WPSAddin', 'dist-updates'),
+  path.join(os.homedir(), '.hermes', 'wps-shiptrack', 'pkg'),
+].filter(Boolean);
+
 async function tryMirrors(file, timeoutMs = 30000) {
   const errors = [];
+  for (const d of LOCAL_DIRS) {
+    const p = path.join(d, file);
+    try {
+      if (fs.existsSync(p)) {
+        const buf = fs.readFileSync(p);
+        if (buf.length > 0) return { buf, via: `local:${path.basename(d)}` };
+      }
+    } catch { /* 忽略，继续走网络 */ }
+  }
   for (const m of MIRRORS) {
     // 带时间戳破 CDN 缓存：镜像站会把 wps-latest 的清单缓存十几分钟，导致「明明发了新版却查不到」
     const bust = `?t=${Date.now()}`;
@@ -96,7 +113,8 @@ async function tryMirrors(file, timeoutMs = 30000) {
       const buf = Buffer.from(await r.arrayBuffer());
       return { buf, via: m || 'direct' };
     } catch (e) {
-      errors.push(`${m || 'direct'}: ${String(e.message || e).slice(0, 40)}`);
+      const cause = e && e.cause ? `/${e.cause.code || e.cause.message || ''}` : '';
+      errors.push(`${m || 'direct'}: ${String(e.message || e).slice(0, 40)}${cause}`);
     } finally { clearTimeout(t); }
   }
   throw new Error('镜像全部失败（' + errors.join(' | ') + '）');
