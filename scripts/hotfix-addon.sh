@@ -23,7 +23,7 @@ PY
 node scripts/build.cjs online >/dev/null
 node scripts/template-lint.mjs
 node scripts/invariants-test.mjs >/dev/null
-git add -A && git -c user.name="Hermes" -c user.email="hermes@local" commit -m "hotfix: ${NOTE:-与船期 App 同步}（v$NEW）" >/dev/null
+git add -A && git -c user.name="Hermes" -c user.email="hermes@local" commit -m "hotfix: ${NOTE:-与船期 App 同步} (v${NEW})" >/dev/null
 git -c http.version=HTTP/1.1 push origin main
-./scripts/publish.sh --notes "${NOTE:-与船期 App 同步}（v$NEW）"
-echo "hotfix 完成：v$CUR → v$NEW"
+./scripts/publish.sh --notes "${NOTE:-与船期 App 同步} (v${NEW})"
+echo "hotfix 完成：v${CUR} -> v${NEW}"
