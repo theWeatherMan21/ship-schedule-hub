@@ -22,7 +22,7 @@ import { execFileSync } from 'node:child_process';
 
 const HOME = os.homedir();
 const IS_WIN = process.platform === 'win32';
-const REPO = 'theWeatherMan21/ship-schedule-hub';
+const REPO = 'theWeatherMan21/wps-shiptrack';   // 插件独立仓库，release 与 App 分开
 // 固定 tag「wps-latest」：App 发新版也不会把 /releases/latest 顶掉
 const RELEASE_BASE = process.env.WPS_RELEASE_BASE || `https://github.com/${REPO}/releases/download/wps-latest`;
 const MIRRORS = ['https://ghfast.top/', 'https://ghproxy.net/', 'https://gh-proxy.com/', ''];
