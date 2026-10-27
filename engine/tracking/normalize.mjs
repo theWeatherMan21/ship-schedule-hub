@@ -168,6 +168,22 @@ export function containerLabel(c) {
 }
 
 export function normalizeTracking(r) {
+  // 统一兜底：适配器没给 origin/destination 时，用事件推（第一个离港 / 之后没有离港的到达）
+  // 这样一个地方补齐，所有船司都受益（表头关键词识别只是再后面的兜底）
+  if (r && Array.isArray(r.events) && (!r.origin || !r.destination)) {
+    const city = (e) => String((e && (e.city || e.location)) || '').trim();
+    const isDep = (e) => /DEPART|DEPARTURE|离港|开航|SAIL/i.test(String(e && e.activity || ''));
+    const isArr = (e) => /ARRIV|到港|DISCHARG|卸船/i.test(String(e && e.activity || ''));
+    const isExp = (e) => /EXPECT|ESTIMAT|计划|预计/i.test(String((e && (e.timeType || e.kind)) || ''));
+    const list = r.events.filter((e) => e && !isExp(e));
+    if (!r.origin) { const d = list.find(isDep); if (d && city(d)) r.origin = city(d); }
+    if (!r.destination) {
+      for (let i = list.length - 1; i >= 0; i--) {
+        if (isDep(list[i])) break;
+        if (isArr(list[i]) && city(list[i])) { r.destination = city(list[i]); break; }
+      }
+    }
+  }
   if (!r || !r.ok) {
     return { ok: false, carrier: r?.carrier || '', number: r?.number || '', error: r?.error || 'no data' };
   }
