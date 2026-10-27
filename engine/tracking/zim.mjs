@@ -68,7 +68,7 @@ export function parseZimResponse(json, number) {
     (consg && ((consg.blRouteLeg && (consg.blRouteLeg.vpBrl || []).length) || (consg.consDetails && ((consg.consDetails.consContainers || {}).consContainersItem || []).length)))
   );
   if (!hasData) {
-    out.error = 'ZIM 未返回该号的追踪数据（请核对单号）';
+    out.error = 'ZIM 官网无此号记录（只保留约 90 天内的数据）';
     out.errorKind = 'not-found';
     return out;
   }

@@ -95,7 +95,7 @@ export function parseAkkonRows(rows, number) {
   };
   const list = (rows || []).filter((r) => r && (r.bl || r.container));
   if (!list.length) {
-    out.error = 'Akkon 未找到该单号（换个起运港国家再试，或核对单号）';
+    out.error = 'Akkon 官网无此号记录（该站按起运港国家分区检索，工具已逐区试过）';
     out.errorKind = 'not-found';
     return out;
   }

@@ -111,7 +111,7 @@ export function parseYangmingResponse(json, number) {
       out.docNum = out.booking.num || number;
       return out;
     }
-    out.error = '阳明未返回该号的追踪数据（请核对单号）';
+    out.error = '阳明官网无此号记录（订舱资料保留约 1 年）';
     out.errorKind = 'not-found';
     return out;
   }

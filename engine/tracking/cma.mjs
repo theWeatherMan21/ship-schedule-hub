@@ -53,7 +53,7 @@ export function parseCmaText(text, number) {
   const t = String(text || '').replace(/\s+/g, ' ');
   if (!t) { out.error = 'CMA 页面为空（可能被 DataDome 拦截）'; out.errorKind = 'blocked'; return out; }
   if (/was not found|no information|not available/i.test(t) && !/Tracking details/i.test(t)) {
-    out.error = 'CMA 未找到该号（请核对单号）';
+    out.error = 'CMA 官网无此号记录（该船司还空箱后约 15 天即删除轨迹，过期或未收录都是这个结果）';
     out.errorKind = 'not-found';
     return out;
   }
