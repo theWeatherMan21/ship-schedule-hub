@@ -140,7 +140,7 @@ function legEvents(leg) {
 
 /**
  * 追踪一票 COSCO 提单 / 箱号。
- * @param {string} number B/L（COSU6469105960 或 6469105960）或箱号（FFAU7237236）
+ * @param {string} number B/L（COSU6469105960 或 6469105960）或箱号（FFAU#######）
  */
 export async function trackCosco(number, { timeoutMs = 20000, etaLookup = true } = {}) {
   const norm = normalizeCoscoNumber(number);
@@ -177,17 +177,33 @@ export async function trackCosco(number, { timeoutMs = 20000, etaLookup = true }
   }
 
   // ── 提单主信息 ────────────────────────────────────────────
-  const main = await getJSON(`${BASE}/ebtracking/public/bill/${encodeURIComponent(norm.api)}`, timeoutMs);
+  // 10 位号既可能是提单号，也可能是订舱号（COSCO 页面有 Booking No./B/L No. 两个入口），
+  // 两个接口都试：/bill/ 查不到就换 /booking/（爹地 2026-10-28 实测 6472479960 只有 booking 查得到）。
+  let main = await getJSON(`${BASE}/ebtracking/public/bill/${encodeURIComponent(norm.api)}`, timeoutMs);
   if (!main.json) return { ok: false, number: norm.given, carrier: 'cosco', error: main.error || `HTTP ${main.status}` };
-  const c = main.json?.data?.content;
+  let c = main.json?.data?.content;
+  let usedEp = 'bill';
+  let bookingUsed = false;
   if (!c || c.isbillOfLadingExist === false) {
-    const hint = norm.stripped ? `（已把 ${norm.stripped} 前缀剥掉再查 ${norm.api}）` : '';
-    return { ok: false, number: norm.given, carrier: 'cosco', notFound: true, error: `官网回：无数据 ${hint}`.trim(), raw: main.json };
+    const bk = await getJSON(`${BASE}/ebtracking/public/booking/${encodeURIComponent(norm.api)}`, timeoutMs);
+    const bc = bk.json?.data?.content;
+    const hasBk = bc && (Array.isArray(bc.cargoTrackingContainer) ? bc.cargoTrackingContainer.length : !!bc.actualShipment);
+    if (hasBk) { main = bk; c = bc; usedEp = 'booking'; bookingUsed = true; }
+    else {
+      const hint = norm.stripped ? `（已把 ${norm.stripped} 前缀剥掉再查 ${norm.api}）` : '';
+      return { ok: false, number: norm.given, carrier: 'cosco', notFound: true, error: `官网回：无数据 ${hint}`.trim(), raw: main.json };
+    }
   }
 
-  // 箱列表（每箱最新动态）
-  const cl = await getJSON(`${BASE}/ebtracking/public/bill/containers/${encodeURIComponent(norm.api)}`, timeoutMs);
-  const rows = (cl.json?.data?.content?.containers) || (Array.isArray(cl.json?.data?.content) ? cl.json.data.content : []) || [];
+  // 箱列表（每箱最新动态）：订舱号走内联字段，提单号走 containers 接口
+  let rows = [];
+  let cl = { json: null };
+  if (bookingUsed) {
+    rows = (c.cargoTrackingContainer || []).map((x) => ({ ...x, containerNumber: s(x.cntrNum) })).filter((x) => x.containerNumber);
+  } else {
+    cl = await getJSON(`${BASE}/ebtracking/public/bill/containers/${encodeURIComponent(norm.api)}`, timeoutMs);
+    rows = (cl.json?.data?.content?.containers) || (Array.isArray(cl.json?.data?.content) ? cl.json.data.content : []) || [];
+  }
 
   const legs = mapLegs(c.actualShipment);
   const shipLegEvs = legs.flatMap(legEvents);
