@@ -5,6 +5,16 @@
 import { launch, sleep } from '../browser.mjs';
 
 export async function trackMaersk(number, { timeoutMs = 45000, ctx = null } = {}) {
+  // 格式前置校验（2026-10-28 爹地案例：表里少输一位，8 位数字白跑 73s 才报「抓不到响应」）
+  const _n = String(number || '').trim().toUpperCase().replace(/[\s-]/g, '');
+  const _isCtr = /^[A-Z]{4}\d{7}$/.test(_n);
+  const _isBl = /^[A-Z0-9]{9}$/.test(_n);
+  if (!_isCtr && !_isBl) {
+    return {
+      ok: false, number: String(number), carrier: 'maersk', notFound: true,
+      error: `Maersk 单号格式不符（当前 ${_n.length} 位）：提单号应为 9 位、箱号应为 4 字母+7 位 —— 检查是否少输/多输一位`,
+    };
+  }
   const own = !ctx;
   const c = ctx || (await launch({ headless: true }));
   const page = c.pages()[0] || (await c.newPage());
