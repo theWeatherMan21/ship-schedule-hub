@@ -208,12 +208,14 @@ function renderPortHint(inputId, hintId) {
 
 // ---------- 状态文案 ----------
 const BADGE = {
-  pending:  { text: 'Pending', cls: 'pending' },
-  running:  { text: 'Querying…', cls: 'running' },
+  pending:   { text: 'Pending', cls: 'pending' },
+  running:   { text: 'Querying…', cls: 'running' },
   prefilled: { text: 'Prefilled · no rows', cls: 'fallback' },
-  done:     { text: '✓ Found', cls: 'ok' },
-  opened:   { text: 'Page opened only', cls: 'fallback' },
-  failed:   { text: '失败', cls: 'fail' },
+  done:      { text: '✓ Found', cls: 'ok' },
+  opened:    { text: '查无此单', cls: 'fallback' },   // ★ 10-28：页面正常但没取到结果
+  challenge: { text: '挑战未过', cls: 'fail' },       // ★ 10-28：anti-bot 拦了（不是单号问题）
+  timeout:   { text: '超时', cls: 'fallback' },       // ★ 10-28：预算耗尽（不是单号问题）
+  failed:    { text: '失败', cls: 'fail' },
 };
 
 // ---------- DOM 构建 ----------
@@ -515,7 +517,7 @@ function setRow(carrierId, patch) {
         if (msg.length > 110) msg = msg.slice(0, 108) + '…';
       }
       msgEl.innerHTML = msg;
-      msgEl.className = 'cmsg' + (patch.status === 'failed' ? ' err' : (patch.status === 'opened' || patch.status === 'prefilled' ? ' warn' : ''));
+      msgEl.className = 'cmsg' + (patch.status === 'failed' || patch.status === 'challenge' ? ' err' : (patch.status === 'opened' || patch.status === 'prefilled' || patch.status === 'timeout' ? ' warn' : ''));
     }
   } else if (patch.msg !== undefined) {
     const msgEl = g.querySelector('.cmsg');
@@ -539,6 +541,7 @@ function setRow(carrierId, patch) {
   }
   // 无船期 → 维运网兜底链接（爹地 9-24）
   const noData = patch.status === 'prefilled' || patch.status === 'opened'
+    || patch.status === 'challenge' || patch.status === 'timeout'
     || (patch.status === 'done' && !(Array.isArray(patch.schedules) && patch.schedules.length));
   const existing = g.querySelector('.cnone');
   if (noData) {

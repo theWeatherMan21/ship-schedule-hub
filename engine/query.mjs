@@ -153,6 +153,12 @@ if (!Number.isFinite(perCarrier) || perCarrier <= 0) {
   console.error(JSON.stringify({ type: 'engine-error', msg: `Invalid --per-carrier-timeout (got ${JSON.stringify(args['per-carrier-timeout'])}): must be a positive number of ms` }));
   process.exit(2);
 }
+// ★ 10-28：单家总墙钟预算（含全部重试）。Windows 由 src-tauri 传 30000，Mac 不传＝用默认（perCarrier × attempts）。
+const perCarrierBudget = args['per-carrier-budget'] === undefined ? null : Number(args['per-carrier-budget']);
+if (perCarrierBudget !== null && (!Number.isFinite(perCarrierBudget) || perCarrierBudget <= 0)) {
+  console.error(JSON.stringify({ type: 'engine-error', msg: `Invalid --per-carrier-budget (got ${JSON.stringify(args['per-carrier-budget'])}): must be a positive number of ms` }));
+  process.exit(2);
+}
 const batchSize = Number(args.batch || 1);
 if (!Number.isInteger(batchSize) || batchSize < 1) {
   console.error(JSON.stringify({ type: 'engine-error', msg: `Invalid --batch (got ${JSON.stringify(args.batch)}): must be a positive integer` }));
@@ -481,18 +487,26 @@ export async function runCarrier(ctx, carrier) {
 
     // ② DOM 填表 + 搜索（kind=dom）；③ 兜底只开页面（kind=open）
     let domErr = null;
+    let budgetExhausted = false;   // ★ 10-28：单家总预算是否耗尽（决定失败归类为 timeout）
     if (!blocked && carrier.kind === 'dom') {
       // 抖动重试：候选下拉/SPA 渲染是时序敏感的，失败多为瞬时（同代码单跑 OK、并发随机挂）。
       // 失败后重开入口页再试一次，把随机失败抹平（婉宜 9-22）。
       const attempts = carrier.id === 'oocl' ? 3 : 2;   // ★ 10-10：OOCL 验证码=抽签，多给一次机会（~60s 内）
+      // ★ 10-28（爹地拍板「Windows 不能再为一家白等 115 秒」）：单家**总墙钟预算**，重试在预算内进行。
+      //   历史病根 = 60s × attempts + 重开页 sleep ≈ 115s。预算耗尽立即返回，不再开第二次。
+      //   默认 = perCarrier × attempts（Mac 既有行为不变）；Windows 侧由 src-tauri 显式传 --per-carrier-budget 30000。
+      const budgetStart = Date.now();
+      const budget = perCarrierBudget || perCarrier * attempts;
       for (let k = 1; k <= attempts; k++) {
+        const left = budget - (Date.now() - budgetStart);
+        if (left < 3000) { budgetExhausted = true; break; }
         try {
           // 爹地 10-09：短超时撤销 —— 一律给足 60 秒（早放弃反而像"查不到"）
           // 10-14 拍板：60s 目前足够（应用层统一上限；配方声明的 timeoutMs 已同步为 60000，声明=生效）
           // 10-14 P2：apiEmptyHint 落实（此前**只写不读**，注释里的"短超时"承诺从未生效）——
           //   接口已明确回「本条航线无服务」的船司，页面兜底只是复核，给 30s 就够，不陪着死等 60s。
           const tmoCap = apiEmptyHint[carrier.id] ? 30000 : 60000;
-          const tmo = Math.min(carrier.timeoutMs || perCarrier, tmoCap);
+          const tmo = Math.min(carrier.timeoutMs || perCarrier, tmoCap, left);
           const r = await withTimeout(Promise.resolve(carrier.run(page, qLocal, H)), tmo, `Recipe timeout (${tmo}ms)`);
           res.status = 'prefilled';
           res.level = 2;
@@ -519,6 +533,9 @@ export async function runCarrier(ctx, carrier) {
           break;
         } catch (e) {
           domErr = String(e.message || e).split('\n')[0];
+          // ★ 10-28：挑战页立刻判死，不重试 —— 重试只会再撞一次盾，白烧一个预算周期（115s 的第二个来源）
+          try { blocked = await isBlockPage(page); } catch { /* 保持原值 */ }
+          if (blocked) break;
           if (k < attempts) {
             await sleep(2000);
             try {
@@ -555,11 +572,21 @@ export async function runCarrier(ctx, carrier) {
     }
 
     if (res.status !== 'prefilled' && res.status !== 'done') {
-      res.status = 'opened';                    // 保底价值：页面已打开
       res.level = 3;
-      res.msg = blocked
-        ? `Anti-bot block (HTTP ${res.httpStatus || '?'}), page opened`
-        : (domErr || carrier.fallbackNote || 'Page opened only');
+      // ★ 10-28（爹地拍板）：失败必须能区分 —— 以前三种混成一句「没查到」，他会以为单号填错了。
+      if (blocked) {
+        res.status = 'challenge';
+        res.msg = `挑战未过（anti-bot, HTTP ${res.httpStatus || '?'}）—— 不是单号问题，换时段或走预热再试`;
+      } else if (budgetExhausted || /timeout|timed out/i.test(String(domErr || ''))) {
+        res.status = 'timeout';
+        res.msg = `超时（预算 ${budget}ms 用尽）—— 不是单号问题`;
+      } else if (domErr) {
+        res.status = 'failed';
+        res.msg = domErr;
+      } else {
+        res.status = 'opened';                  // 保底价值：页面已打开
+        res.msg = carrier.fallbackNote || '页面已打开，未取到结果';
+      }
     }
   } catch (e) {
     res.status = 'failed';

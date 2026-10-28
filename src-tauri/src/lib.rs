@@ -987,6 +987,12 @@ fn run_query(
         .arg("12")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    // ★ 10-28（爹地拍板「Windows 不能再为一家白等 115 秒」）：Windows 单家总预算 30s。
+    //   病根 = 60s 单次 × 2 次重试 + 重开页 sleep ≈ 115s。Mac 不传 → 引擎用默认，现有路径不退化。
+    #[cfg(windows)]
+    {
+        cmd.arg("--per-carrier-budget").arg("30000");
+    }
     // ── 环境自愈（Windows「点查询毫无反应」的候选真因之一）──
     // 那台机器 D 盘疑似有「驱动器相对路径」污染（换了 3 个安装位置都报同一个 lstat 'D:'）。
     // 装在哪都无关 → 嫌疑转向环境变量：TEMP= D: / NODE_PATH=D: / NODE_OPTIONS 里带裸盘符。
