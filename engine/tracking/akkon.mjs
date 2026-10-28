@@ -1,4 +1,4 @@
-// Akkon Lines 提单追踪 —— 2026-10-23（婉宜，真实单号 AKKNBO51085597 实测）
+// Akkon Lines 提单追踪 —— 2026-10-23（婉宜，真实单号 AKKNBO######## 实测）
 //
 // 站点：https://sap.akkonlines.com/index.aspx（ASP.NET WebForms + UpdatePanel 局部回发）
 // 实测流程（2026-10-23）：
@@ -11,8 +11,8 @@
 //   · 单号必须 14 位（前端 maxlength=14，服务器按 14 位校验）。
 //   · 国家必须选对：单号本身推不出国家 → 按 CHINA 优先的顺序遍历，命中即停。
 //
-// 实测数据（AKKNBO51085597 / 国家 CHINA）：
-//   BL=AKKNBO51085597 | 箱号=CAAU296407-3 | 船=MV LIANG XIANG 85 | 航次=LIN0125W
+// 实测数据（AKKNBO######## / 国家 CHINA）：
+//   BL=AKKNBO######## | 箱号=CAAU######-3 | 船=MV LIANG XIANG 85 | 航次=LIN0125W
 //   POL=NINGBO | ETS=21/11/2025 | POD=GEMLIK RODAPORT | ETA=17/12/2025
 //
 // 输出：统一结构（与 zim.mjs / maersk.mjs 对齐，供 normalize.mjs 归一化）
@@ -68,7 +68,7 @@ export function akkonDate(v) {
   return '';
 }
 
-/** 是否箱号形态（4 字母 + 6~7 位数字，允许 -校验位 后缀；Akkon 站上写作 CAAU296407-3） */
+/** 是否箱号形态（4 字母 + 6~7 位数字，允许 -校验位 后缀；Akkon 站上写作 CAAU######-3） */
 export function looksLikeContainer(num) {
   return /^[A-Za-z]{4}\d{6,7}(-\d)?$/.test(s(num).replace(/\s+/g, ''));
 }

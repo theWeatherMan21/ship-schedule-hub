@@ -17,7 +17,7 @@
 //      → { data:{ bkgBefore, bkgAfter } } —— 老式订舱号会被归一成本系统认的写法（bkgAfter）。
 //
 // 号码写法（站方口径）：BL 号输入**不含 ONEY 前缀**的后 12 位（如 NB3JJE454300）；订舱号如 HAMG12062700。
-//   带 ONEY 前缀也照收（本模块自动剥离）。箱号形如 ONEU4227199。
+//   带 ONEY 前缀也照收（本模块自动剥离）。箱号形如 ONEU#######。
 //
 // 输出统一结构（与 engine/tracking/maersk.mjs 对齐，供 UI 卡消费）：
 //   { ok, number, carrier:'one', docNum, searchType, origin, destination, lastUpdate, status, current, eta,

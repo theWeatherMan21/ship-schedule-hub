@@ -1,6 +1,6 @@
 // Hapag-Lloyd 提单 / 订舱 / 箱号追踪 —— 2026-10-12 重构（v3：无头优先 + 有头兜底）
 //
-// 通路（2026-10-12 全部实测，端到端样本：HLCUE300F5C71EA7 → UWLU6948751，9 条事件）：
+// 通路（2026-10-12 全部实测，端到端样本：提单号已脱敏 → 箱号已脱敏，9 条事件）：
 //   1) 入口（legacy）：https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution-legacy.html?blno=<号>
 //      ★ GET 深链免提交，服务端直接渲染结果（无 -legacy 的旧地址已 302 跳新 BETA，勿用）。
 //   2) 模式（v3：auto 双模）：

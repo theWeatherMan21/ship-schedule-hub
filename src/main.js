@@ -1174,11 +1174,103 @@ function trackRenderRunning(num) {
   const sm = document.getElementById('trackSummary');
   if (sm) sm.textContent = 'Querying…';
 }
+/* ★ 10-28（爹地拍板 ②）：任何一行查不出结果，都给「链接 + 收粘贴」。
+   做成通用能力——OOCL 只是其中一个特例，以后多一家掉队不用再改 UI，也不写第二套粘贴逻辑。 */
+const MONTHS3 = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12 };
+function parseManualText(text) {
+  const lines = String(text || '').split(/\r?\n|\t/).map((s) => s.trim()).filter(Boolean);
+  const events = [];
+  const seen = new Set();
+  for (const line of lines) {
+    let y, m, d, mm;
+    if ((mm = /(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/.exec(line))) { y = +mm[1]; m = +mm[2]; d = +mm[3]; }
+    else if ((mm = /(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/.exec(line))) { y = +mm[3]; m = +mm[2]; d = +mm[1]; }
+    else if ((mm = /(\d{1,2})\s*[-\s]\s*([A-Za-z]{3,9})\.?\s*,?\s*(\d{4})?/.exec(line))) {
+      const mo = MONTHS3[String(mm[2]).slice(0, 3).toLowerCase()];
+      if (mo) { d = +mm[1]; m = mo; y = mm[3] ? +mm[3] : new Date().getFullYear(); }
+    }
+    if (!m || m < 1 || m > 12 || !d || d < 1 || d > 31) continue;
+    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const act = (/gate\s*-?\s*in|进港/i.test(line) ? 'Gate In'
+      : /gate\s*-?\s*out|出场|提箱/i.test(line) ? 'Gate Out'
+      : /load|装船|装柜/i.test(line) ? 'Loaded'
+      : /discharg|卸船|卸柜/i.test(line) ? 'Discharged'
+      : /arriv|到港|进口/i.test(line) ? 'Arrived'
+      : /depart|离港|离开/i.test(line) ? 'Departed'
+      : /deliver|交付|送达/i.test(line) ? 'Delivered'
+      : /empty|空箱|还箱/i.test(line) ? 'Empty Returned'
+      : '');
+    // 地点：先把事件词抹掉再找「地名, 国家」—— 否则 [A-Za-z .'-] 会把 "Loaded  Ningbo" 整个吞进去
+    let city = '';
+    const citySrc = line.replace(/gate\s*-?\s*in|gate\s*-?\s*out|loaded|discharged|arrived|departed|delivered|empty\s*returned|进港|出场|装船|卸船|到港|离港|交付|空箱/gi, ' ');
+    const cm = /([A-Z][A-Za-z'-]{2,20}),\s*([A-Z][A-Za-z'-]{2,20})/.exec(citySrc);
+    if (cm) city = `${cm[1].trim()}, ${cm[2].trim()}`;
+    const key = iso + '|' + (act || line.slice(0, 40));
+    if (seen.has(key)) continue;
+    seen.add(key);
+    events.push({ time: iso, activity: act || line.slice(0, 60), city, manual: true });
+  }
+  events.sort((a, b) => a.time.localeCompare(b.time));
+  return events;
+}
+
+function manualFallbackHTML(ev) {
+  const url = (ev && ev.manualUrl) || '';
+  if (!url) return '';
+  const label = (ev && (ev.manualLabel || ev.label)) || '官网';
+  const num = (ev && (ev.docNum || ev.number)) || '';
+  return `<div class="mfallback">
+    <div class="mftitle">这条路自动查不通 —— 可以手工查一次，结果粘回来会记进这里</div>
+    <a class="mflink" href="${esc(url)}" data-num="${esc(num)}" target="_blank" rel="noreferrer">① 打开 ${esc(label)} 官网查（单号自动复制）</a>
+    <textarea class="mfpaste" rows="3" placeholder="② 把官网查到的整段文本粘进来（日期 / 事件 / 港口，贴多少解析多少，认不出也原文留着）"></textarea>
+    <div class="mfrow"><button type="button" class="mfparse">解析并填入</button><span class="mfnote"></span></div>
+  </div>`;
+}
+
+function bindManualFallback(ev) {
+  const box = document.getElementById('trackResult');
+  if (!box) return;
+  const link = box.querySelector('.mflink');
+  if (link) link.addEventListener('click', () => {
+    const n = link.dataset.num || '';
+    if (n && navigator.clipboard) navigator.clipboard.writeText(n).catch(() => {});
+  });
+  const btn = box.querySelector('.mfparse');
+  const ta = box.querySelector('.mfpaste');
+  const note = box.querySelector('.mfnote');
+  if (btn && ta) btn.addEventListener('click', () => {
+    const txt = String(ta.value || '').trim();
+    if (!txt) { if (note) note.textContent = '先粘点东西进来'; return; }
+    const evs = parseManualText(txt);
+    if (note) note.textContent = evs.length ? `认出 ${evs.length} 条` : '没认出日期，原文会原样保留';
+    trackRenderManual(txt, ev, evs);
+  });
+}
+
+function trackRenderManual(text, ev, evs) {
+  const box = document.getElementById('trackResult');
+  if (!box) return;
+  const num = (ev && (ev.docNum || ev.number)) || '';
+  const label = (ev && (ev.manualLabel || ev.label)) || '手工录入';
+  const events = evs || parseManualText(text);
+  if (!events.length) {
+    box.innerHTML = `<div class="trackcard manual"><div class="thead"><span class="tcarrier">${esc(label)}</span><span class="tnum">${esc(num)}</span><span class="spacer"></span><span class="tmanual">手工 · 未解析</span></div>
+      <div class="tmeta">没认出日期/事件格式 —— 原文已原样保存，没有丢</div>
+      <pre class="mraw">${esc(String(text).slice(0, 2000))}</pre></div>`;
+    const sm0 = document.getElementById('trackSummary');
+    if (sm0) sm0.textContent = '手工录入 · 未解析';
+    return;
+  }
+  trackRenderDone({ ...(ev || {}), ok: true, carrierLabel: label, docNum: num, number: num,
+    origin: '', destination: '', events, containers: [], manual: true, phase: '手工录入' });
+}
+
 function trackRenderFail(msg, ev) {
   const box = document.getElementById('trackResult');
-  if (box) box.innerHTML = `<div class="trackcard"><div class="thead"><span class="tcarrier">${esc((ev && ev.label) || '')}</span><span class="tnum">${esc((ev && (ev.docNum || ev.number)) || '')}</span></div><div class="tfail">⚠️ ${esc(msg)}</div></div>`;
+  if (box) box.innerHTML = `<div class="trackcard"><div class="thead"><span class="tcarrier">${esc((ev && ev.label) || '')}</span><span class="tnum">${esc((ev && (ev.docNum || ev.number)) || '')}</span></div><div class="tfail">⚠️ ${esc(msg)}</div>${manualFallbackHTML(ev)}</div>`;
   const sm = document.getElementById('trackSummary');
   if (sm) sm.textContent = '—';
+  bindManualFallback(ev);
 }
 function trackRenderDone(ev) {
   const c = ev.current || {};
@@ -1188,7 +1280,7 @@ function trackRenderDone(ev) {
   const etaTxt = eta.time ? `${fmtDay(eta.time)} ${eta.city || ''}`.trim() : '—';
   const events = (ev.events || []).map((e) => {
     const estimated = e.timeType === 'EXPECTED' || e.isEta;
-    return `<div class="tev${estimated ? ' est' : ''}"><span class="d">${fmtDay(e.time)}</span><span class="a">${esc(e.activity)}</span><span class="l">${esc(e.city || '')}${e.vessel ? ' · ' + esc(e.vessel) + (e.voyage ? ' ' + e.voyage : '') : ''}${e.container ? ' · ' + esc(e.container) : ''}</span></div>`;
+    return `<div class="tev${estimated ? ' est' : ''}${e.manual ? ' manual' : ''}"><span class="d">${fmtDay(e.time)}</span><span class="a">${esc(e.activity)}</span><span class="l">${esc(e.city || '')}${e.vessel ? ' · ' + esc(e.vessel) + (e.voyage ? ' ' + esc(e.voyage) : '') : ''}${e.container ? ' · ' + esc(e.container) : ''}</span></div>`;
   }).join('');
   // 10-14 P2：箱型/尺寸显示统一走归一层算好的 label（跨家口径一致，如 40'HC）；
   // label 为空（认不出来）时回退原样拼接 —— 但只有 size 确实是「两位长度」才补 `'`，
@@ -1200,8 +1292,8 @@ function trackRenderDone(ev) {
     return `<div class="cblock"><div class="chead">📦 ${esc(ct.num || '')}${st ? ` · ${st}` : ''}<span class="cst">${esc(ct.status || '')}</span></div></div>`;
   }).join('');
   const box = document.getElementById('trackResult');
-  if (box) box.innerHTML = `<div class="trackcard clickable" id="trackCard" role="button" tabindex="0" aria-expanded="false" aria-controls="trackBody">
-    <div class="thead"><span class="tcarrier">${esc(ev.carrierLabel || TRACK_NAME[ev.carrier] || '')}</span><span class="tnum">${esc(ev.docNum || ev.number)}</span><span class="spacer"></span><span class="tmore" id="trackMore">Details ▾</span></div>
+  if (box) box.innerHTML = `<div class="trackcard clickable${ev.manual ? ' manual' : ''}" id="trackCard" role="button" tabindex="0" aria-expanded="false" aria-controls="trackBody">
+    <div class="thead"><span class="tcarrier">${esc(ev.carrierLabel || TRACK_NAME[ev.carrier] || '')}</span><span class="tnum">${esc(ev.docNum || ev.number)}</span><span class="spacer"></span>${ev.manual ? '<span class="tmanual">手工</span>' : ''}<span class="tmore" id="trackMore">Details ▾</span></div>
     <div class="troute">${esc(route)}</div><div class="tmain">${esc(curTxt)}</div><div class="tmeta">ETA ${esc(etaTxt)} · ${esc(ev.phase || '')}</div>
     <div class="tbody" id="trackBody">${conts}${events}</div></div>`;
   const sm = document.getElementById('trackSummary');

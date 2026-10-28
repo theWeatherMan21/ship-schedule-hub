@@ -2,7 +2,7 @@
 //
 // 用法：
 //   node engine/tracking/cli.mjs --number 276759780
-//   node engine/tracking/cli.mjs --number MRKU3574056 --carrier maersk
+//   node engine/tracking/cli.mjs --number <箱号> --carrier maersk
 //   node engine/tracking/cli.mjs --list                      # 列出已接入的船司
 //   --no-cache / SSH_TRACK_CACHE_TTL_MS=0                    # 关缓存（默认 20 分钟）
 //
@@ -23,6 +23,9 @@ import { pruneEvidence, keepFromEnv } from '../lib/reclaim.mjs';
 import { detectCarrier, describeShape, CARRIER_LABELS } from './detect.mjs';
 import { loadTracker, availableCarriers, computeDeadlineMs } from './registry.mjs';
 import { normalizeTracking } from './normalize.mjs';
+// ★ 10-28（爹地拍板 ②）：任何一行查不出结果都要「给链接 + 收粘贴」——链接取自 identify 里实测过的官网页
+import { carrierById } from './identify.mjs';
+const manualUrlOf = (id) => (carrierById(id) || {}).manualUrl || '';
 
 function parseArgs(argv) {
   const out = {};
@@ -88,8 +91,12 @@ if (!available.includes(carrier)) {
     number, carrier,
     msg: `Tracking is not wired up for ${CARRIER_LABELS[carrier] || carrier} yet${available.length ? ` (available: ${available.join(', ')})` : ''}`,
     available,
+    manualUrl: manualUrlOf(carrier),   // ★ 10-28：没接入也要给一条能点的路，不再只丢一句死文案
+    manualLabel: CARRIER_LABELS[carrier] || carrier,
   });
-  flushExit(2);
+  // ★ 10-28：原来用 flushExit(2)，但它是异步的 → 后面的 track-started / track-result 仍会照跑一遍，
+  //   UI 先显示 track-error 的友好文案、再被英文 error 覆盖。这条分支后面没有任何可做的事，直接退出。
+  process.exit(2);
 }
 
 const started = Date.now();
@@ -142,7 +149,12 @@ try {
   ]);
   result = normalizeTracking({ ...(r || {}), carrier: (r && r.carrier) || carrier, number: (r && r.number) || number });
 } catch (e) {
-  result = { ok: false, carrier, number, error: String(e?.message || e).slice(0, 300) };
+  result = {
+    ok: false, carrier, number,
+    error: String(e?.message || e).slice(0, 300),
+    manualUrl: manualUrlOf(carrier),        // ★ 10-28：查挂了也给出路
+    manualLabel: CARRIER_LABELS[carrier] || carrier,
+  };
 }
 
 emit('track-result', result);

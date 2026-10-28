@@ -32,6 +32,8 @@ export const CARRIERS = [
     container: ['MSKU', 'MRKU', 'MRSU', 'MIEU', 'MNBU', 'MAEU', 'SEAU', 'PONU'],
     booking: [{ re: /^\d{9}$/, label: '9 位纯数字（Maersk 订舱/提单）', score: 0.6 }],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://www.maersk.com/tracking/',
   },
   {
     id: 'msc', name: '地中海航运 MSC',
@@ -40,10 +42,12 @@ export const CARRIERS = [
     // 1xx 系列 = MSC 订舱/参考号（无 SCAC 前缀）。实证：
     //   · 181AS0266823514M1（2026-10-10 缓存+live 双实证，SHEKOU→ISTANBUL）
     //   · 181AY26A0590138S1（10-12 live，YANTIAN→GDANSK）
-    //   · 177FCACAS347328（10-23 live 复核，SHANGHAI→GDANSK，箱 TGBU3403064）← 爹地提单里出现，原 181-only 规则漏识别
+    //   · 177FCACAS347328（10-23 live 复核，SHANGHAI→GDANSK，箱 箱号已脱敏）← 爹地提单里出现，原 181-only 规则漏识别
     // 形态：3 位数字（177/181…）+ 2 位字母 + ≥5 位字母数字
     booking: [{ re: /^1\d{2}[A-Z]{2}[A-Z0-9]{5,}$/, label: '1xx 系列（MSC 订舱/参考号：177/181…，真单实证）', score: 0.6 }],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://www.msc.com/en/track-a-shipment',
   },
   {
     id: 'hapag', name: '赫伯罗特 Hapag-Lloyd',
@@ -51,6 +55,8 @@ export const CARRIERS = [
     container: ['HLCU', 'HLXU', 'HLBU', 'UACU', 'UAEU', 'HAMU'],
     booking: [{ re: /^\d{8}$/, label: '8 位纯数字（Hapag 订舱号）', score: 0.45 }],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution.html',
   },
   {
     id: 'cosco', name: '中远海运 COSCO',
@@ -59,6 +65,8 @@ export const CARRIERS = [
     // 10 位纯数字 = COSCO BL/订舱形态（官网例 5051645160）。多义（OOCL 同形）→ 只作候选，不自动。
     booking: [{ re: /^\d{10}$/, label: '10 位纯数字（COSCO BL/订舱形态）', score: 0.5 }],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://elines.coscoshipping.com',
   },
   {
     id: 'hmm', name: '现代商船 HMM',
@@ -68,6 +76,8 @@ export const CARRIERS = [
     // 与 ONE 的「4 字母 + 8 数字」形态重叠 → 靠「同形取高分」(ONE 0.6 > HMM 0.5) 保持 ONE 优先。
     booking: [{ re: /^[A-Z]{4}[A-Z0-9]{4}\d{4}$/, label: '4 字母 + 4 位字母数字 + 4 位数字（HMM MBL 形态）', score: 0.5 }],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://www.hmm21.com/e-service/search/index.do?query=',
   },
   {
     id: 'one', name: '海洋网联 ONE',
@@ -84,6 +94,8 @@ export const CARRIERS = [
       { re: /^(?=[A-Z0-9]{0,5}[A-Z])[A-Z0-9]{6}\d{6}$/, label: '6 位字母数字 + 6 位数字（ONE 12 位形态）', score: 0.5 },
     ],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://www.one-line.com/',
   },
   {
     id: 'zim', name: '以星 ZIM',
@@ -96,6 +108,8 @@ export const CARRIERS = [
       { re: /^[A-Z]{3}\d{4,6}$/, label: '3 字母 + 4-6 位数字（ZIM MBL 形态；与 CMA 3+7 互斥）', score: 0.4 },
     ],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://www.zim.com/tools/track-a-shipment',
   },
   {
     id: 'cma', name: '达飞 CMA CGM',
@@ -105,6 +119,8 @@ export const CARRIERS = [
     // 同形还有 APL/ANL（CMA 子品牌）→ 只作候选，不自动路由。
     booking: [{ re: /^[A-Z]{3}\d{7}$/, label: '3 字母 + 7 位数字（CMA CGM MBL 形态；APL/ANL 同形）', score: 0.5 }],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://www.cma-cgm.com/ebusiness/tracking/search',
   },
   {
     id: 'evergreen', name: '长荣 Evergreen',
@@ -113,6 +129,8 @@ export const CARRIERS = [
     // 12 位纯数字 = Evergreen BL/订舱形态（官方 ShipmentLink 例 012345678900）。多义 → 只作候选。
     booking: [{ re: /^\d{12}$/, label: '12 位纯数字（Evergreen BL/订舱形态）', score: 0.5 }],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://ct.shipmentlink.com/servlet/TDB1_CargoTracking.do',
   },
   {
     id: 'oocl', name: '东方海外 OOCL',
@@ -122,6 +140,8 @@ export const CARRIERS = [
     // 10 位纯数字 = OOCL BL 形态（多义：与 COSCO 同形）→ 只作候选，不自动。
     booking: [{ re: /^\d{10}$/, label: '10 位纯数字（OOCL BL 形态）', score: 0.5 }],
     tracking: 'none',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://www.oocl.com/eng/ourservices/eservices/cargotracking/Pages/cargotracking.aspx',
   },
   {
     id: 'yangming', name: '阳明 Yang Ming',
@@ -131,16 +151,20 @@ export const CARRIERS = [
     // 形态太泛（很多货代号都长这样，且与 ZIM 的「M+数字」撞车）→ 最低分，只作候选。
     booking: [{ re: /^[A-Z]\d{9}$/, label: '1 字母 + 9 位数字（阳明 MBL 形态）', score: 0.25 }],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://www.yangming.com/en/esolution/tracking/cargo_tracking',
   },
   {
     id: 'akkon', name: 'Akkon Lines',
-    // 实测（2026-10-23 真单 AKKNBO51085597）：AKK + 3 字母港口码 + 8 位数字 = 14 位。
+    // 实测（2026-10-23 真单 AKKNBO########）：AKK + 3 字母港口码 + 8 位数字 = 14 位。
     // 不是标准 4 字母 SCAC（站点用 3 字母前缀）→ 走 booking 规则识别；
     // 箱号 CAAU 属租箱，不作船司标识；箱号单独也查不了（站点强制先有 BL）。
     scac: [],
     container: [],
     booking: [{ re: /^AKK[A-Z]{3}\d{8}$/, label: '14 位（AKK+港口码+8位，Akkon BL）', score: 0.95 }],
     tracking: 'live',
+    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
+    manualUrl: 'https://sap.akkonlines.com/index.aspx',
   },
 ];
 
@@ -192,7 +216,7 @@ for (const c of CARRIERS) {
 export function carrierById(id) { return BY_ID.get(id) || null; }
 
 // ── 归一化 ───────────────────────────────────────────────────────────────────
-// 只保留字母数字并转大写：`MSKU 307703-8` → `MSKU1432299`。
+// 只保留字母数字并转大写：`MSKU 307703-8` → `MSKU#######`。
 // 注意：不「修复」任何字符，宁可原样返回（防幻觉）。
 export function normalize(raw) {
   return String(raw == null ? '' : raw).toUpperCase().replace(/[^A-Z0-9]/g, '');
