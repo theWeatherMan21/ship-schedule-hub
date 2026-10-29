@@ -1291,8 +1291,12 @@ function wpsRenderStatus() {
     } else {
       wpsPill('wpsCur', '当前表 · 还没在 WPS 里选过列', 'warn');
     }
-    const last = (wpsData.journal && wpsData.journal.lastTs) || 0;
-    wpsPill('wpsLast', `上次刷新 · ${last ? wpsTime(last, true) : '还没有记录'}`, last ? 'ok' : '');
+    // 上次刷新：优先台账最后一条；台账还没有（刚装/刚清过）就退到「插件最后一次保存配置的时间」——
+    // 后者本来就是他上一轮点③的痕迹，比显示「还没有记录」有用得多。
+    const last = (wpsData.journal && wpsData.journal.lastTs) || (t && t.cfgAt) || 0;
+    const fromCfg = !(wpsData.journal && wpsData.journal.lastTs) && !!last;
+    wpsPill('wpsLast', `上次刷新 · ${last ? wpsTime(last, true) : '还没有记录'}`, last ? 'ok' : '',
+      fromCfg ? '取自插件配置时间（这轮还没有台账记录）' : '');
     const cur = wpsCurrentBatch();
     if (!wpsBatchId && cur) wpsBatchId = cur.id;
   }
