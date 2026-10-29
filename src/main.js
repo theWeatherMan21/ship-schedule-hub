@@ -1347,7 +1347,7 @@ function wpsRenderQueue() {
   // 待重查（插件 retry 队列）：这是「下次只补失败」的可视化，直接读插件配置
   const retries = tables.filter((t) => t.retryCount > 0);
   if (retries.length) {
-    rows.push(`<div class="wpsq-sep">待重查（插件已排好，到点自动只补这些行）</div>`);
+    rows.push(`<div class="wpsq-sep">待重查 ${retries.length} 张表（插件已排好，到点自动只补这些行）</div>`);
     for (const t of retries) {
       const due = t.retryDueAt ? wpsTime(t.retryDueAt, true) : '—';
       const rowsTxt = t.retry.slice(0, 6).map((x) => `R${x.row}`).join('、') + (t.retry.length > 6 ? ' …' : '');
