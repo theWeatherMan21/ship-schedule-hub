@@ -22,3 +22,4 @@ engine/node-bin/
 docs/**/*.png
 docs/*.png
 docs/*.jpg
+.worktrees/

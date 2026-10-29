@@ -9,7 +9,7 @@
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "engine": "node engine/query.mjs",
-    "test": "node tests/tmpdir-fallback.mjs && node tests/ua-platform.mjs && node tests/manual-fallback-parse.mjs && node tests/oocl-parse.mjs"
+    "test": "node tests/tmpdir-fallback.mjs && node tests/ua-platform.mjs && node tests/manual-fallback-parse.mjs && node tests/oocl-parse.mjs && node tests/maersk-host-fallback.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
