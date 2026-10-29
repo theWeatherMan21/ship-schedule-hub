@@ -1,5 +1,6 @@
 import './styles.css';
 import { detectCarrier, describeShape } from '../engine/tracking/detect.mjs';
+import { parseManualText } from '../engine/tracking/manual-parse.mjs';   // 手工兜底解析：唯一一份，插件侧走桥调同一个模块
 import { isNewer } from './lib/version.js';   // 更新检查的版本比较（可单测）
 
 // ---------- 船司清单（与 engine/recipes/registry 保持一致）----------
@@ -765,6 +766,7 @@ function renderDiagnostics() {
     line('引擎脚本', d.script || '—', d.scriptExists),
     line('安装目录', (d.exeDir || '—') + (d.exeDirWritable === false ? '　（不可写 → 运行期数据走数据目录，正常）' : '')),
     line('数据目录', d.dataDir || '—'),
+    line('引擎临时目录', (d.engineTmp || '—') + (d.engineTmpWritable === false ? '　（不可写 → 浏览器类查询会全挂，检查 TEMP/安装位置）' : ''), d.engineTmpWritable !== false),
     line('浏览器', (Array.isArray(d.browsers) && d.browsers.length ? d.browsers.join('　|　') : (d.chrome || '（未探测：引擎会自动下载 Chrome for Testing）'))),
     (d.webview2 !== undefined ? line('WebView2', d.webview2, !/未检测|unknown/i.test(String(d.webview2))) : ''),
     (d.elevated !== undefined ? line('管理员权限', d.elevated ? '是' : '否（一般不需要）') : ''),
@@ -820,6 +822,11 @@ async function listenEngineEvents() {
       setEngineDot('off');
       engineRunning = false;
       updateGoBtn();
+    } else if (ev.type === 'engine-warn') {
+      // 10-15 审查 W-1：临时目录降级这类「还能跑但不正常」的事，进诊断留痕，不抢占主提示。
+      stderrTail.push('[warn] ' + String(ev.msg || '').trim());
+      if (stderrTail.length > 8) stderrTail.shift();
+      renderDiagnostics();
     } else if (ev.type === 'engine-stderr') {
       // 引擎的 stderr：node 找不到、脚本路径错、依赖缺失、被系统拦……全都只走这里。
       // 不显示出来，用户看到的就是「点了查询毫无反应」（爹地 9-30 Windows 无 Chrome 环境实测）。
@@ -1176,44 +1183,6 @@ function trackRenderRunning(num) {
 }
 /* ★ 10-28（爹地拍板 ②）：任何一行查不出结果，都给「链接 + 收粘贴」。
    做成通用能力——OOCL 只是其中一个特例，以后多一家掉队不用再改 UI，也不写第二套粘贴逻辑。 */
-const MONTHS3 = { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12 };
-function parseManualText(text) {
-  const lines = String(text || '').split(/\r?\n|\t/).map((s) => s.trim()).filter(Boolean);
-  const events = [];
-  const seen = new Set();
-  for (const line of lines) {
-    let y, m, d, mm;
-    if ((mm = /(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/.exec(line))) { y = +mm[1]; m = +mm[2]; d = +mm[3]; }
-    else if ((mm = /(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/.exec(line))) { y = +mm[3]; m = +mm[2]; d = +mm[1]; }
-    else if ((mm = /(\d{1,2})\s*[-\s]\s*([A-Za-z]{3,9})\.?\s*,?\s*(\d{4})?/.exec(line))) {
-      const mo = MONTHS3[String(mm[2]).slice(0, 3).toLowerCase()];
-      if (mo) { d = +mm[1]; m = mo; y = mm[3] ? +mm[3] : new Date().getFullYear(); }
-    }
-    if (!m || m < 1 || m > 12 || !d || d < 1 || d > 31) continue;
-    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const act = (/gate\s*-?\s*in|进港/i.test(line) ? 'Gate In'
-      : /gate\s*-?\s*out|出场|提箱/i.test(line) ? 'Gate Out'
-      : /load|装船|装柜/i.test(line) ? 'Loaded'
-      : /discharg|卸船|卸柜/i.test(line) ? 'Discharged'
-      : /arriv|到港|进口/i.test(line) ? 'Arrived'
-      : /depart|离港|离开/i.test(line) ? 'Departed'
-      : /deliver|交付|送达/i.test(line) ? 'Delivered'
-      : /empty|空箱|还箱/i.test(line) ? 'Empty Returned'
-      : '');
-    // 地点：先把事件词抹掉再找「地名, 国家」—— 否则 [A-Za-z .'-] 会把 "Loaded  Ningbo" 整个吞进去
-    let city = '';
-    const citySrc = line.replace(/gate\s*-?\s*in|gate\s*-?\s*out|loaded|discharged|arrived|departed|delivered|empty\s*returned|进港|出场|装船|卸船|到港|离港|交付|空箱/gi, ' ');
-    const cm = /([A-Z][A-Za-z'-]{2,20}),\s*([A-Z][A-Za-z'-]{2,20})/.exec(citySrc);
-    if (cm) city = `${cm[1].trim()}, ${cm[2].trim()}`;
-    const key = iso + '|' + (act || line.slice(0, 40));
-    if (seen.has(key)) continue;
-    seen.add(key);
-    events.push({ time: iso, activity: act || line.slice(0, 60), city, manual: true });
-  }
-  events.sort((a, b) => a.time.localeCompare(b.time));
-  return events;
-}
-
 function manualFallbackHTML(ev) {
   const url = (ev && ev.manualUrl) || '';
   if (!url) return '';
@@ -1312,6 +1281,13 @@ function trackRenderDone(ev) {
 }
 function handleTracking(ev) {
   if (ev.type === 'track-started') { trackDone = false; trackRunning = true; setEngineDot('busy'); trackRenderRunning(ev.number); return; }
+  if (ev.type === 'track-warn') {
+    // 临时目录降级等「还能跑但不正常」的情况：留痕到诊断，不打断这一票的展示
+    stderrTail.push('[warn] ' + String(ev.msg || '').trim());
+    if (stderrTail.length > 8) stderrTail.shift();
+    renderDiagnostics();
+    return;
+  }
   if (ev.type === 'track-result') {
     if (!ev.ok) { trackRenderFail(ev.error || 'No result', ev); trackDone = true; return; }
     trackRenderDone(ev); trackDone = true; return;

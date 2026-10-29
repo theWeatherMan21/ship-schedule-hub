@@ -8,7 +8,8 @@
     "build": "vite build",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "engine": "node engine/query.mjs"
+    "engine": "node engine/query.mjs",
+    "test": "node tests/tmpdir-fallback.mjs && node tests/ua-platform.mjs && node tests/manual-fallback-parse.mjs && node tests/oocl-parse.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

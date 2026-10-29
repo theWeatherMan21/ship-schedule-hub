@@ -139,9 +139,11 @@ export const CARRIERS = [
     container: ['OOLU', 'OOCU'],
     // 10 位纯数字 = OOCL BL 形态（多义：与 COSCO 同形）→ 只作候选，不自动。
     booking: [{ re: /^\d{10}$/, label: '10 位纯数字（OOCL BL 形态）', score: 0.5 }],
-    tracking: 'none',
-    // ② 手工兜底：官网页（URL 取自本项目 engine/tracking 实测代码）
-    manualUrl: 'https://www.oocl.com/eng/ourservices/eservices/cargotracking/Pages/cargotracking.aspx',
+    // ★ 10-29：OOCL 已接入实时追踪（engine/tracking/oocl.mjs，移动版匿名 JSF 页，真单实测）
+    tracking: 'live',
+    // ② 手工兜底：**移动版**查询页才是免验证码的（PC 版是 CargoSmart SPA + 图形码，人眼都要过码；
+    //    移动版匿名页实测 2026-10-29 可直接查，手工粘贴时用它最省事）
+    manualUrl: 'https://pbservice.moc.oocl.com/party/cargotracking/mobile/mobile_ct_search.jsf?ANONYMOUS_BEHAVIOR=BUILD_UP&ENTRY=MCC&ENTRY_TYPE=OOCL',
   },
   {
     id: 'yangming', name: '阳明 Yang Ming',
