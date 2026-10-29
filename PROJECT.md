@@ -1,7 +1,7 @@
 # ShipScheduleHub 驾驶舱（PROJECT.md）
 
 > 唯一真相源。中断后靠这份 + 芝麻仓重建上下文。更新频率：每轮收工 3 行。
-> 主管：婉宜 · 执行：婉宜主线 · 最近更新：**2026-10-23**
+> 主管：婉宜 · 执行：婉宜主线 · 最近更新：**2026-10-29**
 
 ## 〇之前 · 2026-10-23：报价模块移植（QuoteAssist → 第三个 tab）
 
@@ -1271,3 +1271,44 @@ App 原本 endpoints = [gh-proxy 优先, GitHub 兜底]，**两条链路同时�
 | www.hapag-lloyd.cn | 可用（`.com` 维护中时切） | 已有 CN_URL 兜底 |
 
 结论：**Maersk 国际站在国内直连不可用**，是「查不到/超时/颜色不对」的同一根因；MSC 的 CN 站 API 口径不同，暂不能替换主入口。
+
+## 2026-10-29 · OOCL 追踪打通 + Windows 两项 P1（真单实测）
+
+### ① OOCL 追踪：从「判死」改成 live（真单实测 512ms）
+
+- **旧结论作废**：10-29 之前记为「免费路 0 成功率」。真因是 PC 版 `oocl.com/.../cargotracking.aspx`
+  是 CargoSmart 的 SPA + 图形验证码，无头过不去 —— 不是 OOCL 没数据。
+- **新通路**（真单实测）：`pbservice.moc.oocl.com/party/cargotracking/mobile/mobile_ct_search.jsf`
+  的**移动版匿名查询页**：`GET` 取 JSF 表单 + JSESSIONID → `POST` 单号，直接回整页 HTML。
+  **无验证码、无登录、无浏览器**，一次 0.5–1.6s。实现：`engine/tracking/oocl.mjs`（纯 fetch，
+  不启 Playwright，所以 W-1 的 TEMP 病根对它天然不适用）。
+- **能力**：提单/订舱/箱号三种查法；表头（放行状态 / 舱单 / 正本 / 清关）+ 箱列表 + 设备动态时间线；
+  ETA 取箱行的「最终目的地预计到达」；多箱提单逐箱补查（≤6 箱，按剩余时间收口）。
+- **坑（10-29 实测）**：连查 5–6 次后整站返回 142 字节 `[QF8] Looks like access too frequently`
+  → 现在识别为 `errorKind:'throttled'`，**不重试**（越试越久），文案提示「过几分钟再查」，
+  并带手册兜底链接。**正常用量（一票一两查）不受影响**，探针式连查会触发。
+- **手工兜底链接换成移动版页**（`identify.mjs`）：免验证码，人眼粘贴比 PC 版省事。
+- **脱敏回归**：`tests/oocl-parse.mjs` + `tests/fixtures/oocl/*.html`（真单页面把提单号/箱号/船名
+  换掉，同结构）41 项断言：事件升序 / ISO 时间 / ACTUAL 不许是未来日期 / isCurrent 唯一 /
+  查无此号 / 限流 / 时间格式。`npm test` 现在串起全部 4 个测试文件。
+
+### ② Windows P1 两项
+
+- **W-1 引擎 TEMP 兜底静默失败**：`engine/lib/tmpdir.mjs` 三级降级（SSH_TMPDIR → 系统 TEMP →
+  数据目录/.tmp → 平台兜底），逐目录「mkdir+写探针+删」实测；全不可用就抛带原因的错误，
+  `browser.mjs` 在任何浏览器启动前钉住 TEMP，不再拿死 TEMP 上班。Rust 侧 `prepare_tmp_env`
+  建不出目录时 trace_line + 推 `engine-warn/track-warn` 事件；诊断页新增「引擎临时目录」行。
+  **实测**：`TEMP=/definitely/not/here` 下 msc + evergreen 两家 26s 内出真实船期（12/20 条），无挂起；
+  `--diagnose` 报 `tmpdirSource=data-dir / tmpdirWritable=ok`。
+- **W-2 Windows UA 仍是 macOS 串**：`ua.mjs` UA 抽成纯函数 `uaFor(platform, major)`（可单测断言：
+  Windows 串含 `Windows NT` 且不含 `Macintosh`，反之亦然）；探测失败**也缓存**，Windows 上不再
+  每次查询都 spawn powershell（8s 超时）+ 探注册表。全仓单一来源由测试断言守护。
+- 验证：`tests/tmpdir-fallback.mjs` 19 项、`tests/ua-platform.mjs` 15 项、`cargo check` 通过、
+  `vite build` 通过。
+
+### ③ 本轮状态
+
+- 追踪可用船司：**12 家**（新增 OOCL）；修复 `ok:false` 时 manualUrl 被归一化层吞掉的断链。
+- **版本号仍是 1.6.3，未 bump、未发布、未打包**。
+- **提交只在本地（4 个）**：`bf60b31` W-1 → `cfcc6eb` W-2 → `4404ff7` OOCL → `6ccbae3` manualUrl 补链。
+  ⚠️ 远端 `theWeatherMan21/ship-schedule-hub` 是 **public**，推送=公开代码，爹地点头才推。
