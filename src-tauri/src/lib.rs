@@ -177,9 +177,42 @@ fn project_root(app: Option<&AppHandle>) -> PathBuf {
     PathBuf::from(".")
 }
 
-/// 找 node 可执行文件。
-/// 为什么不能直接用 "node"：从 Finder 双击启动的 GUI App **不继承 shell 的 PATH**
-/// （PATH 只有 /usr/bin:/bin:/usr/sbin:/sbin），所以必然报 os error 2（爹地 9-23 实测）。
+/// 数据目录（LOCALAPPDATA/ShipScheduleHub 或 ~/Library/Application Support/ShipScheduleHub）。
+/// 运行期可写数据全在这里 —— 安装目录（Program Files）非提权下不可写。
+fn data_dir() -> Option<std::path::PathBuf> {
+    if cfg!(windows) {
+        std::env::var("LOCALAPPDATA")
+            .ok()
+            .map(|p| std::path::PathBuf::from(p).join("ShipScheduleHub"))
+    } else {
+        std::env::var("HOME")
+            .ok()
+            .map(|h| std::path::PathBuf::from(h).join("Library/Application Support/ShipScheduleHub"))
+    }
+}
+
+/// 给引擎子进程准备临时目录（Windows 审查 W-1/W-4，2026-10-15 真机事故）——
+/// 原实现把 tmp 建在**安装目录**（engine/.tmp）且 `let _ =` 吞掉失败：非管理员 + per-machine
+/// 装 Program Files 时建不出来，TEMP/TMP/TMPDIR 仍被指到**不存在**的目录 → Playwright mkdtemp
+/// ENOENT → 浏览器类船司全灭（实测：0 条 + 引擎 exit 1，对照 14 条）。
+/// 现改为：① 优先数据目录（永远可写）；② 只有真的建成功才覆盖环境变量；建不出来就**不动**系统 TEMP。
+/// ★ 10-29 补：失败**必须留痕**（返回 Err 让调用方 trace_line + 推事件），不许再静默降级。
+fn prepare_tmp_env(cmd: &mut std::process::Command) -> Result<std::path::PathBuf, String> {
+    let dd = data_dir().ok_or_else(|| "找不到可用数据目录（LOCALAPPDATA / HOME 都为空）".to_string())?;
+    let tmp = dd.join(".tmp");
+    match std::fs::create_dir_all(&tmp) {
+        Ok(_) => {
+            let ts = tmp.display().to_string();
+            cmd.env("TMPDIR", &ts).env("TMP", &ts).env("TEMP", &ts);
+            Ok(tmp)
+        }
+        Err(e) => Err(format!(
+            "临时目录降级：数据目录 {} 建不出来（{e}）→ 沿用系统 TEMP={}。若查询全挂请改用数据目录可写的位置重装",
+            tmp.display(),
+            std::env::temp_dir().display()
+        )),
+    }
+}
 
 fn trace_line(msg: &str) {
     use std::io::Write;
@@ -651,6 +684,9 @@ async fn gh_check_update() -> serde_json::Value {
     }
 }
 
+/// 找 node 可执行文件。
+/// 为什么不能直接用 "node"：从 Finder 双击启动的 GUI App **不继承 shell 的 PATH**
+/// （PATH 只有 /usr/bin:/bin:/usr/sbin:/sbin），所以必然报 os error 2（爹地 9-23 实测）。
 fn find_node(app: Option<&AppHandle>) -> String {
     // ① 显式指定
     if let Ok(p) = std::env::var("SSH_NODE_PATH") {
@@ -804,6 +840,20 @@ fn diagnose(app: AppHandle) -> Result<serde_json::Value, String> {
     };
     out["exeDirWritable"] = serde_json::json!(PathBuf::from(&out["exeDir"].as_str().unwrap_or("")).exists()
         && probe(std::path::Path::new(out["exeDir"].as_str().unwrap_or("."))));
+    // 引擎临时目录（10-15 审查 W-1）：面板上必须能一眼看到「实际用哪个 + 是否可写」——
+    // 以前这个值是隐形的，TEMP 被指到死目录时用户只看到「查询毫无反应」。
+    {
+        let (tmp_path, tmp_ok) = match data_dir() {
+            Some(dd) => {
+                let p = dd.join(".tmp");
+                let ok = std::fs::create_dir_all(&p).is_ok() && probe(&p);
+                (p.display().to_string(), ok)
+            }
+            None => (std::env::temp_dir().display().to_string(), false),
+        };
+        out["engineTmp"] = serde_json::json!(tmp_path);
+        out["engineTmpWritable"] = serde_json::json!(tmp_ok);
+    }
     for k in ["TEMP", "TMP", "TMPDIR", "NODE_PATH", "NODE_OPTIONS", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"] {
         let v = std::env::var(k).unwrap_or_default();
         let short: String = v.chars().take(180).collect();
@@ -1001,29 +1051,13 @@ fn run_query(
     cmd.env_remove("NODE_OPTIONS");   // 防止未知注入影响引擎
     cmd.env_remove("PLAYWRIGHT_BROWSERS_PATH"); // 有脏值时 playwright 会对它 realpath，同样会崩
     cmd.env_remove("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD");
-    // 给引擎一个确定可用的临时目录（系统 TEMP 被指到盘符根等异常位置时的兜底）
-    {
-        // 10-15 Windows 审查 W-1/W-4：原实现把 tmp 建在**安装目录**（engine/.tmp）且
-        // `let _ =` 吞掉失败——非管理员 + per-machine 装 Program Files 时建不出来，
-        // TEMP/TMP/TMPDIR 仍被指到**不存在**的目录 → Playwright mkdtemp ENOENT →
-        // 浏览器类船司全灭（实测复现：0 条 + 引擎 exit 1，对照 14 条）。现改为：
-        // ① 优先数据目录（LOCALAPPDATA/ShipScheduleHub 或 ~/Library/Application Support/…），永远可写；
-        // ② 只有真的建成功才覆盖环境变量；建不出来就**不动**系统 TEMP（留系统默认，绝不指向死目录）。
-        let data_dir: Option<std::path::PathBuf> = if cfg!(windows) {
-            std::env::var("LOCALAPPDATA")
-                .ok()
-                .map(|p| std::path::PathBuf::from(p).join("ShipScheduleHub"))
-        } else {
-            std::env::var("HOME")
-                .ok()
-                .map(|h| std::path::PathBuf::from(h).join("Library/Application Support/ShipScheduleHub"))
-        };
-        if let Some(dd) = data_dir {
-            let tmp = dd.join(".tmp");
-            if std::fs::create_dir_all(&tmp).is_ok() {
-                let ts = tmp.display().to_string();
-                cmd.env("TMPDIR", &ts).env("TMP", &ts).env("TEMP", &ts);
-            }
+    // 给引擎一个确定可用的临时目录（系统 TEMP 被指到盘符根/不存在目录时的兜底）
+    // 见 prepare_tmp_env 注释（10-15 审查 W-1/W-4；10-29 补失败留痕）
+    match prepare_tmp_env(&mut cmd) {
+        Ok(p) => trace_line(&format!("[query] tmp env -> {}", p.display())),
+        Err(msg) => {
+            trace_line(&format!("[query] W-1 {msg}"));
+            let _ = app.emit("engine://event", serde_json::json!({ "type": "engine-warn", "code": "tmp-dir", "msg": msg }));
         }
     }
     // Windows：GUI 程序 spawn console 子进程会弹黑框 —— 必须加 CREATE_NO_WINDOW(0x0800_0000)
@@ -1189,26 +1223,12 @@ fn run_track(
     cmd.env_remove("PLAYWRIGHT_BROWSERS_PATH");
     cmd.env_remove("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD");
     {
-        // 10-15 Windows 审查 W-1/W-4：原实现把 tmp 建在**安装目录**（engine/.tmp）且
-        // `let _ =` 吞掉失败——非管理员 + per-machine 装 Program Files 时建不出来，
-        // TEMP/TMP/TMPDIR 仍被指到**不存在**的目录 → Playwright mkdtemp ENOENT →
-        // 浏览器类船司全灭（实测复现：0 条 + 引擎 exit 1，对照 14 条）。现改为：
-        // ① 优先数据目录（LOCALAPPDATA/ShipScheduleHub 或 ~/Library/Application Support/…），永远可写；
-        // ② 只有真的建成功才覆盖环境变量；建不出来就**不动**系统 TEMP（留系统默认，绝不指向死目录）。
-        let data_dir: Option<std::path::PathBuf> = if cfg!(windows) {
-            std::env::var("LOCALAPPDATA")
-                .ok()
-                .map(|p| std::path::PathBuf::from(p).join("ShipScheduleHub"))
-        } else {
-            std::env::var("HOME")
-                .ok()
-                .map(|h| std::path::PathBuf::from(h).join("Library/Application Support/ShipScheduleHub"))
-        };
-        if let Some(dd) = data_dir {
-            let tmp = dd.join(".tmp");
-            if std::fs::create_dir_all(&tmp).is_ok() {
-                let ts = tmp.display().to_string();
-                cmd.env("TMPDIR", &ts).env("TMP", &ts).env("TEMP", &ts);
+        // 临时目录：与船期查询同一套规则（10-15 审查 W-1；10-29 补失败留痕）
+        match prepare_tmp_env(&mut cmd) {
+            Ok(p) => trace_line(&format!("[track] tmp env -> {}", p.display())),
+            Err(msg) => {
+                trace_line(&format!("[track] W-1 {msg}"));
+                let _ = app.emit("track://event", serde_json::json!({ "type": "track-warn", "code": "tmp-dir", "msg": msg }));
             }
         }
     }
