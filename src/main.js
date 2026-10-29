@@ -1231,13 +1231,26 @@ async function wpsLoad() {
   }
 }
 
+// 轮询节奏**跟着事实走**：桥在跑 or 3 分钟内有新台账 → 3.5 秒（要看到「进行中」的动）；
+// 否则 12 秒（什么都没发生还每 3.5 秒 spawn 一个 node，纯烧电）。用 setTimeout 递归，
+// 因为间隔本身要按上一次的结果改。
+function wpsActive() {
+  const b = (wpsData && wpsData.bridge) || {};
+  if (Number(b.busy || 0) > 0) return true;
+  const last = (wpsData && wpsData.journal && wpsData.journal.lastTs) || 0;
+  return !!last && Date.now() - last < 180000;
+}
 function wpsStartPolling() {
   wpsStopPolling();
-  // 3.5 秒：批次跑一轮要几十秒/行，再快只是白烧 node 进程；再慢就看不到「进行中」的动
-  wpsPollTimer = setInterval(() => { if (!document.hidden) wpsLoad(); }, 3500);
+  const tick = async () => {
+    if (!document.hidden && wpsPollTimer) await wpsLoad();
+    if (!wpsPollTimer) return;          // 期间被 stop 掉就不再排下一次
+    wpsPollTimer = setTimeout(tick, wpsActive() ? 3500 : 12000);
+  };
+  wpsPollTimer = setTimeout(tick, 3500);
 }
 function wpsStopPolling() {
-  if (wpsPollTimer) { clearInterval(wpsPollTimer); wpsPollTimer = null; }
+  if (wpsPollTimer) { clearTimeout(wpsPollTimer); wpsPollTimer = null; }
 }
 document.addEventListener('visibilitychange', () => {
   const vie = document.getElementById('viewWps');
