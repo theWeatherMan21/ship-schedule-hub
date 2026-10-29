@@ -545,6 +545,73 @@ async fn wps_addon(app: AppHandle, action: String) -> Result<String, String> {
     Ok(line)
 }
 
+/// 「WPS 回填工作台」数据源：spawn engine/wps-jobs.mjs，取最后一行 JSON。
+/// 为什么另起一条命令而不是塞进 wps_addon：那个命令是「装/卸插件」的写操作（会拉包、
+/// 覆盖 jsaddons 目录），工作台数据是**纯读**、还可能 3 秒轮询一次 —— 混在一起迟早
+/// 有人在轮询里手滑触发安装。读写分离，各走各的。
+#[tauri::command]
+async fn wps_jobs(app: AppHandle) -> Result<String, String> {
+    let root = project_root(Some(&app));
+    let script = root.join("engine").join("wps-jobs.mjs");
+    if !script.exists() {
+        return Err(format!("缺少工作台脚本: {}", script.display()));
+    }
+    let node = find_node(Some(&app));
+    let workdir = script.parent().map(|p| p.to_path_buf()).unwrap_or_default();
+    let out = tauri::async_runtime::spawn_blocking(move || {
+        let mut c = std::process::Command::new(&node);
+        c.arg(&script)
+            .current_dir(workdir)
+            .env_remove("NODE_PATH")
+            .env_remove("NODE_OPTIONS")
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped());
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt;
+            c.creation_flags(0x0800_0000);
+        }
+        c.output()
+    })
+    .await
+    .map_err(|e| format!("工作台任务失败: {e}"))
+    .and_then(|r| r.map_err(|e| format!("执行 node 失败: {e}")))?;
+
+    let stdout = String::from_utf8_lossy(&out.stdout).to_string();
+    let line = stdout.lines().rev().find(|l| l.trim().starts_with('{')).unwrap_or("").trim().to_string();
+    if line.is_empty() {
+        let err = String::from_utf8_lossy(&out.stderr).to_string();
+        return Err(format!("工作台脚本没有输出 JSON: {}", err.lines().rev().take(3).collect::<Vec<_>>().join(" ")));
+    }
+    Ok(line)
+}
+
+/// 工作台数据自检（SSH_WPS_SELFTEST=1）：隐藏窗口跑一次 wps_jobs，把结果写日志后退出。
+/// 为什么要它：`wps_jobs` 在**打包后的 App** 里要靠 project_root 找到 Resources/engine，
+/// 这条路开发模式根本不走。不先把打包态验一次，就等于把「装好才发现找不到脚本」甩给爹地。
+fn wps_selftest_run(app: tauri::AppHandle) {
+    let log_path = std::env::var("SSH_WPS_SELFTEST_LOG")
+        .unwrap_or_else(|_| "/tmp/ssh-wps-selftest.log".to_string());
+    let _ = std::fs::write(&log_path, "");
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.hide();
+    }
+    let lp = log_path.clone();
+    tauri::async_runtime::spawn(async move {
+        let msg = match wps_jobs(app.clone()).await {
+            Ok(json) => {
+                let ok = json.contains("\"ok\":true");
+                let head: String = json.chars().take(220).collect();
+                format!("wps_jobs ok={ok} bytes={} head={head}", json.len())
+            }
+            Err(e) => format!("wps_jobs ERR {e}"),
+        };
+        let _ = std::fs::write(&lp, msg.clone() + "\n");
+        eprintln!("[wps-selftest] {msg}");
+        std::process::exit(0);
+    });
+}
+
 /// 查「下一水 ETD」：spawn engine/quote-etd.mjs（复用 11 家船司编排：fastpath 秒查 + 浏览器兜底）。
 /// 返回 { ok, targetDate, results: [{carrier, etd, eta, vessel, voyage}], errors }。
 /// 爹地 2026-10-23 口径：下一水 = ETD ≥ 今天+6 的最早一班；前端异步调用，不卡报价生成。
@@ -1410,6 +1477,11 @@ pub fn run() {
             if std::env::var("SSH_UPDATE_SELFTEST").is_ok() {
                 update_selftest_run(app.handle().clone());
             }
+            // 工作台数据自检（仅测试）：SSH_WPS_SELFTEST=1 时隐藏窗口跑一次 wps_jobs
+            #[cfg(desktop)]
+            if std::env::var("SSH_WPS_SELFTEST").is_ok() {
+                wps_selftest_run(app.handle().clone());
+            }
             // 更新残留自清（v1.5.7）：每次启动后台扫一次系统临时目录，
             // 清掉历史更新遗留的安装包副本（严格判定，详见 cleanup_update_leftovers 注释）
             #[cfg(desktop)]
@@ -1472,7 +1544,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update, restart_app, parse_price_file, generate_quote_text, query_etd, wps_addon])
+        .invoke_handler(tauri::generate_handler![run_query, run_track, stop_track, stop_query, open_external, selftest_enabled, track_selftest, diagnose, set_glass, gh_check_update, restart_app, parse_price_file, generate_quote_text, query_etd, wps_addon, wps_jobs])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

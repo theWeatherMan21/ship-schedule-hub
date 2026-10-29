@@ -25,6 +25,16 @@ import { loadTracker, availableCarriers, computeDeadlineMs } from './registry.mj
 import { normalizeTracking } from './normalize.mjs';
 // ★ 10-28（爹地拍板 ②）：任何一行查不出结果都要「给链接 + 收粘贴」——链接取自 identify 里实测过的官网页
 import { carrierById } from './identify.mjs';
+// ★ 10-29（架构②）：每跑完一单追加一行台账，App 的「WPS 回填工作台」靠它看逐行结果与时间线。
+//   写台账失败绝不影响查询（journalJob 内部全 try/catch，永不抛）。
+import { journalJob } from './journal.mjs';
+const jobMeta = (extra = {}) => ({
+  ...extra,
+  // 桥/插件将来若带上 --doc --sheet --row，就直接落到台账里（现在没有也不报错）
+  doc: typeof args.doc === 'string' ? args.doc : '',
+  sheet: typeof args.sheet === 'string' ? args.sheet : '',
+  row: Number(args.row) || 0,
+});
 const manualUrlOf = (id) => (carrierById(id) || {}).manualUrl || '';
 
 function parseArgs(argv) {
@@ -123,6 +133,7 @@ if (CACHE_TTL_MS > 0 && !args['no-cache']) {
       const mins = Math.max(1, Math.round(age / 60000));
       emit('track-result', { ...c.result, cached: true, cachedAgoMin: mins });
       emit('track-exit', { ok: true, cached: true, ms: Date.now() - started });
+      journalJob(c.result, jobMeta({ ms: Date.now() - started, cached: true }));
       flushExit(0);
     }
   } catch { /* 没缓存或坏了 → 正常查 */ }
@@ -167,6 +178,7 @@ try {
 
 emit('track-result', result);
 const ms = Date.now() - started;
+journalJob(result, jobMeta({ ms, cached: false }));
 if (result.ok) {
   if (CACHE_TTL_MS > 0 && !args['no-cache']) {
     try {

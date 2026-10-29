@@ -252,23 +252,62 @@ app.innerHTML = `
   <!-- 报价 tab 容器：内容由 React 子应用挂载（Shadow DOM，样式与主界面隔离） -->
   <div id="viewQuote" class="view" hidden></div>
 
-  <!-- WPS 插件 tab：给 WPS 表格装/更新「船期追踪」加载项（包从 GitHub Release 拉，国内镜像兜底） -->
+  <!-- WPS 插件 tab = 回填工作台（10-29 架构②）：运算与展示在 App；插件只负责读列/发/收/回填。
+       数据全部来自 engine/wps-jobs.mjs（台账 + 插件配置），这一页**只读**，不做导出 CSV。 -->
   <div id="viewWps" class="view" hidden>
-    <section class="formbar" style="align-items:center; gap:12px;">
-      <div class="field" style="min-width:260px;">
-        <label>WPS 加载项 · 船期追踪</label>
-        <div id="wpsState" class="porthint">检查中…</div>
+    <!-- ① 状态条：插件版本 / 桥 / 当前表 / 上次刷新 -->
+    <section class="wpsbar">
+      <div class="wpsbar-row">
+        <span class="wpspill" id="wpsPlug"><span class="wpsdot"></span>插件 · 检查中…</span>
+        <span class="wpspill" id="wpsBridge"><span class="wpsdot"></span>桥 · 检测中…</span>
+        <span class="wpspill" id="wpsCur"><span class="wpsdot"></span>当前表 · —</span>
+        <span class="wpspill" id="wpsLast"><span class="wpsdot"></span>上次刷新 · —</span>
+        <span class="spacer"></span>
+        <button id="wpsReload" class="btn-ghost" title="立即重读台账与插件配置">刷新</button>
+        <button id="wpsInstall" class="btn">安装 / 更新</button>
+        <button id="wpsUninstall" class="btn-ghost">卸载</button>
+        <button id="wpsDir" class="btn-ghost">打开目录</button>
       </div>
-      <button id="wpsInstall" class="btn">安装 / 更新</button>
-      <button id="wpsUninstall" class="btn-ghost">卸载</button>
-      <button id="wpsDir" class="btn-ghost">打开目录</button>
+      <div class="wpshelp">
+        在 WPS 表格里选好列 → 点功能区「ShipTrack」批量查询 → 结果是直接回填进你选的那一列。
+        这一页只做一件事：把这一轮逐行发生了什么搬出来看 —— 谁失败、为什么、该手工还是等重查。
+      </div>
+    </section>
+
+    <div id="wpsWarn" class="wpswarn" hidden></div>
+
+    <!-- ② 待办队列：每张点过③的表一行 -->
+    <section class="wpsblock">
+      <div class="wpshead"><b>待办队列</b><span id="wpsQueueHint" class="porthint"></span></div>
+      <div id="wpsQueue" class="wpsqueue">
+        <div class="wpsempty">还没有批次记录</div>
+      </div>
+    </section>
+
+    <!-- ③ 回填预览 -->
+    <section class="wpsblock grow">
+      <div class="wpshead">
+        <b>回填预览</b>
+        <div class="wpschips" id="wpsChips">
+          <button type="button" class="wpschip active" data-f="all">全部 <i id="wpsNall">0</i></button>
+          <button type="button" class="wpschip" data-f="fail">只看失败 <i id="wpsNfail">0</i></button>
+          <button type="button" class="wpschip" data-f="manual">只看待手工 <i id="wpsNmanual">0</i></button>
+          <button type="button" class="wpschip" data-f="ok">只看成功 <i id="wpsNok">0</i></button>
+        </div>
+        <select id="wpsCarrier" class="wpsselect"><option value="">全部船司</option></select>
+        <input id="wpsSearch" class="wpssearch" placeholder="搜单号 / 失败原因" />
+        <span class="spacer"></span>
+        <button id="wpsCopyAll" class="btn-ghost" title="按当前筛选顺序复制单号（换行分隔）">复制单号</button>
+        <button id="wpsCopyFail" class="btn-ghost" title="只复制失败行的单号">复制失败</button>
+      </div>
+      <div class="wpsbody">
+        <div id="wpsGrid" class="wpsgrid">
+          <div class="wpsempty">还没有查询记录 —— 在 WPS 表格里点一次批量查询，这里就有逐行结果</div>
+        </div>
+        <aside id="wpsDrawer" class="wpsdrawer" hidden></aside>
+      </div>
     </section>
     <div id="wpsLog" class="diagbox" hidden></div>
-    <p class="porthint" style="margin-top:10px;">
-      装好后<b>重启 WPS 表格</b>，功能区出现「ShipTrack」选项卡。<br>
-      包从 GitHub Release 取，国内镜像（ghfast.top → ghproxy.net → gh-proxy.com）自动兜底。<br>
-      macOS 首次安装若提示权限不足：系统设置 → 隐私与安全性 → 完全磁盘访问权限 → 勾选 ShipScheduleHub。
-    </p>
   </div>
 
   <div id="viewSched" class="view">
@@ -1061,30 +1100,379 @@ function detectClient(num) {
 }
 
 
-/* ---------------- WPS 插件（船期追踪加载项）---------------- */
+/* ---------------- WPS 插件 = 回填工作台（10-29 架构②） ----------------
+   分工：**运算与展示在 App，插件只负责读列/发/收/回填**。
+   这一页的数据全部由 engine/wps-jobs.mjs 从两处磁盘事实缝出来：
+     ① 追踪台账 ~/.hermes/wps-shiptrack/jobs/*.ndjson（cli.mjs 每跑完一单追加一行）
+     ② 插件配置 <doc>|<sheet>.json（列映射 + retry 待重查清单，带行号）
+   这里**只读**：不写表、不改配置、不做导出 CSV（爹地 10-29 明确否掉导出）。 */
 let wpsBusy = false;
+let wpsData = null;        // 最近一次工作台快照
+let wpsBatchId = '';       // 预览中的批次
+let wpsFilter = 'all';     // all | fail | manual | ok
+let wpsCarrier = '';
+let wpsQuery = '';
+let wpsOpenKey = '';       // 抽屉里展开的那一条（n + ts）
+let wpsPollTimer = null;
+let wpsLoading = false;
+let wpsErr = '';
+let wpsPlug = null;        // wps_addon status 的最近结果
 
 async function wpsAction(action) {
   const { invoke } = await import('@tauri-apps/api/core');
   return JSON.parse(await invoke('wps_addon', { action }));
 }
 
+// ---------- 小工具 ----------
+const wpsPad = (n) => String(n).padStart(2, '0');
+function wpsTime(ts, withDate) {
+  if (!ts) return '—';
+  const d = new Date(Number(ts));
+  const t = `${wpsPad(d.getHours())}:${wpsPad(d.getMinutes())}`;
+  return withDate ? `${wpsPad(d.getMonth() + 1)}-${wpsPad(d.getDate())} ${t}` : t;
+}
+function wpsDur(ms) {
+  const n = Number(ms) || 0;
+  if (!n) return '—';
+  if (n < 1000) return `${n}ms`;
+  if (n < 60000) return `${(n / 1000).toFixed(1)}s`;
+  return `${Math.floor(n / 60000)}m${wpsPad(Math.round((n % 60000) / 1000))}s`;
+}
+const wpsCN = (id) => TRACK_NAME[id] || String(id || '?').toUpperCase();
+// 失败原因给「人话短句」——爹地看的是这行长什么样，不是英文栈
+function wpsShortFail(it) {
+  const e = String(it.err || '');
+  if (/deadline exceeded|timeout|超时/i.test(e)) return '超时（引擎到点收工）';
+  if (/429|too many|rate.?limit|频繁/i.test(e)) return '被限流（429）';
+  if (/challenge|captcha|人机|验证/i.test(e)) return '撞到人机验证';
+  if (/ERR_CONNECTION|ECONNRESET|ENOTFOUND|EAI_AGAIN|socket hang up/i.test(e)) return '网络没连上';
+  if (/no tracking response|no data|没有数据|未返回/i.test(e)) return '官网没给出行程';
+  if (/cannot tell|unknown-carrier|too short/i.test(e)) return '认不出这家船司';
+  if (/not wired|no-tracker/i.test(e)) return '这家还没接通';
+  return e ? e.slice(0, 60) : '没查到';
+}
+function wpsCopy(text, label) {
+  const s = String(text || '');
+  if (!s) return;
+  const done = () => {
+    const el = document.getElementById('wpsQueueHint');
+    if (!el) return;
+    const old = el.dataset.old || el.textContent;
+    el.dataset.old = old;
+    el.textContent = `已复制 ${label} · ${s.split('\n').length} 行`;
+    setTimeout(() => { if (el.dataset.old) el.textContent = el.dataset.old; }, 2200);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(s).then(done).catch(() => wpsCopyFallback(s, done));
+  } else wpsCopyFallback(s, done);
+}
+function wpsCopyFallback(s, done) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = s;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    done();
+  } catch { /* 复制不了就静默（不是数据问题） */ }
+}
+
+// ---------- 安装状态（原「WPS 插件」tab 的能力，保留）----------
 async function wpsRefresh() {
-  const el = document.getElementById('wpsState');
+  const el = document.getElementById('wpsPlug');
   if (!el) return;
   try {
     const s = await wpsAction('status');
-    if (!s.ok) { el.textContent = '检查失败：' + (s.error || '未知'); return; }
+    wpsPlug = s;
+    if (!s.ok) { wpsPill('wpsPlug', '插件 · 检查失败', 'bad', s.error || '未知'); return; }
     if (!s.installed) {
-      el.textContent = s.latest ? `未安装（最新 v${s.latest}）` : '未安装（拉不到版本清单）';
+      wpsPill('wpsPlug', s.latest ? `插件 · 未安装（最新 v${s.latest}）` : '插件 · 未安装', 'bad');
     } else if (s.updateAvailable) {
-      el.textContent = `已安装 v${s.installed} · 有新版本 v${s.latest}`;
+      wpsPill('wpsPlug', `插件 · v${s.installed}（有新 v${s.latest}）`, 'warn');
     } else {
-      el.textContent = `已安装 v${s.installed} · 已是最新`;
+      wpsPill('wpsPlug', `插件 · v${s.installed}`, 'ok');
     }
   } catch (e) {
-    el.textContent = '检查失败：' + String(e).slice(0, 120);
+    wpsPill('wpsPlug', '插件 · 检查失败', 'bad', String(e).slice(0, 120));
   }
+}
+
+function wpsPill(id, text, tone, title) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'wpspill' + (tone ? ' ' + tone : '');
+  el.textContent = '';
+  const dot = document.createElement('span');
+  dot.className = 'wpsdot';
+  el.appendChild(dot);
+  el.appendChild(document.createTextNode(text));
+  if (title) el.title = String(title);
+  else el.removeAttribute('title');
+}
+
+// ---------- 取数（走 Rust，不在 WebView 里直连桥：tauri:// 的 origin 会被桥 403）----------
+async function wpsLoad() {
+  if (wpsLoading) return;
+  wpsLoading = true;
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    const raw = await invoke('wps_jobs');
+    const d = JSON.parse(raw);
+    if (!d || !d.ok) throw new Error((d && d.error) || '工作台脚本返回 ok:false');
+    wpsData = d;
+    wpsErr = '';
+  } catch (e) {
+    wpsErr = String((e && e.message) || e).slice(0, 300);
+  } finally {
+    wpsLoading = false;
+    wpsRender();
+  }
+}
+
+function wpsStartPolling() {
+  wpsStopPolling();
+  // 3.5 秒：批次跑一轮要几十秒/行，再快只是白烧 node 进程；再慢就看不到「进行中」的动
+  wpsPollTimer = setInterval(() => { if (!document.hidden) wpsLoad(); }, 3500);
+}
+function wpsStopPolling() {
+  if (wpsPollTimer) { clearInterval(wpsPollTimer); wpsPollTimer = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  const vie = document.getElementById('viewWps');
+  if (!document.hidden && vie && !vie.hidden) { wpsLoad(); wpsStartPolling(); }
+  if (document.hidden) wpsStopPolling();
+});
+
+// ---------- 渲染 ----------
+function wpsCurrentBatch() {
+  const bs = (wpsData && wpsData.batches) || [];
+  if (!bs.length) return null;
+  return bs.find((b) => b.id === wpsBatchId) || bs[bs.length - 1];
+}
+
+function wpsRender() {
+  wpsRenderStatus();
+  wpsRenderWarn();
+  wpsRenderQueue();
+  wpsRenderGrid();
+  wpsRenderDrawer();
+}
+
+function wpsRenderStatus() {
+  if (wpsErr) {
+    wpsPill('wpsBridge', '数据读取失败', 'bad', wpsErr);
+  } else if (wpsData) {
+    const b = wpsData.bridge || {};
+    if (b.online) {
+      const busy = Number(b.busy || 0);
+      wpsPill('wpsBridge', `桥 · 在线${busy ? ` · 在跑 ${busy}/${b.concurrency || '?'}` : ' · 空闲'}`, busy ? 'warn' : 'ok', `127.0.0.1:${b.port}`);
+    } else {
+      wpsPill('wpsBridge', '桥 · 未启动', 'bad', b.error || 'WPS 面板没打开 / 桥没起');
+    }
+    const t = wpsData.currentTable;
+    if (t) {
+      wpsPill('wpsCur', `当前表 · ${t.doc || '(未命名)'}${t.sheet ? ' · ' + t.sheet : ''}`, t.ageMin > 180 ? 'warn' : 'ok',
+        `${t.rows || 0} 行 · 配置 ${wpsTime(t.cfgAt, true)}（${t.ageMin} 分钟前）`);
+    } else {
+      wpsPill('wpsCur', '当前表 · 还没在 WPS 里选过列', 'warn');
+    }
+    const last = (wpsData.journal && wpsData.journal.lastTs) || 0;
+    wpsPill('wpsLast', `上次刷新 · ${last ? wpsTime(last, true) : '还没有记录'}`, last ? 'ok' : '');
+    const cur = wpsCurrentBatch();
+    if (!wpsBatchId && cur) wpsBatchId = cur.id;
+  }
+  if (wpsPlug && !wpsErr) { /* 插件 pill 由 wpsRefresh 独立维护 */ }
+}
+
+function wpsRenderWarn() {
+  const box = document.getElementById('wpsWarn');
+  if (!box) return;
+  const ws = (wpsData && wpsData.warnings) || [];
+  if (!ws.length) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  box.innerHTML = ws.map((w) =>
+    `<div class="wpswarn-row">⏳ ${esc(w.text)}</div>`).join('');
+}
+
+function wpsRenderQueue() {
+  const box = document.getElementById('wpsQueue');
+  const hint = document.getElementById('wpsQueueHint');
+  if (!box) return;
+  if (wpsErr) {
+    box.innerHTML = `<div class="wpsempty bad">读不到工作台数据：${esc(wpsErr)}</div>`;
+    if (hint) hint.textContent = '';
+    return;
+  }
+  const d = wpsData || {};
+  const batches = (d.batches || []).filter((b) => b.total > 0).slice().reverse();   // 最新的在最上面（空批次不占位）
+  const tables = (d.tables || []).filter((t) => t.retryCount > 0 || t.ageMin < 720);
+  const cur = wpsCurrentBatch();
+
+  const rows = [];
+  for (const b of batches) {
+    const planned = b.rowsPlanned || b.total || 1;
+    const pct = Math.max(2, Math.min(100, Math.round((b.total / Math.max(planned, 1)) * 100)));
+    const tone = b.fail && !b.ok ? 'bad' : (b.fail ? 'warn' : 'ok');
+    const on = cur && cur.id === b.id;
+    rows.push(`<div class="wpsq${on ? ' on' : ''}" data-batch="${esc(b.id)}">
+      <span class="wpsq-dot ${tone}"></span>
+      <span class="wpsq-label" title="${esc(b.label)}">${esc(b.label)}</span>
+      <span class="wpsq-time">${wpsTime(b.startedAt)}${b.ms > 60000 ? ' → ' + wpsTime(b.endedAt) : ''}</span>
+      <span class="wpsq-bar"><i class="${tone}" style="width:${pct}%"></i></span>
+      <span class="wpsq-num">${b.total}/${planned}</span>
+      <span class="wpsq-stat"><b class="ok">成功 ${b.ok}</b> · <b class="${b.fail ? 'bad' : ''}">失败 ${b.fail}</b>${b.manual ? ` · <b class="warn">待手工 ${b.manual}</b>` : ''}${b.throttled ? ` · <b class="bad">限流 ${b.throttled}</b>` : ''}${b.cached ? ` · <span class="dim">缓存 ${b.cached}</span>` : ''}</span>
+      <button type="button" class="wpsq-btn" data-batch="${esc(b.id)}">${on ? '正在看' : '查看'}</button>
+    </div>`);
+  }
+
+  // 待重查（插件 retry 队列）：这是「下次只补失败」的可视化，直接读插件配置
+  const retries = tables.filter((t) => t.retryCount > 0);
+  if (retries.length) {
+    rows.push(`<div class="wpsq-sep">待重查（插件已排好，到点自动只补这些行）</div>`);
+    for (const t of retries) {
+      const due = t.retryDueAt ? wpsTime(t.retryDueAt, true) : '—';
+      const rowsTxt = t.retry.slice(0, 6).map((x) => `R${x.row}`).join('、') + (t.retry.length > 6 ? ' …' : '');
+      rows.push(`<div class="wpsq retry">
+        <span class="wpsq-dot warn"></span>
+        <span class="wpsq-label" title="${esc(t.doc)}">${esc(t.doc || '(未命名)')}${t.sheet ? ' · ' + esc(t.sheet) : ''}</span>
+        <span class="wpsq-time">${due} 到点</span>
+        <span class="wpsq-bar"><i class="warn" style="width:${Math.min(100, Math.round(t.retryCount / Math.max(t.rows || t.retryCount, 1) * 100))}%"></i></span>
+        <span class="wpsq-num">${t.retryCount}/${t.rows || '?'}</span>
+        <span class="wpsq-stat">行 ${esc(rowsTxt)}</span>
+        <button type="button" class="wpsq-btn copy-retry" data-key="${esc(t.key)}">复制单号</button>
+      </div>`);
+    }
+  }
+
+  if (!rows.length) {
+    box.innerHTML = `<div class="wpsempty">还没有批次记录 —— 在 WPS 表格里点一次批量查询，这里就能看到这张表的逐行进度</div>`;
+  } else {
+    box.innerHTML = rows.join('');
+  }
+  if (hint) {
+    const n = (d.batches || []).length;
+    hint.textContent = n ? `最近 ${n} 批 · 每 3.5 秒自动刷新` : '';
+  }
+}
+
+function wpsFilteredItems() {
+  const b = wpsCurrentBatch();
+  if (!b) return [];
+  const q = wpsQuery.trim().toLowerCase();
+  return b.items.filter((it) => {
+    if (wpsFilter === 'fail' && it.ok) return false;
+    if (wpsFilter === 'ok' && !it.ok) return false;
+    if (wpsFilter === 'manual' && (it.ok || !it.url)) return false;
+    if (wpsCarrier && it.c !== wpsCarrier) return false;
+    if (q) {
+      const hay = `${it.n} ${it.c} ${it.err} ${it.cur} ${it.phase}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function wpsStatusBadge(it) {
+  if (it.ok) return `<span class="wpsb ok">成功</span>`;
+  if (it.throttle) return `<span class="wpsb bad">限流</span>`;
+  if (it.url) return `<span class="wpsb warn">待手工</span>`;
+  return `<span class="wpsb bad">失败</span>`;
+}
+
+function wpsRenderGrid() {
+  const box = document.getElementById('wpsGrid');
+  if (!box) return;
+  const b = wpsCurrentBatch();
+  const sel = document.getElementById('wpsCarrier');
+  // 船司下拉：按当前批次里出现过的船司重建（不预设，爹地要什么自己筛）
+  if (sel) {
+    const cur = (b && Object.keys(b.byCarrier || {})) || [];
+    const keep = sel.value;
+    const opts = ['<option value="">全部船司</option>'].concat(
+      cur.sort().map((c) => `<option value="${esc(c)}">${esc(wpsCN(c))}</option>`));
+    sel.innerHTML = opts.join('');
+    sel.value = cur.includes(keep) ? keep : '';
+    wpsCarrier = sel.value;
+  }
+  const setN = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = String(n); };
+  if (!b) {
+    setN('wpsNall', 0); setN('wpsNfail', 0); setN('wpsNmanual', 0); setN('wpsNok', 0);
+    if (!wpsErr) box.innerHTML = `<div class="wpsempty">还没有查询记录 —— 在 WPS 表格里点一次批量查询，这里就有逐行结果</div>`;
+    return;
+  }
+  setN('wpsNall', b.total);
+  setN('wpsNfail', b.fail);
+  setN('wpsNmanual', b.manual);
+  setN('wpsNok', b.ok);
+
+  const items = wpsFilteredItems();
+  if (!items.length) {
+    box.innerHTML = `<div class="wpsempty">这个筛选下没有行（共 ${b.total} 条，换一个筛选看看）</div>`;
+    return;
+  }
+  const head = `<div class="wpsrow head">
+      <span class="c-row">行</span><span class="c-num">单号</span><span class="c-c">船司</span>
+      <span class="c-st">状态</span><span class="c-txt">短结论</span>
+      <span class="c-ev">事件</span><span class="c-ms">耗时</span><span class="c-ts">时间</span>
+    </div>`;
+  const body = items.map((it) => {
+    const key = `${it.n}|${it.ts}`;
+    const on = key === wpsOpenKey;
+    const txt = it.ok
+      ? `${it.cur || it.phase || '已查到'}${it.curc ? ' @ ' + it.curc : ''}`
+      : wpsShortFail(it);
+    return `<div class="wpsrow${on ? ' on' : ''}${it.ok ? '' : ' bad'}${it.throttle ? ' hot' : ''}" data-key="${esc(key)}" role="button" tabindex="0">
+      <span class="c-row">${it.row || '—'}</span>
+      <span class="c-num">${esc(it.n)}</span>
+      <span class="c-c">${esc(wpsCN(it.c))}</span>
+      <span class="c-st">${wpsStatusBadge(it)}</span>
+      <span class="c-txt" title="${esc(txt)}">${esc(txt)}</span>
+      <span class="c-ev">${it.evc || 0}</span>
+      <span class="c-ms">${it.cached ? '缓存' : wpsDur(it.ms)}</span>
+      <span class="c-ts">${wpsTime(it.ts)}</span>
+    </div>`;
+  }).join('');
+  box.innerHTML = head + body;
+}
+
+function wpsFindOpenItem() {
+  const b = wpsCurrentBatch();
+  if (!b || !wpsOpenKey) return null;
+  return b.items.find((it) => `${it.n}|${it.ts}` === wpsOpenKey) || null;
+}
+
+function wpsRenderDrawer() {
+  const box = document.getElementById('wpsDrawer');
+  if (!box) return;
+  const it = wpsFindOpenItem();
+  if (!it) { box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  const evs = (it.events || []).slice().map((e) => {
+    const est = Number(e.x) === 1;
+    return `<div class="tev${est ? ' est' : ''}${Number(e.m) === 1 ? ' manual' : ''}">
+      <span class="d">${fmtDay(e.t)}</span><span class="a">${esc(e.a)}</span>
+      <span class="l">${esc(e.c || '')}${e.v ? ' · ' + esc(e.v) + (e.y ? ' ' + esc(e.y) : '') : ''}${e.k ? ' · ' + esc(e.k) : ''}</span></div>`;
+  }).join('');
+  const head = it.ok
+    ? `<div class="wpsd-main">${esc(it.cur || it.phase || '已查到')}</div>
+       <div class="wpsd-sub">${it.curc ? esc(it.curc) + ' · ' : ''}${it.curt ? '更新于 ' + esc(it.curt) : ''}${it.etat ? ' · ETA ' + fmtDay(it.etat) + ' ' + esc(it.etac || '') : ''}</div>`
+    : `<div class="wpsd-main bad">${esc(wpsShortFail(it))}</div>
+       <div class="wpsd-sub">${esc(String(it.err || '').slice(0, 220))}</div>`;
+  box.innerHTML = `
+    <div class="wpsd-head">
+      <span class="wpspill">${esc(wpsCN(it.c))} · ${esc(it.n)}${it.row ? ' · 第 ' + it.row + ' 行' : ''}</span>
+      <span class="spacer"></span>
+      <button type="button" class="btn-ghost wpsd-copy">复制单号</button>
+      <button type="button" class="btn-ghost wpsd-close" title="收起">✕</button>
+    </div>
+    ${head}
+    <div class="wpsd-meta">${it.cached ? '缓存命中 · ' : ''}耗时 ${wpsDur(it.ms)} · 事件 ${it.evc || 0} 条 · 查询 ${wpsTime(it.ts, true)}</div>
+    ${it.url ? `<a class="wpsd-link" href="${esc(it.url)}" target="_blank" rel="noreferrer">打开官网手工查 ↗</a>` : ''}
+    <div class="wpsd-evs">${evs || `<div class="wpsd-none">这条没有事件可看 —— ${it.ok ? '官网只给了当前状态' : '查询没走到「拿到行程」这一步'}。<br>${it.url ? '要细看就点上面「打开官网手工查」，查到的整段粘回 WPS 面板就行。' : '等插件到点自动重查，或换这家再点一次。'}</div>`}</div>`;
+  box.querySelector('.wpsd-close')?.addEventListener('click', () => { wpsOpenKey = ''; wpsRenderDrawer(); wpsRenderGrid(); });
+  box.querySelector('.wpsd-copy')?.addEventListener('click', () => wpsCopy(it.n, '单号'));
 }
 
 async function wpsRun(action, label) {
@@ -1093,10 +1481,9 @@ async function wpsRun(action, label) {
   const btnI = document.getElementById('wpsInstall');
   const btnU = document.getElementById('wpsUninstall');
   const log = document.getElementById('wpsLog');
-  const el = document.getElementById('wpsState');
   if (btnI) btnI.disabled = true;
   if (btnU) btnU.disabled = true;
-  if (el) el.textContent = label + '中…';
+  wpsPill('wpsPlug', `插件 · ${label}中…`, 'warn');
   try {
     const r = await wpsAction(action);
     if (log) {
@@ -1104,16 +1491,16 @@ async function wpsRun(action, label) {
       log.textContent = JSON.stringify(r, null, 1);
     }
     if (!r.ok) {
-      if (el) el.textContent = label + '失败：' + String(r.error || '').slice(0, 160);
+      wpsPill('wpsPlug', `插件 · ${label}失败`, 'bad', String(r.error || '').slice(0, 160));
     } else if (r.action === 'noop') {
-      if (el) el.textContent = r.message || '已是最新';
+      wpsPill('wpsPlug', '插件 · ' + (r.message || '已是最新'), 'ok');
     } else if (action === 'install') {
-      if (el) el.textContent = `已装好 v${r.to} —— 请重启 WPS 表格生效`;
+      wpsPill('wpsPlug', `插件 · v${r.to}（重启 WPS 表格生效）`, 'warn');
     } else {
-      if (el) el.textContent = '已卸载 —— 重启 WPS 生效';
+      wpsPill('wpsPlug', '插件 · 已卸载（重启 WPS 生效）', 'warn');
     }
   } catch (e) {
-    if (el) el.textContent = label + '失败：' + String(e).slice(0, 160);
+    wpsPill('wpsPlug', `插件 · ${label}失败`, 'bad', String(e).slice(0, 160));
   } finally {
     wpsBusy = false;
     if (btnI) btnI.disabled = false;
@@ -1131,7 +1518,7 @@ function switchView(v) {
   if (vt) vt.hidden = v !== 'track';
   if (vq) vq.hidden = v !== 'quote';
   if (vw) vw.hidden = v !== 'wps';
-  if (v === 'wps') wpsRefresh();
+  if (v === 'wps') { wpsRefresh(); wpsLoad(); wpsStartPolling(); } else { wpsStopPolling(); }
   document.querySelectorAll('#tabs .tab').forEach((b) => b.classList.toggle('active', b.dataset.v === v));
   // 报价 tab：首次点开才加载 React 子应用（单独 chunk，不拖慢主界面启动）
   if (v === 'quote') mountQuoteTabLazy();
@@ -1624,6 +2011,82 @@ document.getElementById('btnTrackStop')?.addEventListener('click', async () => {
 
   setTimeout(() => runUpdateCheck({ manual: false }), 5000);
   document.getElementById('btnCheckUpdate')?.addEventListener('click', () => runUpdateCheck({ manual: true }));
+  // ---------- WPS 回填工作台：筛选 / 批次切换 / 时间线 / 复制（10-29 架构②）----------
+  document.getElementById('wpsReload')?.addEventListener('click', () => { wpsRefresh(); wpsLoad(); });
+
+  document.getElementById('wpsChips')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-f]');
+    if (!b) return;
+    wpsFilter = b.dataset.f;
+    document.querySelectorAll('#wpsChips .wpschip').forEach((x) => x.classList.toggle('active', x === b));
+    wpsRenderGrid();
+  });
+
+  document.getElementById('wpsCarrier')?.addEventListener('change', (e) => {
+    wpsCarrier = e.target.value || '';
+    wpsRenderGrid();
+  });
+
+  let wpsSearchTimer = null;
+  document.getElementById('wpsSearch')?.addEventListener('input', (e) => {
+    const v = e.target.value || '';
+    clearTimeout(wpsSearchTimer);
+    wpsSearchTimer = setTimeout(() => { wpsQuery = v; wpsRenderGrid(); }, 180);
+  });
+
+  document.getElementById('wpsQueue')?.addEventListener('click', (e) => {
+    const copyRetry = e.target.closest('.copy-retry');
+    if (copyRetry) {
+      const key = copyRetry.dataset.key;
+      const t = ((wpsData && wpsData.tables) || []).find((x) => x.key === key);
+      if (t) wpsCopy(t.retry.map((x) => x.n).join('\n'), '待重查单号');
+      return;
+    }
+    const hit = e.target.closest('[data-batch]');
+    if (!hit) return;
+    wpsBatchId = hit.dataset.batch;
+    wpsOpenKey = '';
+    wpsRenderQueue();
+    wpsRenderGrid();
+    wpsRenderDrawer();
+  });
+  document.getElementById('wpsQueue')?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const hit = e.target.closest('[data-batch]');
+    if (!hit) return;
+    e.preventDefault();
+    wpsBatchId = hit.dataset.batch;
+    wpsOpenKey = '';
+    wpsRenderQueue(); wpsRenderGrid(); wpsRenderDrawer();
+  });
+
+  document.getElementById('wpsGrid')?.addEventListener('click', (e) => {
+    const row = e.target.closest('[data-key]');
+    if (!row) return;
+    wpsOpenKey = row.dataset.key === wpsOpenKey ? '' : row.dataset.key;
+    wpsRenderGrid();
+    wpsRenderDrawer();
+  });
+  document.getElementById('wpsGrid')?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const row = e.target.closest('[data-key]');
+    if (!row) return;
+    e.preventDefault();
+    wpsOpenKey = row.dataset.key === wpsOpenKey ? '' : row.dataset.key;
+    wpsRenderGrid();
+    wpsRenderDrawer();
+  });
+
+  document.getElementById('wpsCopyAll')?.addEventListener('click', () => {
+    wpsCopy(wpsFilteredItems().map((it) => it.n).join('\n'), '单号');
+  });
+  document.getElementById('wpsCopyFail')?.addEventListener('click', () => {
+    const b = wpsCurrentBatch();
+    const fails = ((b && b.items) || []).filter((it) => !it.ok).map((it) => it.n);
+    if (!fails.length) { wpsCopy('', ''); toast('这一批没有失败行'); return; }
+    wpsCopy(fails.join('\n'), '失败单号');
+  });
+
   document.getElementById('wpsInstall')?.addEventListener('click', () => wpsRun('install', '安装'));
   document.getElementById('wpsUninstall')?.addEventListener('click', () => {
     if (!window.confirm('确定卸载 WPS 里的「船期追踪」加载项？卸载后要重新安装才能用。')) return;

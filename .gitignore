@@ -17,6 +17,7 @@ __pycache__/
 venv/
 engine/node-bin/
 .qa-data/
+.worktrees/
 
 # 截图一律不入库（10-13：桌面截图会带出微信/邮件等私人信息，公开前已从历史清除）
 docs/**/*.png

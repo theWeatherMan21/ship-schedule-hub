@@ -661,3 +661,150 @@ html[data-theme="dark"] .update-bar, html[data-mode="dark"] .update-bar {
 .mfparse:hover { background: color-mix(in srgb, var(--warn) 10%, var(--panel)); }
 .mfnote { font-size: 11.5px; color: var(--ink-3); }
 .mraw { margin: 8px 0 0; padding: 9px 11px; font-family: var(--mono); font-size: 11.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: var(--ink-2); background: var(--bg); border-radius: 8px; max-height: 220px; overflow: auto; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   WPS 回填工作台（10-29 架构②）
+   三块：状态条 → 待办队列 → 回填预览（表 + 右侧时间线抽屉）。
+   原则：这是一张**账**，不是仪表盘 —— 数字要能对得上，颜色只用来分「成功/失败/限流」。
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ---------- ① 状态条 ---------- */
+.wpsbar { flex-shrink: 0; padding: 10px 16px 8px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.wpsbar-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wpsbar-row .spacer { flex: 1; }
+.wpsbar-row .btn, .wpsbar-row .btn-ghost { margin-top: 0; }
+.wpspill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; color: var(--ink-2);
+  background: var(--line-soft); box-shadow: inset 0 0 0 1px var(--line);
+  max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wpspill .wpsdot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); flex: 0 0 auto; }
+.wpspill.ok { color: var(--ok); background: var(--ok-bg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 28%, transparent); }
+.wpspill.ok .wpsdot { background: var(--ok); }
+.wpspill.warn { color: var(--warn); background: var(--warn-bg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 30%, transparent); }
+.wpspill.warn .wpsdot { background: var(--warn); }
+.wpspill.bad { color: var(--err); background: var(--err-bg); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--err) 28%, transparent); }
+.wpspill.bad .wpsdot { background: var(--err); }
+.wpshelp { margin-top: 8px; font-size: 11.5px; line-height: 1.6; color: var(--ink-3); }
+
+.wpswarn { flex-shrink: 0; padding: 8px 16px; background: var(--err-bg); border-bottom: 1px solid color-mix(in srgb, var(--err) 22%, transparent); }
+.wpswarn-row { font-size: 12.5px; font-weight: 650; color: var(--err); }
+.wpswarn-row + .wpswarn-row { margin-top: 3px; }
+
+/* ---------- ② 待办队列 ---------- */
+.wpsblock { flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; border-bottom: 1px solid var(--line); background: var(--bg); }
+.wpsblock.grow { flex: 1; border-bottom: none; }
+.wpshead { display: flex; align-items: center; gap: 8px; padding: 9px 16px 7px; flex-shrink: 0; flex-wrap: wrap; }
+.wpshead b { font-size: 13.5px; font-weight: 700; letter-spacing: -.2px; }
+.wpshead .spacer { flex: 1; }
+.wpshead .porthint { margin-top: 0; }
+.wpsqueue { max-height: 168px; overflow-y: auto; padding: 0 16px 10px; }
+
+.wpsq {
+  display: grid;
+  grid-template-columns: 10px minmax(160px, 240px) 108px 92px 76px 1fr auto;
+  align-items: center; gap: 10px;
+  padding: 7px 10px; margin-bottom: 5px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 9px;
+  cursor: pointer; font-size: 12px;
+}
+.wpsq:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.wpsq.on { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 15%, transparent); }
+.wpsq.retry { cursor: default; background: color-mix(in srgb, var(--warn) 4%, var(--panel)); }
+.wpsq-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ink-3); }
+.wpsq-dot.ok { background: var(--ok); }
+.wpsq-dot.warn { background: var(--warn); }
+.wpsq-dot.bad { background: var(--err); }
+.wpsq-label { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wpsd-link { display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--accent); text-decoration: none; padding: 4px 10px; border-radius: 7px; border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); }
+.wpsd-link:hover { background: color-mix(in srgb, var(--accent) 8%, var(--panel)); }
+.wpsq-time { color: var(--ink-3); font-variant-numeric: tabular-nums; font-size: 11.5px; }
+.wpsq-bar { height: 6px; border-radius: 4px; background: var(--line-soft); overflow: hidden; }
+.wpsq-bar i { display: block; height: 100%; background: var(--ok); transition: width .3s ease; }
+.wpsq-bar i.warn { background: var(--warn); }
+.wpsq-bar i.bad { background: var(--err); }
+.wpsq-num { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.wpsq-stat { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wpsq-stat b { font-weight: 650; }
+.wpsq-stat b.ok { color: var(--ok); }
+.wpsq-stat b.warn { color: var(--warn); }
+.wpsq-stat b.bad { color: var(--err); }
+.wpsq-stat .dim { color: var(--ink-3); }
+.wpsq-btn {
+  font: inherit; font-size: 11.5px; font-weight: 650; padding: 3px 10px;
+  border-radius: 7px; border: 1px solid var(--line); background: var(--panel);
+  color: var(--ink-2); cursor: pointer;
+}
+.wpsq-btn:hover { color: var(--accent); border-color: var(--accent); }
+.wpsq-sep { margin: 8px 0 6px; font-size: 11px; font-weight: 700; color: var(--warn); letter-spacing: .2px; }
+
+/* ---------- ③ 回填预览 ---------- */
+.wpschips { display: flex; gap: 5px; }
+.wpschip {
+  font: inherit; font-size: 11.5px; font-weight: 650; padding: 3px 10px;
+  border-radius: 999px; border: 1px solid var(--line); background: var(--panel);
+  color: var(--ink-2); cursor: pointer;
+}
+.wpschip i { font-style: normal; color: var(--ink-3); margin-left: 2px; font-variant-numeric: tabular-nums; }
+.wpschip:hover { border-color: var(--accent); color: var(--accent); }
+.wpschip.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.wpschip.active i { color: color-mix(in srgb, var(--accent-ink) 75%, transparent); }
+.wpsselect, .wpssearch {
+  font: inherit; font-size: 12px; color: var(--ink);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  padding: 4px 8px; outline: none;
+}
+.wpssearch { width: 160px; }
+.wpsselect:focus, .wpssearch:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
+
+.wpsbody { flex: 1; display: flex; min-height: 0; }
+.wpsgrid { flex: 1; overflow-y: auto; padding: 0 16px 16px; min-width: 0; }
+.wpsrow {
+  display: grid;
+  grid-template-columns: 46px minmax(120px, 180px) 92px 68px minmax(180px, 1fr) 46px 66px 58px;
+  align-items: center; gap: 8px;
+  padding: 6px 10px; font-size: 12px;
+  border-bottom: 1px solid var(--line-soft);
+  cursor: pointer;
+}
+.wpsrow:hover { background: var(--panel); }
+.wpsrow.on { background: color-mix(in srgb, var(--accent) 8%, var(--panel)); box-shadow: inset 3px 0 0 var(--accent); }
+.wpsrow.bad .c-txt { color: var(--err); }
+.wpsrow.hot { background: color-mix(in srgb, var(--err) 5%, transparent); }
+.wpsrow.head {
+  position: sticky; top: 0; z-index: 2;
+  font-size: 11px; font-weight: 700; color: var(--ink-3);
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  cursor: default; padding-top: 8px; padding-bottom: 6px;
+}
+.wpsrow.head:hover { background: var(--bg); }
+.wpsrow .c-row { color: var(--ink-3); font-family: var(--mono); font-size: 11px; text-align: right; }
+.wpsrow .c-num { font-family: var(--mono); font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wpsrow .c-c { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wpsrow .c-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wpsrow .c-ev, .wpsrow .c-ms, .wpsrow .c-ts { color: var(--ink-3); font-variant-numeric: tabular-nums; font-size: 11.5px; text-align: right; }
+.wpsb { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+.wpsb.ok { color: var(--ok); background: var(--ok-bg); }
+.wpsb.warn { color: var(--warn); background: var(--warn-bg); }
+.wpsb.bad { color: var(--err); background: var(--err-bg); }
+.wpsempty { padding: 22px 16px; color: var(--ink-3); font-size: 12.5px; text-align: center; }
+.wpsempty.bad { color: var(--err); }
+
+/* 右侧时间线抽屉 */
+.wpsdrawer {
+  width: 380px; flex: 0 0 380px; min-width: 0;
+  border-left: 1px solid var(--line); background: var(--panel);
+  padding: 12px 14px 18px; overflow-y: auto;
+}
+.wpsd-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.wpsd-head .spacer { flex: 1; }
+.wpsd-head .btn-ghost { font-size: 11.5px; padding: 3px 9px; }
+.wpsd-main { font-size: 14px; font-weight: 700; line-height: 1.4; }
+.wpsd-main.bad { color: var(--err); }
+.wpsd-sub { font-size: 12px; color: var(--ink-2); margin-top: 4px; word-break: break-word; }
+.wpsd-meta { font-size: 11.5px; color: var(--ink-3); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.wpsd-evs { margin-top: 10px; border-top: 1px dashed var(--line-soft); padding-top: 4px; }
+.wpsd-none { font-size: 12px; color: var(--ink-3); padding: 12px 0; }
+.wpsdrawer .tev .a { min-width: 118px; }
