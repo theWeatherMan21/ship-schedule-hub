@@ -32,6 +32,24 @@ export const DATA_DIR = process.env.SSH_DATA_DIR || (process.platform === 'win32
   : path.join(os.homedir(), 'Library', 'Application Support', 'ShipScheduleHub'));
 export const PROFILE_DIR = process.env.SSH_PROFILE_DIR || path.join(DATA_DIR, 'browser-profile');
 
+// ---------- 临时目录自愈（Windows 审查 W-1 的引擎侧收口）----------
+// TEMP 指向不存在/不可写的目录时，Playwright 的 mkdtemp 会 ENOENT/EACCES → 浏览器类船司全灭，
+// 而 UI 只显示「查询中」（静默失败）。这里在任何浏览器启动之前把 TEMP/TMP/TMPDIR 钉到
+// 「真的能写」的目录（顺序见 lib/tmpdir.mjs），全部不可用就抛可读错误 —— 宁可当场报错，
+// 也不许拿着死 TEMP 去上班。三个入口（船期 query / 追踪 cli / 报价 quote-etd）都 import 本文件，
+// 所以这一处就覆盖全部路径。
+import { ensureTmpDir } from './lib/tmpdir.mjs';
+export const TMP_INFO = (() => {
+  try {
+    return ensureTmpDir({ dataDir: DATA_DIR, log: (m) => console.error(m) });
+  } catch (e) {
+    // 到这一步说明系统真的没有可写临时目录：给出可读文案并让引擎立即失败（不许静默挂起）
+    console.error(`[engine] ${e.message}`);
+    console.log(JSON.stringify({ type: 'engine-error', code: 'no-tmpdir', msg: e.message }));
+    process.exit(1);
+  }
+})();
+
 // 无头 UA 与「真机已装 Chrome」版本对齐（CF 的 cf_clearance 等凭证绑定 UA；
 // 写死版本会在 Chrome 升级后漂移导致凭证失效——2026-10-12 Hapag 有头过盾后无头复用失败即此因）。
 // ★ 10-14 审阅 P2：UA 解析搬到 lib/ua.mjs —— 全项目（浏览器 / fastpath / 追踪适配器）单一来源。

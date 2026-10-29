@@ -51,13 +51,19 @@ if (process.argv.includes('--diagnose')) {
   // （前导斜杠 + 空格被百分号编码）→ 所有派生路径全废（ports.db 判成缺失、装在带空格的
   // Program Files 下必现）。真机实测（婉宜 10-08）。其它模块一直用的是 fileURLToPath，就这里漏了。
   const ROOT = path.dirname(fileURLToPath(import.meta.url));
+  const bm = await import('./browser.mjs');
+  const { probeDir } = await import('./lib/tmpdir.mjs');
   const info = {
     platform: process.platform,
     arch: process.arch,
     node: process.version,
     execPath: process.execPath,
-    dataDir: (await import('./browser.mjs')).DATA_DIR,
-    tmpdir: os.tmpdir(),
+    dataDir: bm.DATA_DIR,
+    // 10-15 审查 W-1：TEMP 必须「实际值 + 是否可写」一起报，否则「查询毫无反应」查不出因
+    tmpdir: (bm.TMP_INFO && bm.TMP_INFO.dir) || os.tmpdir(),
+    tmpdirSource: (bm.TMP_INFO && bm.TMP_INFO.source) || 'unknown',
+    tmpdirWritable: (probeDir((bm.TMP_INFO && bm.TMP_INFO.dir) || os.tmpdir()).ok ? 'ok' : '不可写'),
+    tmpdirTried: ((bm.TMP_INFO && bm.TMP_INFO.tried) || []).map((t) => `${t.source}=${t.dir}${t.ok ? ' ✓' : ' ✗ ' + (t.error || '')}`),
     cwd: process.cwd(),
     engineDir: ROOT,
     portsDb: null,
