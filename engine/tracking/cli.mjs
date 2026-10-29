@@ -148,6 +148,14 @@ try {
     new Promise((_, rej) => { const t = setTimeout(() => rej(new Error(`track deadline exceeded (${deadlineMs}ms)`)), deadlineMs); if (t.unref) t.unref(); }),
   ]);
   result = normalizeTracking({ ...(r || {}), carrier: (r && r.carrier) || carrier, number: (r && r.number) || number });
+  // ★ 10-29：适配器「跑了但没结果」（查无此号/限流/被拦）时 normalize 会丢掉 manualUrl，
+  //   前端「查到→手工兜底」那条路就断了。这里补回：任何 ok:false 都要能点开官网页。
+  if (result && !result.ok) {
+    result.manualUrl = manualUrlOf(carrier);
+    result.manualLabel = CARRIER_LABELS[carrier] || carrier;
+    if (r && r.errorKind) result.errorKind = r.errorKind;
+    if (r && r.notFound) result.notFound = true;
+  }
 } catch (e) {
   result = {
     ok: false, carrier, number,
