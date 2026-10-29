@@ -114,7 +114,8 @@ const probe = await page.evaluate(() => {
     overflowY: document.documentElement.scrollHeight - window.innerHeight,
   };
 });
-const shotFull = await shot('01-queue');
+// 空模式别用 01 这个文件名 —— 会覆盖满数据那组图，下次看证据就分不清哪张是哪种状态了
+const shotFull = await shot(MODE === 'empty' ? '05-empty-queue' : '01-queue');
 
 if (MODE === 'empty') {
   // 爹地第一次打开时的样子：还没有任何台账 → 队列/预览都得有一句人话，不能白屏
